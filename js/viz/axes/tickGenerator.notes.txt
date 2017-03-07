@@ -1,0 +1,22 @@
+TODO
+
+minor ticks for log (make it denser)
+
+showCalculatedTicks - deprecated in 15.2
+
+remove _correctBusinessRange
+
+stick
+
+make option minorGridSpacingFactor
+
+
+NOTES
+gridSpacingFactor shoould be passed to tickGenerator, there is no default value
+tickGenerator would not accept gridSpacingFactor <= 0
+tickGenerator would not accept tickInterval <= 0
+
+showCustomBoundaryTicks option in RangeSelector (and internal use in Polar chart) is passed tickManager as addMinMax and tickManager generates boundary ticks
+This will not be included in tickGenerator and should be processed on Axis level
+
+No margins
