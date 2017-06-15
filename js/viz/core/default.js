@@ -1457,6 +1457,95 @@ registerTheme({
                 alignment: RIGHT
             }
         }
+    },
+    funnel: {
+        sortData: true,
+        valueField: "value",
+        colorField: "color",
+        argumentField: "argument",
+        hoverEnabled: true,
+        selectionMode: "single",
+        item: {
+            border: {
+                width: 0
+            },
+            hoverStyle: {
+                hatching: {
+                    opacity: 0.75,
+                    step: 6,
+                    width: 2,
+                    direction: RIGHT
+                },
+                border: {
+                    width: 0
+                }
+            },
+            selectionStyle: {
+                hatching: {
+                    opacity: 0.5,
+                    step: 6,
+                    width: 2,
+                    direction: RIGHT
+                },
+                border: {
+                    width: 0
+                }
+            },
+            label: {
+                visible: true,
+                font: {
+                    color: "#ffffff",
+                    weight: 300
+                },
+                border: {
+                    width: 0
+                },
+                position: INSIDE
+            },
+            selectionMode: "single"
+        },
+        dataPrepareSettings: {
+            sortingMethod: true
+        },
+        title: {
+            margin: 10
+        },
+        adaptiveLayout: {
+            width: 80,
+            height: 80,
+            keepLabels: true
+        },
+        _rtl: {
+            legend: {
+                itemTextPosition: LEFT
+            }
+        },
+        inverted: false,
+        algorithm: "dynamicSlope",
+        neckWidth: 0,
+        neckHeight: 0,
+        label: {
+            visible: false,
+            horizontalAlignment: RIGHT,
+            horizontalOffset: 0,
+            verticalOffset: 0,
+            showForZeroValues: true,
+            customizeText: undefined,
+            position: INSIDE,
+            font: {
+                color: WHITE
+            },
+            border: {
+                visible: false,
+                width: 1,
+                color: LIGHT_GREY,
+                dashStyle: SOLID
+            },
+            connector: {
+                visible: false,
+                width: 1
+            }
+        }
     }
 });
 
@@ -1644,6 +1733,9 @@ registerTheme({
     },
     bullet: {
         targetColor: TARGET_COLOR
+    },
+    funnel: {
+
     }
 }, "generic.light");
 
@@ -1909,6 +2001,9 @@ registerTheme({
     polar: {
         commonSeriesSettings: {
         }
+    },
+    funnel: {
+
     }
 }, "generic.light");
 

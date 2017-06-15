@@ -154,6 +154,7 @@ function Label(renderSettings) {
     this._renderer = renderSettings.renderer;
     this._container = renderSettings.labelsGroup;
     this._point = renderSettings.point;
+    this._strategy = renderSettings.strategy;
 }
 
 Label.prototype = {
@@ -178,7 +179,7 @@ Label.prototype = {
     show: function() {
         var that = this;
         if(that._point.hasValue()) {
-            that._draw();
+            that.draw();
             that._point.correctLabelPosition(that);
         }
     },
@@ -219,7 +220,7 @@ Label.prototype = {
         that._data = that._options = that._textContent = that._visible = that._insideGroup = that._text = that._background = that._connector = that._figure = null;
     },
 
-    _draw: function() {
+    draw: function() {
         var that = this,
             renderer = that._renderer,
             container = that._container,
@@ -283,7 +284,7 @@ Label.prototype = {
     _getConnectorPoints: function() {
         var that = this,
             figure = that._figure,
-            strategy = selectStrategy(figure),
+            strategy = that._strategy || selectStrategy(figure),
             bBox = that.getBoundingRect(),
             labelPoint,
             figurePoint,

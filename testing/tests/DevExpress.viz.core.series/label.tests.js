@@ -35,7 +35,7 @@ var environment = {
         return label;
     },
     createAndDrawLabel: function() {
-        return this.createLabel()._draw();
+        return this.createLabel().draw();
     },
     getConnectorElement: function() {
         return this.renderer.path.returnValues[0];
@@ -53,7 +53,7 @@ var environment = {
         } else {
             this.renderer.bBoxTemplate = BBox;
         }
-        label._draw();
+        label.draw();
         label.setFigureToDrawConnector(figure);
         return label;
     }
@@ -570,6 +570,40 @@ QUnit.test("Drawn connector to label with odd side", function(assert) {
     label.shift(181, 15);
 
     assert.deepEqual(label._connector._stored_settings.points, [218, 70, 218, 35]);
+});
+
+QUnit.test("Use external connector strategy", function(assert) {
+    this.options.background.fill = "none";
+
+    var label = new labelModule.Label({
+        renderer: this.renderer,
+        point: this.point,
+        labelsGroup: this.group,
+        strategy: {
+            isLabelInside: function(labelPoint, figure) {
+                return false;
+            },
+            getFigureCenter: function() {
+                return [0, 0];
+            },
+            prepareLabelPoints: function(points) {
+                return points;
+            },
+
+            findFigurePoint: function(figure, labelPoint) {
+                return [10, 10];
+            }
+        }
+    });
+    label.setOptions(this.options);
+    label.setData(this.data.formatObject);
+
+    label.draw();
+
+    label.setFigureToDrawConnector({ x: 100, y: 100, width: 0, height: 0 });
+    label.shift(100, 50);
+
+    assert.deepEqual(this.getConnectorElement()._stored_settings.points, [10, 10, 100, 55]);
 });
 
 QUnit.module("Set options", $.extend({}, environment, {
