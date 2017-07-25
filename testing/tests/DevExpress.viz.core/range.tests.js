@@ -1328,86 +1328,86 @@ QUnit.test('min < 0, max < 0, minVisible < 0, maxVisible < 0. Logarithmic axis',
     });
 });
 
-QUnit.module('CheckZeroStick functionality', {
-    beforeEach: function() {
-        function createRange(rangeData) {
-            return new rangeModule.Range(rangeData);
-        }
+// QUnit.module('CheckZeroStick functionality', {
+//     beforeEach: function() {
+//         function createRange(rangeData) {
+//             return new rangeModule.Range(rangeData);
+//         }
 
 
-        this.checkRanges = function(assert, template, expected) {
-            //arrange
-            var range = createRange(template);
+//         this.checkRanges = function(assert, template, expected) {
+//             //arrange
+//             var range = createRange(template);
 
-            //act
-            range.checkZeroStick();
+//             //act
+//             range.checkZeroStick();
 
-            //assert
-            assert.strictEqual(range.minStickValue, expected.minStickValue, 'min');
-            assert.strictEqual(range.maxStickValue, expected.maxStickValue, 'max');
-        };
-    }
-});
+//             //assert
+//             assert.strictEqual(range.minStickValue, expected.minStickValue, 'min');
+//             assert.strictEqual(range.maxStickValue, expected.maxStickValue, 'max');
+//         };
+//     }
+// });
 
-QUnit.test('min > 0, max > 0, minVisible > 0, maxVisible > 0', function(assert) {
-    this.checkRanges(assert, {
-        min: 10,
-        max: 100,
-        minVisible: 20,
-        maxVisible: 80
-    }, {
-        minStickValue: 0,
-        maxStickValue: undefined
-    });
-});
+// QUnit.test('min > 0, max > 0, minVisible > 0, maxVisible > 0', function(assert) {
+//     this.checkRanges(assert, {
+//         min: 10,
+//         max: 100,
+//         minVisible: 20,
+//         maxVisible: 80
+//     }, {
+//         minStickValue: 0,
+//         maxStickValue: undefined
+//     });
+// });
 
-QUnit.test('min < 0, max < 0, minVisible < 0, maxVisible < 0', function(assert) {
-    this.checkRanges(assert, assert, {
-        min: -10,
-        max: -100,
-        minVisible: -20,
-        maxVisible: -80
-    }, {
-        minStickValue: undefined,
-        maxStickValue: 0
-    });
-});
+// QUnit.test('min < 0, max < 0, minVisible < 0, maxVisible < 0', function(assert) {
+//     this.checkRanges(assert, assert, {
+//         min: -10,
+//         max: -100,
+//         minVisible: -20,
+//         maxVisible: -80
+//     }, {
+//         minStickValue: undefined,
+//         maxStickValue: 0
+//     });
+// });
 
-QUnit.test('min < 0, max > 0, minVisible < 0, maxVisible > 0', function(assert) {
-    this.checkRanges(assert, {
-        min: -10,
-        max: 100,
-        minVisible: -5,
-        maxVisible: 80
-    }, {
-        minStickValue: undefined,
-        maxStickValue: undefined
-    });
-});
+// QUnit.test('min < 0, max > 0, minVisible < 0, maxVisible > 0', function(assert) {
+//     this.checkRanges(assert, {
+//         min: -10,
+//         max: 100,
+//         minVisible: -5,
+//         maxVisible: 80
+//     }, {
+//         minStickValue: undefined,
+//         maxStickValue: undefined
+//     });
+// });
 
-QUnit.test('min < 0, max > 0, minVisible < 0, maxVisible < 0', function(assert) {
-    this.checkRanges(assert, {
-        min: -10,
-        max: 100,
-        minVisible: -5,
-        maxVisible: -2
-    }, {
-        minStickValue: undefined,
-        maxStickValue: undefined
-    });
-});
+// QUnit.test('min < 0, max > 0, minVisible < 0, maxVisible < 0', function(assert) {
+//     this.checkRanges(assert, {
+//         min: -10,
+//         max: 100,
+//         minVisible: -5,
+//         maxVisible: -2
+//     }, {
+//         minStickValue: undefined,
+//         maxStickValue: undefined
+//     });
+// });
 
-QUnit.test('min < 0, max > 0, minVisible > 0, maxVisible > 0', function(assert) {
-    this.checkRanges(assert, {
-        min: -10,
-        max: 100,
-        minVisible: 10,
-        maxVisible: 40
-    }, {
-        minStickValue: undefined,
-        maxStickValue: undefined
-    });
-});
+// QUnit.test('min < 0, max > 0, minVisible > 0, maxVisible > 0', function(assert) {
+//     this.checkRanges(assert, {
+//         min: -10,
+//         max: 100,
+//         minVisible: 10,
+//         maxVisible: 40
+//     }, {
+//         minStickValue: undefined,
+//         maxStickValue: undefined
+//     });
+// });
 
 QUnit.module('discrete zooming');
 

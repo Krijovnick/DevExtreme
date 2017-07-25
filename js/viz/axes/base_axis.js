@@ -7,7 +7,8 @@ var vizUtils = require("../core/utils"),
     inArray = require("../../core/utils/array").inArray,
     constants = require("./axes_constants"),
     parseUtils = require("../components/parse_utils"),
-    tickManagerModule = require("./base_tick_manager"),
+    //tickManagerModule = require("./base_tick_manager"),
+    tickGeneratorModule = require("./tick_generator"),
     Translator2DModule = require("../translators/translator2d"),
     rangeModule = require("../translators/range"),
     tick = require("./tick").tick,
@@ -15,9 +16,9 @@ var vizUtils = require("../core/utils"),
     convertTicksToValues = constants.convertTicksToValues,
 
     _isDefined = typeUtils.isDefined,
-    _isNumber = typeUtils.isNumeric,
-    _getSignificantDigitPosition = vizUtils.getSignificantDigitPosition,
-    _roundValue = vizUtils.roundValue,
+    // _isNumber = typeUtils.isNumeric,
+    // _getSignificantDigitPosition = vizUtils.getSignificantDigitPosition,
+    // _roundValue = vizUtils.roundValue,
     patchFontOptions = vizUtils.patchFontOptions,
 
     _math = Math,
@@ -38,6 +39,27 @@ var vizUtils = require("../core/utils"),
     CENTER = constants.center,
 
     Axis;
+
+function getTickGenerator(options) {
+    return tickGeneratorModule.tickGenerator({
+        axisType: options.type,
+        dataType: options.dataType,
+        logBase: options.type === constants.logarithmic ? options.logarithmBase : undefined,
+
+        axisDivisionFactor: options.axisDivisionFactor,
+        minorAxisDivisionFactor: options.minorAxisDivisionFactor,
+        numberMultipliers: options.numberMultipliers,
+        incidentOccurred: options.incidentOccurred,
+        calculateMinors: options.minorTick.visible || options.minorGrid.visible,
+
+        //TODO new options
+        allowDecimals: options.allowDecimals,
+        endOnTicks: options.endOnTicks,
+
+        showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
+        showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
+    });
+}
 
 function createMajorTick(axis, renderer) {
     var options = axis.getOptions();
@@ -180,7 +202,7 @@ Axis = exports.Axis = function(renderSettings) {
 
     that._setType(renderSettings.axisType, renderSettings.drawingType);
     that._createAxisGroups();
-    that._tickManager = that._createTickManager();
+    //that._tickManager = that._createTickManager();
     that._translator = that._createTranslator();
 };
 
@@ -202,8 +224,13 @@ Axis.prototype = {
         if(!isEmptyArray(businessRange.categories)) {
             ticks = that._majorTicks;
             length = ticks.length;
-            if(!businessRange.isSynchronized) {
-                bounds = this._tickManager.getTickBounds();
+            if(!businessRange.isSynchronized && that._options.endOnTicks && length) {
+                //bounds = that._tickManager.getTickBounds();
+                //TODO
+                bounds = {};
+
+                bounds.minVisible = ticks[0].value;
+                length > 1 && (bounds.maxVisible = ticks[length - 1].value);
             }
             if(length > 1) {
                 minInterval = _abs(ticks[0].value - ticks[1].value);
@@ -235,112 +262,120 @@ Axis.prototype = {
             .append(this._axisLineGroup);
     },
 
-    _correctMinForTicks: function(min, max, screenDelta) {
-        var diff = _abs(max - min) / screenDelta,
-            digitPosition = typeUtils.isExponential(diff) && diff < 1
-                ? vizUtils.getPrecision(diff)
-                : _getSignificantDigitPosition(diff),
-            newMin = _roundValue(Number(min), digitPosition),
-            correctingValue;
+    // _correctMinForTicks: function(min, max, screenDelta) {
+    //     var diff = _abs(max - min) / screenDelta,
+    //         digitPosition = typeUtils.isExponential(diff) && diff < 1
+    //             ? vizUtils.getPrecision(diff)
+    //             : _getSignificantDigitPosition(diff),
+    //         newMin = _roundValue(Number(min), digitPosition),
+    //         correctingValue;
 
-        if(newMin < min) {
-            correctingValue = _math.pow(10, -digitPosition);
-            newMin = vizUtils.applyPrecisionByMinDelta(newMin, correctingValue, newMin + correctingValue);
-        }
-        if(newMin > max) {
-            newMin = min;
-        }
+    //     if(newMin < min) {
+    //         correctingValue = _math.pow(10, -digitPosition);
+    //         newMin = vizUtils.applyPrecisionByMinDelta(newMin, correctingValue, newMin + correctingValue);
+    //     }
+    //     if(newMin > max) {
+    //         newMin = min;
+    //     }
 
-        return newMin;
-    },
+    //     return newMin;
+    // },
 
-    _getTickManagerData: function() {
-        var that = this,
-            options = that._options,
-            screenDelta = that._getScreenDelta(),
-            min = that._minBound,
-            max = that._maxBound,
-            categories = that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
-            customTicks = options.customTicks || (isEmptyArray(categories) ? categories : that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
-            customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
+    // _getTickManagerData: function() {
+    //     var that = this,
+    //         options = that._options,
+    //         screenDelta = that._getScreenDelta(),
+    //         min = that._minBound,
+    //         max = that._maxBound,
+    //         categories = that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
+    //         customTicks = options.customTicks || (isEmptyArray(categories) ? categories : that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
+    //         customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
 
-        if(_isNumber(min) && options.type !== constants.logarithmic) {
-            min = that._correctMinForTicks(min, max, screenDelta);
-        }
+    //     if(_isNumber(min) && options.type !== constants.logarithmic) {
+    //         min = that._correctMinForTicks(min, max, screenDelta);
+    //     }
 
-        return {
-            min: min,
-            max: max,
-            customTicks: customTicks,
-            customMinorTicks: customMinorTicks,
-            customBoundTicks: options.customBoundTicks,
-            screenDelta: screenDelta
-        };
-    },
+    //     return {
+    //         min: min,
+    //         max: max,
+    //         customTicks: customTicks,
+    //         customMinorTicks: customMinorTicks,
+    //         customBoundTicks: options.customBoundTicks,
+    //         screenDelta: screenDelta
+    //     };
+    // },
 
-    _getTickManagerTypes: function() {
-        return {
-            axisType: this._options.type,
-            dataType: this._options.dataType
-        };
-    },
+    // _getTickManagerTypes: function() {
+    //     return {
+    //         axisType: this._options.type,
+    //         dataType: this._options.dataType
+    //     };
+    // },
 
-    _getTicksOptions: function() {
-        var options = this._options;
-        return {
-            base: options.type === constants.logarithmic ? options.logarithmBase : undefined,
-            tickInterval: this._translator.getBusinessRange().stubData ? null : options.tickInterval,
-            gridSpacingFactor: options.axisDivisionFactor,
-            minorGridSpacingFactor: options.minorAxisDivisionFactor,
-            numberMultipliers: options.numberMultipliers,
-            incidentOccurred: options.incidentOccurred,
-            setTicksAtUnitBeginning: options.setTicksAtUnitBeginning,
-            showMinorTicks: options.minorTick.visible || options.minorGrid.visible,
-            minorTickInterval: options.minorTickInterval,
-            minorTickCount: options.minorTickCount,
-            showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
-            showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
-        };
-    },
+    // _getTicksOptions: function() {
+    //     var options = this._options;
+    //     return {
+    //         // base: options.type === constants.logarithmic ? options.logarithmBase : undefined,
+    //         // tickInterval: this._translator.getBusinessRange().stubData ? null : options.tickInterval,
+    //         // gridSpacingFactor: options.axisDivisionFactor,
+    //         // minorGridSpacingFactor: options.minorAxisDivisionFactor,
+    //         // numberMultipliers: options.numberMultipliers,
+    //         // incidentOccurred: options.incidentOccurred,
+    //         // setTicksAtUnitBeginning: options.setTicksAtUnitBeginning,
+    //         // showMinorTicks: options.minorTick.visible || options.minorGrid.visible,
+    //         // minorTickInterval: options.minorTickInterval,
+    //         // minorTickCount: options.minorTickCount,
+    //         // showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
+    //         // showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
 
-    _createTickManager: function() {
-        return new tickManagerModule.TickManager({}, {});
-    },
 
-    _getMarginsOptions: function() {
-        var range = this._translator.getBusinessRange();
-        return {
-            stick: range.stick || this._options.stick,
-            minStickValue: range.minStickValue,
-            maxStickValue: range.maxStickValue,
-            percentStick: range.percentStick,
-            minSpaceCorrection: range.minSpaceCorrection,
-            maxSpaceCorrection: range.maxSpaceCorrection,
-            minValueMargin: this._options.minValueMargin,
-            maxValueMargin: this._options.maxValueMargin
-        };
-    },
+    //         tickInterval: this._translator.getBusinessRange().stubData ? null : options.tickInterval,
+    //         setTicksAtUnitBeginning: options.setTicksAtUnitBeginning,
+    //         minorTickInterval: options.minorTickInterval,
+    //         minorTickCount: options.minorTickCount,
+    //         showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
+    //         showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
+    //     };
+    // },
 
-    _getLabelOptions: function() {
-        return {
-            hasLabelFormat: this._hasLabelFormat,
-            isMarkersVisible: this._options.type === "discrete" ? false : this._options.marker.visible,
-            addMinMax: this._options.showCustomBoundaryTicks ? this._boundaryTicksVisibility : undefined,
-            forceUserTickInterval: this._options.label.overlappingBehavior.mode === "ignore" ? true : this._options.forceUserTickInterval
-        };
-    },
+    // _createTickManager: function() {
+    //     return new tickManagerModule.TickManager({}, {});
+    // },
 
-    _updateTickManager: function() {
-        var that = this,
-            options = extend(true, that._getMarginsOptions(), that._getTicksOptions(), that._getLabelOptions());
-        this._tickManager.update(that._getTickManagerTypes(), that._getTickManagerData(), options);
-    },
+    // _getMarginsOptions: function() {
+    //     // var range = this._translator.getBusinessRange();
+    //     // return {
+    //     //     //stick: range.stick || this._options.stick,
+    //     //     // minStickValue: range.minStickValue,
+    //     //     // maxStickValue: range.maxStickValue,
+    //     //     //percentStick: range.percentStick,
+    //     //     // minSpaceCorrection: range.minSpaceCorrection,
+    //     //     // maxSpaceCorrection: range.maxSpaceCorrection,
+    //     //     // minValueMargin: this._options.minValueMargin,
+    //     //     // maxValueMargin: this._options.maxValueMargin
+    //     // };
+    // },
+
+    // _getLabelOptions: function() {
+    //     return {
+    //         hasLabelFormat: this._hasLabelFormat,
+    //         isMarkersVisible: this._options.type === "discrete" ? false : this._options.marker.visible,
+    //         addMinMax: this._options.showCustomBoundaryTicks ? this._boundaryTicksVisibility : undefined,
+    //         forceUserTickInterval: this._options.label.overlappingBehavior.mode === "ignore" ? true : this._options.forceUserTickInterval
+    //     };
+    // },
+
+    // _updateTickManager: function() {
+    //     var that = this,
+    //         options = extend(true, /*that._getMarginsOptions(),*/ that._getTicksOptions(), that._getLabelOptions());
+    //     this._tickManager.update(that._getTickManagerTypes(), that._getTickManagerData(), options);
+    // },
 
     _correctLabelFormat: function() {
-        var labelFormat = this._tickManager.getOptions().labelFormat;
-        if(labelFormat) {
-            this._options.label.format = labelFormat;
-        }
+        // var labelFormat = this._tickManager.getOptions().labelFormat;
+        // if(labelFormat) {
+        //     this._options.label.format = labelFormat;
+        // }
     },
 
     _createPathElement: function(points, attr) {
@@ -880,7 +915,7 @@ Axis.prototype = {
         that._renderer = that._options = that._textOptions = that._textFontStyles = null;
         that._translator = null;
         that._majorTicks = that._minorTicks = null;
-        that._tickManager = null;
+        //that._tickManager = null;
     },
 
     getOptions: function() {
@@ -1065,9 +1100,10 @@ Axis.prototype = {
     },
 
     _getBoundaryTicks: function() {
-        var categories = this._translator.getVisibleCategories() || this._translator.getBusinessRange().categories;
+        // var categories = this._translator.getVisibleCategories() || this._translator.getBusinessRange().categories;
 
-        return isEmptyArray(categories) && this._tickOffset ? [categories[0], categories[categories.length - 1]] : this._tickManager.getBoundaryTicks();
+        // return isEmptyArray(categories) && this._tickOffset ? [categories[0], categories[categories.length - 1]] : this._tickManager.getBoundaryTicks();
+        return [];
     },
 
     setPercentLabelFormat: function() {
@@ -1094,16 +1130,26 @@ Axis.prototype = {
     },
 
     setTicks: function(ticks) {
+        //TODO it is used only for axes synchronization
+        //we don't need to update tickGenerator
         this._majorTicks = (ticks.majorTicks || []).map(createMajorTick(this, this._renderer));
         this._minorTicks = (ticks.minorTicks || []).map(createMinorTick(this, this._renderer));
 
-        this._updateTickManager();
+        //this._updateTickManager();
     },
 
     createTicks: function(canvas) {
         var that = this,
             renderer = that._renderer,
-            tickManager = that._tickManager,
+            //tickManager = that._tickManager,
+            options = that._options,
+            //TODO categories are now not in custom ticks
+            //categories = that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
+            //TODO looks like _majorTicks/_minorTicks are not accesible here
+            //customTicks = options.customTicks || (isEmptyArray(categories) ? categories : that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
+            customTicks = options.customTicks || (that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
+            customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks)),
+            ticks,
             boundaryTicks;
 
         if(!canvas) {
@@ -1113,14 +1159,39 @@ Axis.prototype = {
 
         that.updateCanvas(canvas);
 
-        that._majorTicks = that._minorTicks = null;
-        that._updateTickManager();
 
-        that._majorTicks = tickManager.getTicks().map(createMajorTick(this, renderer));
-        that._minorTicks = tickManager.getMinorTicks().map(createMinorTick(this, renderer));
+        that._majorTicks = that._minorTicks = null;
+        //that._updateTickManager();
+        that._tickGenerator = getTickGenerator(options);
+        ticks = that._tickGenerator(
+            {
+                min: that._minBound,
+                max: that._maxBound,
+                categories: that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
+            }, //TODO can we use rangedata?
+            //that._translator.getBusinessRange(),
+
+
+
+            that._getScreenDelta(), //screenDelta,
+            that._translator.getBusinessRange().stubData ? null : options.tickInterval, //tickInterval,
+            options.label.overlappingBehavior.mode === "ignore" ? true : options.forceUserTickInterval, //forceUserTickInterval,
+            {
+                majors: customTicks,
+                minors: customMinorTicks
+            }, //customTicks
+            options.minorTickInterval, //minorTickInterval,
+            options.minorTickCount //minorTickCount
+        );
+
+        that._tickInterval = ticks.tickInterval;
+        that._minorTickInterval = ticks.minorTickInterval;
+        that._majorTicks = ticks.ticks.map(createMajorTick(this, renderer));
+        that._minorTicks = (ticks.minorTicks || []).map(createMinorTick(this, renderer));
 
         that.correctTicksOnDeprecated();
 
+        //TODO there is no boundaryTicks
         boundaryTicks = that._getBoundaryTicks();
         if(this._options.showCustomBoundaryTicks && boundaryTicks.length) {
             that._boundaryTicks = [boundaryTicks[0]].map(createBoundaryTick(this, renderer, true));
@@ -1129,6 +1200,7 @@ Axis.prototype = {
             }
         }
 
+        //TODO
         that._correctLabelFormat();
 
         that._updateIntervalAndBounds();
@@ -1393,7 +1465,7 @@ Axis.prototype = {
     },
 
     getFullTicks: function() {
-        return this._tickManager.getFullTicks();
+        //return this._tickManager.getFullTicks();
     },
 
     measureLabels: function(withIndents) {
@@ -1410,7 +1482,7 @@ Axis.prototype = {
             return { height: widthAxis, width: widthAxis, x: 0, y: 0 };
         }
 
-        ticks = that._tickManager.getTicks();
+        ticks = [];//that._tickManager.getTicks();
         maxText = ticks.reduce(function(prevValue, tick, index) {
             var label = that._formatTickLabel(tick);
             if(prevValue[0].length < label.length) {

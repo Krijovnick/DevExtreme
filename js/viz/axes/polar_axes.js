@@ -359,9 +359,10 @@ exports.circularSpider = _extend({}, circularAxes, {
     },
 
     getSpiderTicks: function() {
+        //TODO
         var that = this;
 
-        that._spiderTicks = that._tickManager.getFullTicks().map(tick(
+        that._spiderTicks = []/*that._tickManager.getFullTicks()*/.map(tick(
             that,
             that.renderer,
             {},

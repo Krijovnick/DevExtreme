@@ -2,7 +2,7 @@
 
 var utils = require("../core/utils"),
     dateUtils = require("../../core/utils/date"),
-    isExponential = require("../../core/utils/common").isExponential,
+    isExponential = require("../../core/utils/type").isExponential,
     convertDateUnitToMilliseconds = dateUtils.convertDateUnitToMilliseconds,
     dateToMilliseconds = dateUtils.dateToMilliseconds,
     adjustValue = utils.adjustValue,
@@ -36,7 +36,7 @@ var NUMBER_MULTIPLIERS = [1, 2, 2.5, 5],
 
 function discreteGenerator(options) {
     return function(data, screenDelta, tickInterval, forceTickInterval) {
-        var interval = data.categories.length * options.gridSpacingFactor / screenDelta;
+        var interval = data.categories.length * options.axisDivisionFactor / screenDelta;
 
         return {
             ticks: data.categories,
@@ -85,8 +85,8 @@ function getBusinessDeltaLog(base) {
     };
 }
 
-function getIntervalByFactor(businessDelta, screenDelta, gridSpacingFactor) {
-    var count = screenDelta / gridSpacingFactor;
+function getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor) {
+    var count = screenDelta / axisDivisionFactor;
     count = count < 1 ? 1 : count;
 
     return businessDelta / count;
@@ -96,8 +96,8 @@ function getMultiplierFactor(interval) {
     return mathPow(10, mathFloor(getLog(interval, 10)));
 }
 
-function calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, gridSpacingFactor, multipliers, allowDecimals) {
-    var interval = getIntervalByFactor(businessDelta, screenDelta, gridSpacingFactor),
+function calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, axisDivisionFactor, multipliers, allowDecimals) {
+    var interval = getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor),
         factor = getMultiplierFactor(interval),
         result = 1,
         onlyIntegers = allowDecimals === false;
@@ -122,8 +122,8 @@ function calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTi
     return tickInterval;
 }
 
-function calculateMinorTickInterval(businessDelta, screenDelta, tickInterval, gridSpacingFactor) {
-    var interval = getIntervalByFactor(businessDelta, screenDelta, gridSpacingFactor);
+function calculateMinorTickInterval(businessDelta, screenDelta, tickInterval, axisDivisionFactor) {
+    var interval = getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor);
 
     return tickInterval || MINOR_DELIMITERS.reduce(function(r, d) {
         var cur = businessDelta / d;
@@ -134,8 +134,8 @@ function calculateMinorTickInterval(businessDelta, screenDelta, tickInterval, gr
     }, 0);
 }
 
-function calculateTickIntervalLog(businessDelta, screenDelta, tickInterval, forceTickInterval, gridSpacingFactor, multipliers, allowDecimals) {
-    var interval = getIntervalByFactor(businessDelta, screenDelta, gridSpacingFactor),
+function calculateTickIntervalLog(businessDelta, screenDelta, tickInterval, forceTickInterval, axisDivisionFactor, multipliers, allowDecimals) {
+    var interval = getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor),
         factor = getMultiplierFactor(interval),
         result = 0;
 
@@ -159,8 +159,8 @@ function calculateTickIntervalLog(businessDelta, screenDelta, tickInterval, forc
     return tickInterval;
 }
 
-function calculateTickIntervalDateTime(businessDelta, screenDelta, tickInterval, forceTickInterval, gridSpacingFactor, multipliers, allowDecimals) {
-    var interval = getIntervalByFactor(businessDelta, screenDelta, gridSpacingFactor),
+function calculateTickIntervalDateTime(businessDelta, screenDelta, tickInterval, forceTickInterval, axisDivisionFactor, multipliers, allowDecimals) {
+    var interval = getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor),
         result,
         factor,
         key;
@@ -211,8 +211,8 @@ function calculateTickIntervalDateTime(businessDelta, screenDelta, tickInterval,
     return tickInterval;
 }
 
-function calculateMinorTickIntervalDateTime(businessDelta, screenDelta, tickInterval, gridSpacingFactor) {
-    return calculateTickIntervalDateTime(businessDelta, screenDelta, tickInterval, true, gridSpacingFactor, DATETIME_MINOR_MULTIPLIERS);
+function calculateMinorTickIntervalDateTime(businessDelta, screenDelta, tickInterval, axisDivisionFactor) {
+    return calculateTickIntervalDateTime(businessDelta, screenDelta, tickInterval, true, axisDivisionFactor, DATETIME_MINOR_MULTIPLIERS);
 }
 
 function getTickIntervalByCustomTicks(getValue, postProcess) {
@@ -335,7 +335,7 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
 
         tickInterval = correctUserTickInterval(tickInterval, businessDelta, screenDelta);
 
-        tickInterval = calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, options.gridSpacingFactor, options.numberMultipliers, options.allowDecimals);
+        tickInterval = calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, options.axisDivisionFactor, options.numberMultipliers, options.allowDecimals);
         ticks.ticks = ticks.ticks.concat(calculateTicks(data.min, data.max, tickInterval, options.endOnTicks));
         ticks.tickInterval = tickInterval;
         return ticks;
@@ -359,7 +359,7 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
 
         minorTickInterval = correctUserTickInterval(minorTickInterval, minorBusinessDelta, minorScreenDelta);
 
-        minorTickInterval = calculateMinorTickInterval(minorBusinessDelta, minorScreenDelta, minorTickInterval, options.minorGridSpacingFactor);
+        minorTickInterval = calculateMinorTickInterval(minorBusinessDelta, minorScreenDelta, minorTickInterval, options.minorAxisDivisionFactor);
         ticks.minorTicks = ticks.minorTicks.concat(calculateMinorTicks(data.min, data.max, majorTicks, minorTickInterval, tickInterval));
         ticks.minorTickInterval = minorTickInterval;
 
@@ -473,8 +473,8 @@ function dateGenerator(options) {
 // {
 //     dataType: "numeric",
 //     axisType: "continuous",
-//     gridSpacingFactor: 30,
-//     minorGridSpacingFactor: 10,
+//     axisDivisionFactor: 30,
+//     minorAxisDivisionFactor: 10,
 //     allowDecimals: true,
 //     endOnTicks: true,
 //     logBase: 2,

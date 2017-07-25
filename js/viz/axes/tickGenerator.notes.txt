@@ -16,7 +16,22 @@ gridSpacingFactor shoould be passed to tickGenerator, there is no default value
 tickGenerator would not accept gridSpacingFactor <= 0
 tickGenerator would not accept tickInterval <= 0
 
-showCustomBoundaryTicks option in RangeSelector (and internal use in Polar chart) is passed tickManager as addMinMax and tickManager generates boundary ticks
+showCustomBoundaryTicks, customBoundTicks options in RangeSelector (and internal use in Polar chart) is passed tickManager as addMinMax and tickManager generates boundary ticks
 This will not be included in tickGenerator and should be processed on Axis level
 
 No margins
+
+
+
+check
+https://isc.devexpress.com/Thread/WorkplaceDetails/T170398
+
+percentStick - bounds are not generated if there is percent series
+
+minSpaceCorrection
+maxSpaceCorrection
+add one extra tick if there are point labels
+
+stick - used in translator, in tick manager it prevents from bounds generating and is used minor ticks generating
+
+

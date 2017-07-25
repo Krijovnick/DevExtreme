@@ -3,7 +3,8 @@
 var $ = require("jquery"),
     errors = require("viz/core/errors_warnings"),
     translator2DModule = require("viz/translators/translator2d"),
-    tickManagerModule = require("viz/axes/base_tick_manager"),
+    //tickManagerModule = require("viz/axes/base_tick_manager"),
+    tickGeneratorModule = require("viz/axes/tick_generator"),
     dxErrors = errors.ERROR_MESSAGES,
     Axis = require("viz/axes/base_axis").Axis,
     vizMocks = require("../../helpers/vizMocks.js"),
@@ -11,12 +12,11 @@ var $ = require("jquery"),
         updateBusinessRange: function(range) {
             this.getBusinessRange.returns(range);
         }
-    }),
-    StubTickManager = vizMocks.stubClass(tickManagerModule.TickManager, {});
+    });//,
+    //StubTickManager = vizMocks.stubClass(tickManagerModule.TickManager, {});
 
 var environment = {
     beforeEach: function() {
-
         this.zeroMarginCanvas = {
             width: 110,
             height: 110,
@@ -49,14 +49,24 @@ var environment = {
         });
         this.renderer = new vizMocks.Renderer();
 
-        this.tickManager = new StubTickManager();
-        this.tickManager.stub("getOptions").returns({});
-        this.tickManager.stub("getTicks").returns([]);
-        this.tickManager.stub("getMinorTicks").returns([]);
-        this.tickManager.stub("getBoundaryTicks").returns([]);
+        // this.tickManager = new StubTickManager();
+        // this.tickManager.stub("getOptions").returns({});
+        // this.tickManager.stub("getTicks").returns([]);
+        // this.tickManager.stub("getMinorTicks").returns([]);
+        // this.tickManager.stub("getBoundaryTicks").returns([]);
 
-        tickManagerModule.TickManager = sinon.spy(function() {
-            return that.tickManager;
+        // tickManagerModule.TickManager = sinon.spy(function() {
+        //     return that.tickManager;
+        // });
+
+        this.tickGenerator = sinon.stub(tickGeneratorModule, "tickGenerator", function() {
+            return function() {
+                return {
+                    ticks: that.generatedTicks || [],
+                    minorTicks: that.generatedMinorTicks || [],
+                    tickInterval: that.generatedTickInterval
+                };
+            };
         });
 
         this.translator = new StubTranslator();
@@ -86,7 +96,8 @@ var environment = {
         translator2DModule.Translator2D.restore();
         this.axis.dispose();
         this.axis = null;
-        tickManagerModule.TickManager.reset();
+        //tickManagerModule.TickManager.reset();
+        this.tickGenerator.restore();
         this.renderer.dispose();
         this.renderer = null;
         this.translator = null;
@@ -374,7 +385,8 @@ QUnit.test("Horizontal top", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -416,7 +428,8 @@ QUnit.test("Horizontal bottom", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -446,7 +459,8 @@ QUnit.test("Vertical left", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -476,7 +490,8 @@ QUnit.test("Vertical right", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -507,7 +522,8 @@ QUnit.test("Horizontal, tickOrientation top", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -538,7 +554,8 @@ QUnit.test("Horizontal, tickOrientation bottom", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -569,7 +586,8 @@ QUnit.test("Vertical, tickOrientation left", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -600,7 +618,8 @@ QUnit.test("Vertical, tickOrientation right", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -630,7 +649,8 @@ QUnit.test("Horizontal top, minor tick marks", function(assert) {
         }
     });
 
-    this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    this.generatedMinorTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -672,7 +692,9 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw la
         categories: categories
     });
 
-    this.tickManager.stub("getTicks").returns(categories);
+    //this.tickManager.stub("getTicks").returns(categories);
+    this.generatedTicks = categories;
+
 
     categories.forEach(function(cat, i) {
         this.translator.stub("translate").withArgs(cat).returns(10 + (i + 1) * 20);
@@ -711,7 +733,8 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - crossLabels. Draw all grid li
         categories: categories
     });
 
-    this.tickManager.stub("getTicks").returns(categories);
+    //this.tickManager.stub("getTicks").returns(categories);
+    this.generatedTicks = categories;
 
     categories.forEach(function(cat, i) {
         this.translator.stub("translate").withArgs(cat).returns(10 + (i + 1) * 20 - 10);
@@ -744,7 +767,7 @@ QUnit.test("Boundary ticks", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.tickManager.stub("getBoundaryTicks").returns([1, 3]);
 
     this.translator.stub("translate").withArgs(1).returns(30);
@@ -777,7 +800,7 @@ QUnit.test("Tick visible false, but showCustomBoundaryTicks true - render bounda
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.tickManager.stub("getBoundaryTicks").returns([1, 3]);
 
     this.translator.stub("translate").withArgs(1).returns(30);
@@ -808,7 +831,7 @@ QUnit.test("Boundary ticks, visible categories - render boundary visible ticks",
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.tickManager.stub("getBoundaryTicks").returns(["a", "e"]);
     this.translator.stub("getVisibleCategories").returns(["b", "c", "d"]);
 
@@ -844,7 +867,7 @@ QUnit.test("Boundary ticks, no visible categories - render boundary ticks", func
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.tickManager.stub("getBoundaryTicks").returns(["a", "e"]);
     this.translator.stub("getVisibleCategories").returns([]);
 
@@ -881,7 +904,7 @@ QUnit.test("Boundary ticks, visible categories, crossLabels - render boundary ti
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.tickManager.stub("getBoundaryTicks").returns(["a", "e"]);
     this.translator.stub("getVisibleCategories").returns(["b", "c", "d"]);
 
@@ -911,7 +934,8 @@ QUnit.test("Check calls to translator. Major ticks. Non categories", function(as
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -937,7 +961,8 @@ QUnit.test("Check calls to translator. Minor ticks", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -965,7 +990,8 @@ QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivi
         }
     });
 
-    this.tickManager.stub("getTicks").returns(["a", "b", "c"]);
+    //this.tickManager.stub("getTicks").returns(["a", "b", "c"]);
+    this.generatedTicks = ["a", "b", "c"];
 
     this.translator.stub("translate").withArgs("a").returns(30);
     this.translator.stub("translate").withArgs("b").returns(50);
@@ -993,7 +1019,8 @@ QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivi
         }
     });
 
-    this.tickManager.stub("getTicks").returns(["a", "b", "c"]);
+    //this.tickManager.stub("getTicks").returns(["a", "b", "c"]);
+    this.generatedTicks = ["a", "b", "c"];
 
     this.translator.stub("translate").withArgs("a").returns(30);
     this.translator.stub("translate").withArgs("b").returns(50);
@@ -1020,7 +1047,7 @@ QUnit.test("Check calls to translator. Boundary ticks", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.tickManager.stub("getBoundaryTicks").returns([1, 3]);
 
     this.translator.stub("translate").withArgs(1).returns(30);
@@ -1053,7 +1080,8 @@ QUnit.test("hideFirstTick", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -1087,7 +1115,8 @@ QUnit.test("hideLastTick", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -1118,7 +1147,8 @@ QUnit.test("Horizontal top. Alignment left", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1168,7 +1198,8 @@ QUnit.test("Horizontal top. Alignment center", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1210,7 +1241,8 @@ QUnit.test("Horizontal top. Alignment right", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1252,7 +1284,8 @@ QUnit.test("Horizontal Bottom. Alignment left", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1294,7 +1327,8 @@ QUnit.test("Vertical left. Alignment left", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1336,7 +1370,8 @@ QUnit.test("Vertical left. Alignment center", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1378,7 +1413,8 @@ QUnit.test("Vertical left. Alignment right", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1420,7 +1456,8 @@ QUnit.test("Vertical right. Alignment left", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1464,7 +1501,8 @@ QUnit.test("Vertical right. Alignment center", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1507,7 +1545,8 @@ QUnit.test("Vertical right. Alignment right", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1550,7 +1589,8 @@ QUnit.test("Horizontal top. Alignment not set - render as center", function(asse
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1593,7 +1633,8 @@ QUnit.test("Vertical left. Alignment not set - render as right", function(assert
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1636,7 +1677,8 @@ QUnit.test("Vertical right. Alignment not set - render as left", function(assert
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1681,7 +1723,8 @@ QUnit.test("Labels with hints", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1711,7 +1754,8 @@ QUnit.test("Labels with hints. Empty hints are not applied", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(60);
@@ -1741,7 +1785,8 @@ QUnit.test("Labels with hints. Check callback's param", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: -1, maxVisible: 4, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([1]);
+    //this.tickManager.stub("getTicks").returns([1]);
+    this.generatedTicks = [1];
 
     this.translator.stub("translate").withArgs(1).returns(40);
 
@@ -1778,7 +1823,8 @@ QUnit.test("Stub data. Do not draw labels", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1]);
+    //this.tickManager.stub("getTicks").returns([1]);
+    this.generatedTicks = [1];
 
     this.translator.stub("translate").withArgs(1).returns(40);
 
@@ -1807,7 +1853,8 @@ QUnit.test("Store data in label", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([123, 345]);
+    //this.tickManager.stub("getTicks").returns([123, 345]);
+    this.generatedTicks = [123, 345];
 
     this.translator.stub("translate").withArgs(123).returns(40);
     this.translator.stub("translate").withArgs(345).returns(80);
@@ -1841,7 +1888,8 @@ QUnit.test("Check styles", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1]);
+    //this.tickManager.stub("getTicks").returns([1]);
+    this.generatedTicks = [1];
 
     this.translator.stub("translate").withArgs(1).returns(40);
 
@@ -1884,7 +1932,8 @@ QUnit.test("Without text, all variations. Do not draw labels", function(assert) 
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3, 4, 5]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3, 4, 5]);
+    this.generatedTicks = [1, 2, 3, 4, 5];
 
     //act
     this.axis.draw(this.canvas);
@@ -1907,7 +1956,8 @@ QUnit.test("Text is 0. Draw label", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([0]);
+    //this.tickManager.stub("getTicks").returns([0]);
+    this.generatedTicks = [0];
     this.translator.stub("translate").withArgs(0).returns(40);
 
     //act
@@ -1928,7 +1978,8 @@ QUnit.test("Check calls to translator", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -1958,7 +2009,8 @@ QUnit.test("hideFirstLabel", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -1991,7 +2043,8 @@ QUnit.test("hideLastLabel", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -3259,7 +3312,7 @@ QUnit.test("Horizontal top", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 12, height: 6 };
 
@@ -3302,7 +3355,7 @@ QUnit.test("Horizontal bottom", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 12, height: 6 };
 
@@ -3334,7 +3387,7 @@ QUnit.test("Vertical left", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
 
     this.renderer.bBoxTemplate = { x: 2, y: 1, width: 6, height: 12 };
 
@@ -3369,7 +3422,7 @@ QUnit.test("Vertical right", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
 
     this.renderer.bBoxTemplate = { x: 2, y: 1, width: 6, height: 12 };
 
@@ -3403,7 +3456,7 @@ QUnit.test("Text is not specified", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 12, height: 6 };
 
@@ -3433,7 +3486,7 @@ QUnit.test("Horizontal. Inverted", function(assert) {
         }
     });
     this.axis.setBusinessRange({ invert: true, addRange: function() { } });
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 12, height: 6 };
 
@@ -3465,7 +3518,7 @@ QUnit.test("Vertical. Inverted", function(assert) {
         }
     });
     this.axis.setBusinessRange({ invert: true, addRange: function() { } });
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
 
     this.renderer.bBoxTemplate = { x: 2, y: 1, width: 6, height: 12 };
 
@@ -3515,12 +3568,14 @@ QUnit.test("Full markers", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date01).returns(10);
@@ -3605,12 +3660,14 @@ QUnit.test("Full markers. Inverted", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: true, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(90);
     this.translator.stub("translate").withArgs(date01).returns(90);
@@ -3680,12 +3737,14 @@ QUnit.test("First marker without line", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(0);
     this.translator.stub("translate").withArgs(date01).returns(20);
@@ -3757,12 +3816,14 @@ QUnit.test("First marker without line and label", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(0);
     this.translator.stub("translate").withArgs(date01).returns(20);
@@ -3829,12 +3890,14 @@ QUnit.test("First marker without line and label, inverted", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: true, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(90);
     this.translator.stub("translate").withArgs(date01).returns(80);
@@ -3902,12 +3965,14 @@ QUnit.test("Last marker without label", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date01).returns(10);
@@ -3968,12 +4033,14 @@ QUnit.test("Last marker without label, inverted", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: true, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(90);
     this.translator.stub("translate").withArgs(date01).returns(90);
@@ -4034,11 +4101,13 @@ QUnit.test("Second marker is too wide, draw without label and line", function(as
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date01).returns(10);
@@ -4115,11 +4184,13 @@ QUnit.test("Second marker is too wide, draw without label and line, inverted", f
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: true, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date2
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(90);
     this.translator.stub("translate").withArgs(date01).returns(90);
@@ -4194,8 +4265,10 @@ QUnit.test("T402810. Do not render markers if there is only one on start of scal
     });
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("day");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("day");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "day";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4240,8 +4313,10 @@ QUnit.test("T402810. Render 2 markers if there is only one in the middle of scal
     });
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("day");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("day");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "day";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4289,8 +4364,10 @@ QUnit.test("Draw date marker with customizeText", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4335,8 +4412,10 @@ QUnit.test("Do not draw date marker when axis type is discrete", function(assert
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4382,8 +4461,10 @@ QUnit.test("Date marker with millisecond delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("millisecond");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("millisecond");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "millisecond";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4431,8 +4512,10 @@ QUnit.test("Date marker with second delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("second");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("second");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "second";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4479,8 +4562,10 @@ QUnit.test("Date marker with minute delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("minute");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("minute");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "minute";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4527,8 +4612,10 @@ QUnit.test("Date marker with hour delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4575,8 +4662,10 @@ QUnit.test("Date marker with day delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("day");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("day");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "day";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4623,8 +4712,10 @@ QUnit.test("Date marker with week delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("week");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("week");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "week";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4672,8 +4763,10 @@ QUnit.test("Date marker with month delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("month");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("month");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "month";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4721,8 +4814,10 @@ QUnit.test("Date marker with quarter delta", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("quarter");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("quarter");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "quarter";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4769,8 +4864,10 @@ QUnit.test("Date marker with day delta and month boundary tick", function(assert
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("day");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("day");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "day";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4817,8 +4914,10 @@ QUnit.test("T448590. If tickInterval is 'year' and markers are visible set marke
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
-    this.tickManager.stub("getTickInterval").returns("year");
+    // this.tickManager.stub("getTicks").returns([ date0, date1, date2 ]);
+    // this.tickManager.stub("getTickInterval").returns("year");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedTickInterval = "year";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -4918,16 +5017,19 @@ QUnit.test("Horizontal bottom. With date markers, last marker without label", fu
 
     this.axis.setBusinessRange({ minVisible: date0, maxVisible: date2, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        date0,
-        date1,
-        date2
-    ]);
-    this.tickManager.stub("getMinorTicks").returns([
-        date0m,
-        date1m
-    ]);
-    this.tickManager.stub("getTickInterval").returns("hour");
+    // this.tickManager.stub("getTicks").returns([
+    //     date0,
+    //     date1,
+    //     date2
+    // ]);
+    // this.tickManager.stub("getMinorTicks").returns([
+    //     date0m,
+    //     date1m
+    // ]);
+    // this.tickManager.stub("getTickInterval").returns("hour");
+    this.generatedTicks = [date0, date1, date2];
+    this.generatedMinorTicks = [date0m, date1m];
+    this.generatedTickInterval = "hour";
 
     this.translator.stub("translate").withArgs(date0).returns(10);
     this.translator.stub("translate").withArgs(date1).returns(50);
@@ -5057,15 +5159,17 @@ QUnit.test("Horizontal top", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: 1, maxVisible: 5, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        1,
-        3,
-        5
-    ]);
-    this.tickManager.stub("getMinorTicks").returns([
-        2,
-        4
-    ]);
+    // this.tickManager.stub("getTicks").returns([
+    //     1,
+    //     3,
+    //     5
+    // ]);
+    // this.tickManager.stub("getMinorTicks").returns([
+    //     2,
+    //     4
+    // ]);
+    this.generatedTicks = [1, 3, 5];
+    this.generatedMinorTicks = [2, 4];
 
     this.translator.stub("translate").withArgs(1).returns(10);
     this.translator.stub("translate").withArgs(3).returns(50);
@@ -5178,15 +5282,17 @@ QUnit.test("Vertical left", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: 1, maxVisible: 5, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        1,
-        3,
-        5
-    ]);
-    this.tickManager.stub("getMinorTicks").returns([
-        2,
-        4
-    ]);
+    // this.tickManager.stub("getTicks").returns([
+    //     1,
+    //     3,
+    //     5
+    // ]);
+    // this.tickManager.stub("getMinorTicks").returns([
+    //     2,
+    //     4
+    // ]);
+    this.generatedTicks = [1, 3, 5];
+    this.generatedMinorTicks = [2, 4];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(3).returns(50);
@@ -5299,15 +5405,17 @@ QUnit.test("Vertical right", function(assert) {
 
     this.axis.setBusinessRange({ minVisible: 1, maxVisible: 5, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        1,
-        3,
-        5
-    ]);
-    this.tickManager.stub("getMinorTicks").returns([
-        2,
-        4
-    ]);
+    // this.tickManager.stub("getTicks").returns([
+    //     1,
+    //     3,
+    //     5
+    // ]);
+    // this.tickManager.stub("getMinorTicks").returns([
+    //     2,
+    //     4
+    // ]);
+    this.generatedTicks = [1, 3, 5];
+    this.generatedMinorTicks = [2, 4];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(3).returns(50);
@@ -5403,15 +5511,17 @@ QUnit.test("Horizontal. Constant line labels on both sides - labels on opposite 
 
     this.axis.setBusinessRange({ minVisible: 1, maxVisible: 5, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        1,
-        3,
-        5
-    ]);
-    this.tickManager.stub("getMinorTicks").returns([
-        2,
-        4
-    ]);
+    // this.tickManager.stub("getTicks").returns([
+    //     1,
+    //     3,
+    //     5
+    // ]);
+    // this.tickManager.stub("getMinorTicks").returns([
+    //     2,
+    //     4
+    // ]);
+    this.generatedTicks = [1, 3, 5];
+    this.generatedMinorTicks = [2, 4];
 
     this.translator.stub("translate").withArgs(1).returns(10);
     this.translator.stub("translate").withArgs(3).returns(50);
@@ -5503,15 +5613,17 @@ QUnit.test("Vertical. Constant line labels on both sides - labels on opposite do
 
     this.axis.setBusinessRange({ minVisible: 1, maxVisible: 5, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        1,
-        3,
-        5
-    ]);
-    this.tickManager.stub("getMinorTicks").returns([
-        2,
-        4
-    ]);
+    // this.tickManager.stub("getTicks").returns([
+    //     1,
+    //     3,
+    //     5
+    // ]);
+    // this.tickManager.stub("getMinorTicks").returns([
+    //     2,
+    //     4
+    // ]);
+    this.generatedTicks = [1, 3, 5];
+    this.generatedMinorTicks = [2, 4];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(3).returns(50);
@@ -5603,15 +5715,17 @@ QUnit.test("Horizontal. All constant line labels on opposite side - do not produ
 
     this.axis.setBusinessRange({ minVisible: 1, maxVisible: 5, invert: false, addRange: function() { } });
 
-    this.tickManager.stub("getTicks").returns([
-        1,
-        3,
-        5
-    ]);
-    this.tickManager.stub("getMinorTicks").returns([
-        2,
-        4
-    ]);
+    // this.tickManager.stub("getTicks").returns([
+    //     1,
+    //     3,
+    //     5
+    // ]);
+    // this.tickManager.stub("getMinorTicks").returns([
+    //     2,
+    //     4
+    // ]);
+    this.generatedTicks = [1, 3, 5];
+    this.generatedMinorTicks = [2, 4];
 
     this.translator.stub("translate").withArgs(1).returns(10);
     this.translator.stub("translate").withArgs(3).returns(50);
@@ -5672,7 +5786,8 @@ QUnit.test("Horizontal. Major grids", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5710,7 +5825,8 @@ QUnit.test("Horizontal. Minor grids", function(assert) {
         }
     });
 
-    this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    this.generatedMinorTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5749,7 +5865,8 @@ QUnit.test("Vertical. Major grids", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5779,7 +5896,8 @@ QUnit.test("Vertical. Major grids", function(assert) {
         }
     });
 
-    this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    this.generatedMinorTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(40);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5808,7 +5926,8 @@ QUnit.test("Horizontal. Borders are not visible. Boundary grids are visible", fu
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(10);
     this.translator.stub("translate").withArgs(2).returns(90);
@@ -5834,7 +5953,8 @@ QUnit.test("Horizontal. Left border visible. Left grid is NOT visible", function
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(10);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5863,7 +5983,8 @@ QUnit.test("Horizontal. Right border visible. Right grid is NOT visible", functi
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(10);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5892,7 +6013,8 @@ QUnit.test("Horizontal. Left and right borders are visible. Distance between gri
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(14);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5922,7 +6044,8 @@ QUnit.test("Horizontal. Left and right borders are visible. Distance between gri
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(13);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -5950,7 +6073,8 @@ QUnit.test("Vertical. Borders are not visible. Boundary grids are visible", func
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(70);
@@ -5976,7 +6100,8 @@ QUnit.test("Vertical. Top border visible. Top grid is NOT visible", function(ass
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(10);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -6005,7 +6130,8 @@ QUnit.test("Vertical. Bottom border visible. Bottom grid is NOT visible", functi
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(30);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -6034,7 +6160,8 @@ QUnit.test("Vertical. Top and bottom borders are visible. Distance between grids
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(34);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -6064,7 +6191,8 @@ QUnit.test("Vertical. Top and bottom borders are visible. Distance between grids
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(33);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -6100,7 +6228,8 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw la
         categories: categories
     });
 
-    this.tickManager.stub("getTicks").returns(categories);
+    //this.tickManager.stub("getTicks").returns(categories);
+    this.generatedTicks = categories;
 
     categories.forEach(function(cat, i) {
         this.translator.stub("translate").withArgs(cat).returns(10 + (i + 1) * 20);
@@ -6138,7 +6267,8 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - crossLabels. Draw all grid li
         categories: categories
     });
 
-    this.tickManager.stub("getTicks").returns(categories);
+    //this.tickManager.stub("getTicks").returns(categories);
+    this.generatedTicks = categories;
 
     categories.forEach(function(cat, i) {
         this.translator.stub("translate").withArgs(cat).returns(10 + (i + 1) * 20 - 10);
@@ -7865,7 +7995,8 @@ QUnit.test("Update tick mark points", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.axis.draw(this.zeroMarginCanvas);
     this.translator.stub("translate").withArgs(1).returns(30);
@@ -7896,7 +8027,8 @@ QUnit.test("Update minor tick mark points", function(assert) {
         }
     });
 
-    this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    this.generatedMinorTicks = [1, 2, 3];
 
     this.axis.draw(this.zeroMarginCanvas);
     this.translator.stub("translate").withArgs(1).returns(30);
@@ -7928,7 +8060,7 @@ QUnit.test("Update boundary tick mark points", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.tickManager.stub("getBoundaryTicks").returns([1, 3]);
 
     this.axis.draw(this.zeroMarginCanvas);
@@ -7958,7 +8090,8 @@ QUnit.test("Update tick label coords", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2]);
+    //this.tickManager.stub("getTicks").returns([1, 2]);
+    this.generatedTicks = [1, 2];
 
     this.axis.draw(this.zeroMarginCanvas);
 
@@ -8117,7 +8250,7 @@ QUnit.test("Update title coords", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.axis.draw(this.zeroMarginCanvas);
 
     //act
@@ -8141,7 +8274,7 @@ QUnit.test("Horizontal. Title does not fit to canvas - apply Ellipsis and set hi
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 100, height: 6 };
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.axis.draw(this.zeroMarginCanvas);
 
     var title = renderer.text.getCall(0).returnValue;
@@ -8169,7 +8302,7 @@ QUnit.test("Horizontal. Title fit to canvas - do not apply Ellipsis nor set hint
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 50, height: 6 };
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.axis.draw(this.zeroMarginCanvas);
 
     var title = renderer.text.getCall(0).returnValue;
@@ -8197,7 +8330,7 @@ QUnit.test("Vertical. Title does not fit to canvas - apply Ellipsis and set hint
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 10, height: 100 };
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.axis.draw(this.zeroMarginCanvas);
 
     var title = renderer.text.getCall(0).returnValue;
@@ -8225,7 +8358,7 @@ QUnit.test("Vertical. Title fit to canvas - do not apply Ellipsis nor set hint",
 
     this.renderer.bBoxTemplate = { x: 1, y: 2, width: 10, height: 30 };
 
-    this.tickManager.stub("getTicks").returns([]);
+    //this.tickManager.stub("getTicks").returns([]);
     this.axis.draw(this.zeroMarginCanvas);
 
     var title = renderer.text.getCall(0).returnValue;
@@ -8253,7 +8386,8 @@ QUnit.test("Update grid points", function(assert) {
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(0);
     this.translator.stub("translate").withArgs(2).returns(10);
@@ -8286,7 +8420,8 @@ QUnit.test("Update grid points, but distance between grids and borders less than
         }
     });
 
-    this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getTicks").returns([1, 2, 3]);
+    this.generatedTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(4);
     this.translator.stub("translate").withArgs(2).returns(50);
@@ -8319,7 +8454,8 @@ QUnit.test("Update minor grid points", function(assert) {
         }
     });
 
-    this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    //this.tickManager.stub("getMinorTicks").returns([1, 2, 3]);
+    this.generatedMinorTicks = [1, 2, 3];
 
     this.translator.stub("translate").withArgs(1).returns(0);
     this.translator.stub("translate").withArgs(2).returns(10);

@@ -153,13 +153,13 @@ _Range.prototype = {
     },
 
     //T170398
-    checkZeroStick: function() {
-        var that = this;
-        if(that.min >= 0 && that.max >= 0) {
-            that.minStickValue = 0;
-        } else if(that.min <= 0 && that.max <= 0) {
-            that.maxStickValue = 0;
-        }
-        return that;
-    }
+    // checkZeroStick: function() {
+    //     var that = this;
+    //     if(that.min >= 0 && that.max >= 0) {
+    //         that.minStickValue = 0;
+    //     } else if(that.min <= 0 && that.max <= 0) {
+    //         that.maxStickValue = 0;
+    //     }
+    //     return that;
+    // }
 };
