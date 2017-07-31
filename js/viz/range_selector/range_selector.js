@@ -460,6 +460,7 @@ function updateScaleOptions(scaleOptions, seriesDataSource, translatorRange, tic
         intervals = getIntervalCustomTicks(scaleOptions);
         scaleOptions.customMinorTicks = intervals.altIntervals;
         scaleOptions.customTicks = intervals.intervals;
+        //TODO rework
         scaleOptions.customBoundTicks = [scaleOptions.customTicks[0]];
     }
 }
@@ -496,6 +497,8 @@ function prepareScaleOptions(scaleOption, seriesDataSource, incidentOccurred) {
     }
 
     scaleOption.valueType = valueType;
+    //TODO
+    scaleOption.dataType = valueType;
     parser = parseUtils.getParser(valueType);
 
     validateStartEndValues(START_VALUE, parser);
@@ -630,7 +633,8 @@ var dxRangeSelector = require("../core/base_widget").inherit({
         that._axis = new AxisWrapper({
             renderer: renderer,
             root: scaleGroup,
-            updateSelectedRange: function(range) { that.setValue(parseSelectedRange(range)); }
+            updateSelectedRange: function(range) { that.setValue(parseSelectedRange(range)); },
+            incidentOccurred: that._incidentOccurred
         });
 
         that._rangeView = new rangeViewModule.RangeView({
@@ -1042,6 +1046,8 @@ function prepareAxisOptions(scaleOptions, isCompactMode, height, axisPosition) {
     scaleOptions.argumentType = scaleOptions.valueType;
     scaleOptions.visible = isCompactMode;
     scaleOptions.minorTick.showCalculatedTicks = scaleOptions.isHorizontal = scaleOptions.stick = true;
+    //TODO test
+    scaleOptions.calculateMinors = true;
 
     scaleOptions.semiDiscreteInterval = scaleOptions.minRange;
 
@@ -1071,6 +1077,7 @@ function AxisWrapper(params) {
     this._axis = new axisModule.Axis({
         renderer: params.renderer,
         axesContainerGroup: params.root,
+        incidentOccurred: params.incidentOccurred,
         // TODO: These dependencies should be statically resolved (not for every new instance)
         axisType: "xyAxes",
         drawingType: "linear",

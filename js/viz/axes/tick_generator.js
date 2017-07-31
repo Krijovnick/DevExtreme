@@ -470,6 +470,15 @@ function dateGenerator(options) {
     );
 }
 
+function dummyGenerator() {
+    return {
+        tickInterval: undefined,
+        ticks: [],
+        minorTickInterval: undefined,
+        minorTicks: []
+    };
+}
+
 // {
 //     dataType: "numeric",
 //     axisType: "continuous",
@@ -483,7 +492,7 @@ function dateGenerator(options) {
 //     numberMultipliers: [1, 2]
 // }
 exports.tickGenerator = function(options) {
-    var result;
+    var result = dummyGenerator;
 
     if(options.axisType === "discrete") {
         result = discreteGenerator(options);

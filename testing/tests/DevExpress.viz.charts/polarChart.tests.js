@@ -439,7 +439,20 @@ QUnit.test("draw Axes", function(assert) {
         originalRight: 0
     }]);
 
-    assert.strictEqual(chart._argumentAxes[0].measureLabels.getCall(0).args[0], true);
+    assert.deepEqual(chart._argumentAxes[0].measureLabels.getCall(0).args[0], {
+        bottom: 0,
+        height: 400,
+        left: 0,
+        right: 0,
+        top: 0,
+        width: 1000,
+        originalTop: 0,
+        originalBottom: 0,
+        originalLeft: 0,
+        originalRight: 0
+    });
+
+    assert.strictEqual(chart._argumentAxes[0].measureLabels.getCall(0).args[1], true);
 });
 
 QUnit.test("Adaptive layout", function(assert) {

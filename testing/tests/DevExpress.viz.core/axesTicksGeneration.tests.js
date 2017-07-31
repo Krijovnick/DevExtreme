@@ -7,6 +7,7 @@ var $ = require("jquery"),
     StubTranslator = vizMocks.stubClass(translator2DModule.Translator2D, {
         updateBusinessRange: function(range) {
             this.getBusinessRange.returns(range);
+            range.categories && this.getVisibleCategories.returns(range.categories);
         }
     });
 
@@ -21,6 +22,7 @@ var environment = {
 
         this.translator = new StubTranslator();
         this.translator.stub("getBusinessRange").returns({ addRange: sinon.stub() });
+        this.translator.stub("getVisibleCategories").returns([]);
     },
     createAxis: function(options) {
         var stripsGroup = this.renderer.g(),
@@ -30,6 +32,7 @@ var environment = {
             gridGroup = this.renderer.g();
 
         this.renderer.g.reset();
+        this.incidentOccurred = sinon.spy();
 
         this.axis = new Axis($.extend(true, {
             renderer: this.renderer,
@@ -38,6 +41,7 @@ var environment = {
             constantLinesGroup: constantLinesGroup,
             axesContainerGroup: axesContainerGroup,
             gridGroup: gridGroup,
+            incidentOccurred: this.incidentOccurred,
             axisType: "xyAxes",
             drawingType: "linear"
         }, options));
@@ -52,10 +56,7 @@ var environment = {
     },
     updateOptions: function(options) {
         this.axis.updateOptions($.extend(true, {
-            axisDivisionFactor: undefined,
-            minorAxisDivisionFactor: undefined,
             numberMultipliers: undefined,
-            incidentOccurred: undefined,
             allowDecimals: undefined,
             endOnTicks: undefined,
             crosshairMargin: 0,
@@ -74,7 +75,6 @@ var environment = {
         this.axis.validate(true);
     }
 };
-//(data, screenDelta, tickInterval, forceTickInterval, customTicks, minorTickInterval, minorTickCount)
 
 function value(item) {
     return item.value.valueOf();
@@ -101,8 +101,7 @@ QUnit.test("Return all categories", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "string",
-        type: "discrete",
-        axisDivisionFactor: 50
+        type: "discrete"
     });
 
     this.axis.setBusinessRange({ categories: ["cat1", "cat2", "cat3", "cat4", "cat5"], addRange: function() { } });
@@ -117,8 +116,7 @@ QUnit.test("Do not calculate tickInterval if ratio of (categories count) to (cou
     this.createAxis();
     this.updateOptions({
         argumentType: "string",
-        type: "discrete",
-        axisDivisionFactor: 50
+        type: "discrete"
     });
 
     this.axis.setBusinessRange({ categories: new Array(79).fill(1), addRange: function() { } });
@@ -134,7 +132,7 @@ QUnit.test("Calculate tickInterval if ratio of (categories count) to (count by s
     this.updateOptions({
         argumentType: "string",
         type: "discrete",
-        axisDivisionFactor: 50
+        axisDivisionFactor: 110
     });
 
     this.axis.setBusinessRange({ categories: new Array(82).fill(1), addRange: function() { } });
@@ -142,7 +140,7 @@ QUnit.test("Calculate tickInterval if ratio of (categories count) to (count by s
     //act
     this.axis.createTicks(canvas(1000));
 
-    assert.deepEqual(this.axis._tickInterval, 5);
+    assert.deepEqual(this.axis._tickInterval, 10);
 });
 
 QUnit.module("Numeric. Calculate tickInterval and ticks. allowDecimals false", environment);
@@ -152,7 +150,6 @@ QUnit.test("0-10, screenDelta 200 - tickInterval 5", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: false
     });
 
@@ -169,7 +166,6 @@ QUnit.test("0-100, screenDelta 250 - tickInterval 20", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: false
     });
 
@@ -186,7 +182,6 @@ QUnit.test("0-100, screenDelta 200 - tickInterval 25", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: false
     });
 
@@ -203,7 +198,6 @@ QUnit.test("0-2, screenDelta 500 - tickInterval 1", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: false
     });
 
@@ -222,7 +216,6 @@ QUnit.test("0-10, screenDelta 200 - tickInterval 2.5", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -239,7 +232,6 @@ QUnit.test("0-2, screenDelta 500 - tickInterval 0.2", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -256,7 +248,6 @@ QUnit.test("0-2.1, screenDelta 5000 - tickInterval 0.025", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -275,7 +266,6 @@ QUnit.test("forceTickInterval false. User's tickIntervsal 1, calculated tickInte
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         forceUserTickInterval: false,
         tickInterval: 1
@@ -289,34 +279,11 @@ QUnit.test("forceTickInterval false. User's tickIntervsal 1, calculated tickInte
     assert.deepEqual(this.axis._tickInterval, 2);
 });
 
-QUnit.test("overlappingBehavior = ignore. User's tickIntervsal 1, calculated tickInterval 2 - return user tickInterval", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "continuous",
-        axisDivisionFactor: 50,
-        allowDecimals: true,
-        forceUserTickInterval: false,
-        tickInterval: 1,
-        label: {
-            overlappingBehavior: { mode: "ignore" }
-        }
-    });
-
-    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 10, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(300));
-
-    assert.deepEqual(this.axis._tickInterval, 1);
-});
-
 QUnit.test("forceTickInterval true. User's tickIntervsal 1, calculated tickInterval 2 - return user tickInterval", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         forceUserTickInterval: true,
         tickInterval: 1
@@ -335,7 +302,6 @@ QUnit.test("DEPRECATED. overlappingBehavior = ignore. User's tickIntervsal 1, ca
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         forceUserTickInterval: false,
         tickInterval: 1,
@@ -357,7 +323,6 @@ QUnit.test("forceTickInterval true. No user's tickIntervsal, calculated tickInte
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         forceUserTickInterval: true,
         tickInterval: undefined
@@ -378,7 +343,6 @@ QUnit.test("Without endOnTicks - calculate ticks inside data bounds", function(a
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: 1
     });
 
@@ -396,7 +360,6 @@ QUnit.test("Without endOnTicks - calculate ticks as multipliers of tickInterval"
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: 3
     });
 
@@ -414,7 +377,6 @@ QUnit.test("With endOnTicks - calculate ticks outside or on data bounds", functi
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         endOnTicks: true,
         tickInterval: 3
     });
@@ -433,7 +395,6 @@ QUnit.test("allowDecimals is ignored with user tickInterval", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: false,
         tickInterval: 2.5
     });
@@ -452,7 +413,6 @@ QUnit.test("Force user tick interval if it is too small for given screenDelta an
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: 2,
         forceUserTickInterval: true
     });
@@ -466,12 +426,28 @@ QUnit.test("Force user tick interval if it is too small for given screenDelta an
     assert.deepEqual(this.axis._tickInterval, 2);
 });
 
+QUnit.test("Stub data. User's tickIntervsal 4 - ignore users tickInterval", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        allowDecimals: true,
+        tickInterval: 4
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 10, stubData: true, addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(300));
+
+    assert.deepEqual(this.axis._tickInterval, 2);
+});
+
 QUnit.test("0-1. Screen delta is 500. Interval is 0.1", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -488,7 +464,6 @@ QUnit.test("0-20. Screen delta is 1000. Interval is 1", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -505,7 +480,6 @@ QUnit.test("BusinessDelta is 0", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -519,16 +493,13 @@ QUnit.test("BusinessDelta is 0", function(assert) {
 });
 
 QUnit.test("Custom tickInterval is very small - ignore tickInterval and raise W2003 warning", function(assert) {
-    var incidentOccurred = sinon.spy();
     this.createAxis();
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         tickInterval: 0.1,
-        forceUserTickInterval: true,
-        incidentOccurred: incidentOccurred
+        forceUserTickInterval: true
     });
 
     this.axis.setBusinessRange({ minVisible: 0, maxVisible: 20, addRange: function() { } });
@@ -536,7 +507,7 @@ QUnit.test("Custom tickInterval is very small - ignore tickInterval and raise W2
     //act
     this.axis.createTicks(canvas(199));
 
-    assert.deepEqual(incidentOccurred.lastCall.args, ["W2003"]);
+    assert.deepEqual(this.incidentOccurred.lastCall.args, ["W2003"]);
     assert.deepEqual(this.axis._tickInterval, 10);
 });
 
@@ -545,7 +516,6 @@ QUnit.test("tickInterval > businessDelta, no data as multiplier of tickInterval 
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         tickInterval: 100
     });
@@ -564,7 +534,6 @@ QUnit.test("tickInterval > businessDelta, there is data as multiplier of tickInt
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         tickInterval: 20
     });
@@ -583,7 +552,6 @@ QUnit.test("Custom numberMultipliers", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         numberMultipliers: [3, 4]
     });
@@ -602,7 +570,6 @@ QUnit.test("Custom ticks", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         customTicks: [0, 6, 12, 18]
     });
@@ -621,7 +588,6 @@ QUnit.test("Custom one tick", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         customTicks: [5]
     });
@@ -640,7 +606,6 @@ QUnit.test("customTicks with showCalculatedTicks", function(assert) { //DEPRECAT
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         customTicks: [0.1, 0.2, 2.5],
         tick: {
@@ -662,7 +627,6 @@ QUnit.test("showCalculatedTicks w/o customTicks", function(assert) { //DEPRECATE
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true,
         tick: {
             showCalculatedTicks: true
@@ -683,7 +647,6 @@ QUnit.test("Tick values adjusting", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -709,7 +672,6 @@ QUnit.test("Tick values adjusting on very small numbers", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
         allowDecimals: true
     });
 
@@ -722,15 +684,30 @@ QUnit.test("Tick values adjusting on very small numbers", function(assert) {
     assert.deepEqual(this.axis._tickInterval, 0.00001);
 });
 
-QUnit.module("Numeric. Minor ticks", environment);
-
-QUnit.test("Minor ticks are not calculated if minorTick anr minorGrid are not visible", function(assert) {
+QUnit.test("Custom axisDivisionFactor", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
+        axisDivisionFactor: 25,
+        allowDecimals: false
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 10, addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.deepEqual(this.axis._tickInterval, 2);
+});
+
+QUnit.module("Numeric. Minor ticks", environment);
+
+QUnit.test("minorTick and minorGrid are not visible - do not calculate minor ticks", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
         tickInterval: 5
     });
 
@@ -743,13 +720,29 @@ QUnit.test("Minor ticks are not calculated if minorTick anr minorGrid are not vi
     assert.deepEqual(this.axis._minorTickInterval, undefined);
 });
 
+QUnit.test("minorTick and minorGrid are not visible, calculateMinors = true (for rangeSelector) - calculate minor ticks", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        tickInterval: 5,
+        calculateMinors: true
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 10, addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.deepEqual(this.axis._minorTicks.map(value), [1, 2, 3, 4, 6, 7, 8, 9]);
+    assert.deepEqual(this.axis._minorTickInterval, 1);
+});
+
 QUnit.test("tickInterval 5 - minorTickInterval 1. minorTick visible", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 5,
         minorTick: {
             visible: true
@@ -770,8 +763,6 @@ QUnit.test("tickInterval 5 - minorTickInterval 1. minorGrid visible", function(a
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 5,
         minorGrid: {
             visible: true
@@ -792,8 +783,6 @@ QUnit.test("tickInterval 20 - minorTickInterval 5", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 20,
         minorTick: {
             visible: true
@@ -814,8 +803,6 @@ QUnit.test("Minor ticks do not go beyond bounds if endOnTicks = fasle", function
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 5,
         minorTick: {
             visible: true
@@ -836,8 +823,6 @@ QUnit.test("Minor ticks go beyond bounds if endOnTicks = true", function(assert)
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 5,
         endOnTicks: true,
         minorTick: {
@@ -859,8 +844,6 @@ QUnit.test("Minor ticks with given minorTickInterval", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 5,
         minorTickInterval: 2,
         minorTick: {
@@ -882,8 +865,6 @@ QUnit.test("Minor ticks with given minorTickCount", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 6,
         minorTickCount: 3,
         minorTick: {
@@ -905,8 +886,6 @@ QUnit.test("minorTickInterval has higher priority than minorTickCount", function
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 6,
         minorTickInterval: 1,
         minorTickCount: 3,
@@ -929,8 +908,6 @@ QUnit.test("Custom minorTicks", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         customMinorTicks: [0.1, 0.2, 2.5],
         minorTick: {
             visible: true
@@ -951,8 +928,6 @@ QUnit.test("Custom minorTicks with minorTick showCalculatedTicks", function(asse
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         allowDecimals: true,
         customMinorTicks: [0.1, 0.2, 2.5],
         minorTick: {
@@ -975,8 +950,6 @@ QUnit.test("showMinorCalculatedTicks w/o Custom minorTicks", function(assert) { 
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         allowDecimals: true,
         minorTick: {
             visible: true,
@@ -998,8 +971,6 @@ QUnit.test("Minor ticks when there is only one major tick on min (big tickInterv
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         allowDecimals: true,
         tickInterval: 100,
         minorTick: {
@@ -1024,8 +995,6 @@ QUnit.test("Minor ticks when there is only one major tick in the middle (big tic
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         allowDecimals: true,
         tickInterval: 20,
         minorTick: {
@@ -1047,8 +1016,6 @@ QUnit.test("Minor tick values adjusting on very small numbers", function(assert)
     this.updateOptions({
         argumentType: "numeric",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: 0.0001,
         minorTick: {
             visible: true
@@ -1064,6 +1031,26 @@ QUnit.test("Minor tick values adjusting on very small numbers", function(assert)
     assert.deepEqual(this.axis._minorTickInterval, 0.00001);
 });
 
+QUnit.test("Custom minorAxisDivisionFactor", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        minorAxisDivisionFactor: 5,
+        tickInterval: 5,
+        minorTick: {
+            visible: true
+        }
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 10, addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.deepEqual(this.axis._minorTickInterval, 0.5);
+});
+
 QUnit.module("Logarithmic. Calculate tickInterval and ticks", environment);
 
 QUnit.test("0.0001 - 10000, screenDelta 450 - tickInterval 1", function(assert) {
@@ -1071,7 +1058,6 @@ QUnit.test("0.0001 - 10000, screenDelta 450 - tickInterval 1", function(assert) 
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1088,7 +1074,6 @@ QUnit.test("0.0001 - 10000, screenDelta 200 - tickInterval 2", function(assert) 
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1105,7 +1090,6 @@ QUnit.test("0.0001 - 10000, screenDelta 150 - tickInterval 3", function(assert) 
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1122,7 +1106,6 @@ QUnit.test("0.0001 - 10000, screenDelta 100 - tickInterval 5", function(assert) 
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1139,7 +1122,6 @@ QUnit.test("0.0001 - 100000, screenDelta 70 - tickInterval 10", function(assert)
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1156,7 +1138,6 @@ QUnit.test("tickInterval can not be less than 1", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1175,7 +1156,6 @@ QUnit.test("Without endOnTicks - calculate ticks inside data bounds", function(a
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10,
         tickInterval: 1
     });
@@ -1194,7 +1174,6 @@ QUnit.test("With endOnTicks - calculate ticks outside or on data bounds", functi
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         endOnTicks: true,
         logarithmBase: 10,
         tickInterval: 1
@@ -1214,7 +1193,6 @@ QUnit.test("Force user tick interval if it is too small for given screenDelta an
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         endOnTicks: true,
         logarithmBase: 10,
         tickInterval: 2,
@@ -1235,7 +1213,6 @@ QUnit.test("logBase 2", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 2
     });
 
@@ -1253,7 +1230,6 @@ QUnit.test("min = 0, max = 0", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1271,7 +1247,6 @@ QUnit.test("customTicks", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10,
         customTicks: [1, 100, 10000]
     });
@@ -1290,7 +1265,6 @@ QUnit.test("Tick values adjusting on very small numbers", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
         logarithmBase: 10
     });
 
@@ -1310,8 +1284,6 @@ QUnit.test("minorTickInterval as exponent, but ticks not", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         logarithmBase: 10,
         minorTick: {
             visible: true
@@ -1332,8 +1304,6 @@ QUnit.test("Minor ticks do not go beyond bounds if endOnTicks = fasle", function
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         logarithmBase: 10,
         tickInterval: 1,
         minorTick: {
@@ -1355,8 +1325,6 @@ QUnit.test("Minor ticks go beyond bounds if endOnTicks = true", function(assert)
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         logarithmBase: 10,
         tickInterval: 1,
         endOnTicks: true,
@@ -1379,8 +1347,6 @@ QUnit.test("Minor ticks with given minorTickInterval", function(assert) {
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         logarithmBase: 10,
         tickInterval: 1,
         minorTickInterval: 0.25,
@@ -1403,8 +1369,6 @@ QUnit.test("Minor ticks when there is only one major tick on min (big tickInterv
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         logarithmBase: 10,
         allowDecimals: true,
         minorTick: {
@@ -1426,8 +1390,6 @@ QUnit.test("Minor ticks when there is only one major tick in the middle (big tic
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         logarithmBase: 10,
         allowDecimals: true,
         minorTick: {
@@ -1449,8 +1411,6 @@ QUnit.test("Minor tick values adjusting on very small numbers", function(assert)
     this.updateOptions({
         argumentType: "numeric",
         type: "logarithmic",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         logarithmBase: 10,
         tickInterval: 1,
         endOnTicks: true,
@@ -1474,8 +1434,7 @@ QUnit.test("Milliseconds tickInterval (5ms)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 1, 12, 3, 5, 123), maxVisible: new Date(2012, 3, 1, 12, 3, 5, 149), addRange: function() { } });
@@ -1495,8 +1454,7 @@ QUnit.test("Seconds tickInterval (5s)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 1, 12, 3, 3), maxVisible: new Date(2012, 3, 1, 12, 3, 26), addRange: function() { } });
@@ -1516,8 +1474,7 @@ QUnit.test("Minutes tickInterval (3)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 1, 12, 1), maxVisible: new Date(2012, 3, 1, 12, 16), addRange: function() { } });
@@ -1537,8 +1494,7 @@ QUnit.test("Hours tickInterval (4)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 1, 3), maxVisible: new Date(2012, 3, 1, 21), addRange: function() { } });
@@ -1558,8 +1514,7 @@ QUnit.test("Days tickInterval (2)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 2, 13), maxVisible: new Date(2012, 3, 11, 5), addRange: function() { } });
@@ -1578,8 +1533,7 @@ QUnit.test("Weeks tickInterval (2)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2012, 2, 30), maxVisible: new Date(2012, 4, 30), addRange: function() { } });
@@ -1598,8 +1552,7 @@ QUnit.test("Months tickInterval (3)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2011, 10, 20), maxVisible: new Date(2013, 0, 15), addRange: function() { } });
@@ -1619,8 +1572,7 @@ QUnit.test("Years tickInterval (2)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2005, 0, 1), maxVisible: new Date(2013, 0, 1), addRange: function() { } });
@@ -1639,8 +1591,7 @@ QUnit.test("Years tickInterval can not be 2.5 (5)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(1994, 11, 20), maxVisible: new Date(2015, 5, 1), addRange: function() { } });
@@ -1660,8 +1611,7 @@ QUnit.test("Years tickInterval (25)", function(assert) {
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
-        type: "continuous",
-        axisDivisionFactor: 50,
+        type: "continuous"
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(1899, 0, 1), maxVisible: new Date(2001, 0, 1), addRange: function() { } });
@@ -1684,7 +1634,6 @@ QUnit.test("Without endOnTicks - calculate ticks inside data bounds", function(a
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: { "days": 2 }
     });
 
@@ -1705,7 +1654,6 @@ QUnit.test("With endOnTicks - calculate ticks outside or on data bounds", functi
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: { "days": 2 },
         endOnTicks: true
     });
@@ -1729,7 +1677,6 @@ QUnit.test("Force user tick interval if it is too small for given screenDelta an
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: { "days": 1 },
         forceUserTickInterval: true
     });
@@ -1748,7 +1695,6 @@ QUnit.test("Quarters custom interval", function(assert) {
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: { "quarters": 1 }
     });
 
@@ -1768,7 +1714,6 @@ QUnit.test("Custom tickInterval with several keys - use bigger key as multiplier
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: { hours: 2, seconds: 30 }
     });
 
@@ -1790,7 +1735,6 @@ QUnit.test("endOnTicks true, custom tickInterval with several keys - use bigger 
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: { hours: 2, seconds: 30 },
         endOnTicks: true
     });
@@ -1815,7 +1759,6 @@ QUnit.test("customTicks", function(assert) {
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
         tickInterval: { hours: 2, seconds: 30 },
         endOnTicks: true,
         customTicks: [new Date(2011, 3, 10), new Date(2011, 4, 10), new Date(2011, 5, 10), new Date(2011, 6, 10)]
@@ -1834,14 +1777,11 @@ QUnit.test("customTicks", function(assert) {
 });
 
 QUnit.test("Custom tickInterval is very small - ignore tickInterval and raise W2003 warning", function(assert) {
-    var incidentOccurred = sinon.spy();
     this.createAxis();
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
-        tickInterval: { hours: 1 },
-        incidentOccurred: incidentOccurred
+        tickInterval: { hours: 1 }
     });
 
     this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 2, 2), maxVisible: new Date(2012, 3, 12, 12), addRange: function() { } });
@@ -1849,7 +1789,7 @@ QUnit.test("Custom tickInterval is very small - ignore tickInterval and raise W2
     //act
     this.axis.createTicks(canvas(249));
 
-    assert.deepEqual(incidentOccurred.lastCall.args, ["W2003"]);
+    assert.deepEqual(this.incidentOccurred.lastCall.args, ["W2003"]);
     assert.deepEqual(this.axis._tickInterval, { weeks: 1 });
 });
 
@@ -1860,8 +1800,6 @@ QUnit.test("tickInterval month - minorTickInterval can not be in weeks", functio
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: { months: 1 },
         minorTick: { visible: true }
     });
@@ -1880,8 +1818,6 @@ QUnit.test("Custom minorTicks", function(assert) {
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: { months: 1 },
         minorTick: { visible: true },
         customMinorTicks: [new Date(2012, 3, 10), new Date(2012, 3, 20), new Date(2012, 3, 30), new Date(2012, 4, 9)]
@@ -1901,8 +1837,6 @@ QUnit.test("Minor ticks when there is only one major tick on min (big tickInterv
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: { months: 1 },
         minorTick: { visible: true }
     });
@@ -1921,8 +1855,6 @@ QUnit.test("Minor ticks when there is only one major tick in the middle (big tic
     this.updateOptions({
         argumentType: "datetime",
         type: "continuous",
-        axisDivisionFactor: 50,
-        minorAxisDivisionFactor: 15,
         tickInterval: { months: 1 },
         minorTick: { visible: true }
     });
@@ -1934,4 +1866,68 @@ QUnit.test("Minor ticks when there is only one major tick in the middle (big tic
 
     assert.deepEqual(this.axis._minorTicks.map(value), [new Date(2012, 2, 20), new Date(2012, 2, 27), new Date(2012, 3, 8)].map(function(d) { return d.valueOf(); }));
     assert.deepEqual(this.axis._minorTickInterval, { days: 7 });
+});
+
+
+QUnit.module("Polar axes", environment);
+
+QUnit.test("Circular. startAngle < endAngle", function(assert) {
+    this.createAxis({
+        axisType: "polarAxes",
+        drawingType: "circular"
+    });
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        axisDivisionFactor: 30,
+        startAngle: 45,
+        endAngle: 225
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 10, addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.deepEqual(this.axis._tickInterval, 1);
+});
+
+QUnit.test("Circular. startAngle > endAngle", function(assert) {
+    this.createAxis({
+        axisType: "polarAxes",
+        drawingType: "circular"
+    });
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        axisDivisionFactor: 10,
+        startAngle: 245,
+        endAngle: 200
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 10, addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.deepEqual(this.axis._tickInterval, 2);
+});
+
+QUnit.test("Linear", function(assert) {
+    this.createAxis({
+        axisType: "polarAxes",
+        drawingType: "linear"
+    });
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        axisDivisionFactor: 10
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 100, addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.deepEqual(this.axis._tickInterval, 10);
 });

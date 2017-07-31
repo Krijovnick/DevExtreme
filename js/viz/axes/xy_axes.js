@@ -373,7 +373,6 @@ module.exports = {
             }
 
             markersAreaTop = that._axisPosition + options.marker.topIndent;
-            //tickInterval = dateUtils.getDateUnitInterval(this._tickManager.getTickInterval());
             tickInterval = dateUtils.getDateUnitInterval(this._tickInterval);
             markerInterval = getMarkerInterval(tickInterval);
 
@@ -643,16 +642,8 @@ module.exports = {
             return height && (height + labelOptions.indentFromAxis || 0) || 0;
         },
 
-        _estimateLabelFormat: function(canvas) {
-            //TODO
-            this.updateCanvas(canvas);
-            // this._updateTickManager();
-            // this._tickManager.getTicks();
-            this._correctLabelFormat();
-        },
-
         estimateMargins: function(canvas) {
-            this._estimateLabelFormat(canvas);
+            this._createTicksAndLabelFormat(canvas);
 
             var that = this,
                 options = this._options,

@@ -2,13 +2,12 @@
 
 var $ = require("jquery"),
     vizMocks = require("../../helpers/vizMocks.js"),
-    tickManagerModule = require("viz/axes/base_tick_manager"),
+    tickGeneratorModule = require("viz/axes/tick_generator"),
     translator2DModule = require("viz/translators/translator2d"),
     rangeModule = require("viz/translators/range"),
     Axis = require("viz/axes/base_axis").Axis;
 
-var TickManagerStubCtor = vizMocks.stubClass(tickManagerModule.TickManager),
-    Translator2D = translator2DModule.Translator2D,
+var Translator2D = translator2DModule.Translator2D,
     TranslatorStubCtor = vizMocks.stubClass(Translator2D),
     RangeStubCtor = vizMocks.stubClass(rangeModule.Range);
 
@@ -20,14 +19,6 @@ function create2DTranslator(options) {
     translator.stub("getVisibleCategories").returns();
 
     return translator;
-}
-
-function createStubTickManager() {
-    var tickManager = new TickManagerStubCtor();
-    tickManager.stub("getOptions").returns({});
-    tickManager.checkBoundedTicksOverlapping = sinon.spy(function() { return {}; });
-
-    return tickManager;
 }
 
 function getStub2DTranslatorWithSettings() {
@@ -55,15 +46,14 @@ var environment = {
 
             this.renderer = new vizMocks.Renderer();
 
-            this.tickManager = createStubTickManager();
-            this.tickManager.getMaxLabelParams = sinon.stub();
-            this.tickManager.getMaxLabelParams.returns({ width: 20, height: 10 });
-
-            that.tickManager.stub("getTicks").returns([]);
-            that.tickManager.stub("getMinorTicks").returns([]);
-
-            that.createTickManager = sinon.spy(tickManagerModule, "TickManager", function() {
-                return that.tickManager;
+            this.tickGenerator = sinon.stub(tickGeneratorModule, "tickGenerator", function() {
+                return function() {
+                    return {
+                        ticks: (that.generatedTicks || []).slice(),
+                        minorTicks: that.generatedMinorTicks || [],
+                        tickInterval: that.generatedTickInterval
+                    };
+                };
             });
 
             sinon.stub(translator2DModule, "Translator2D", function() {
@@ -83,7 +73,7 @@ var environment = {
                 isHorizontal: true,
                 valueMarginsEnabled: true,
                 marker: {
-                    visible: true,
+                    visible: false,
                     separatorHeight: 33,
                     textLeftIndent: 7,
                     textTopIndent: 11,
@@ -136,7 +126,7 @@ var environment = {
             this.css = require("viz/core/utils").patchFontOptions(this.options.marker.label.font);
         },
         afterEach: function() {
-            this.createTickManager.restore();
+            this.tickGenerator.restore();
             translator2DModule.Translator2D.restore();
         },
         createAxis: function(renderSettings, options) {
@@ -189,11 +179,7 @@ var environment = {
             environment.beforeEach.apply(this, arguments);
             var that = this;
 
-            that.tickManager.stub("getTicks").returns([1, 3, 5, 7, 9]);
-            this.createTickManager.restore();
-            this.createTickManager = sinon.stub(tickManagerModule, "TickManager", function() {
-                return that.tickManager;
-            });
+            that.generatedTicks = [1, 3, 5, 7, 9];
 
             this.translator = getStub2DTranslatorWithSettings();
             this.translator.translate.withArgs(1).returns(10);
@@ -215,10 +201,6 @@ var environment = {
                 axis.draw(this.canvas);
                 return axis;
             };
-        },
-        afterEach: function() {
-            environment.afterEach.call(this);
-            this.createTickManager.restore();
         }
     });
 
@@ -529,12 +511,7 @@ QUnit.module("Ticks skipping. Normal axis", $.extend({}, environment, {
         environment.beforeEach.apply(this, arguments);
         var that = this;
 
-        that.tickManager.stub("getTicks").returns(["c1", "c2", "c3", "c4"]);
-        that.tickManager.getOptions.returns({});
-        this.createTickManager.restore();
-        this.createTickManager = sinon.stub(tickManagerModule, "TickManager", function() {
-            return that.tickManager;
-        });
+        that.generatedTicks = ["c1", "c2", "c3", "c4"];
 
         this.translator = getStub2DTranslatorWithSettings();
         this.options.drawingType = "linear";
@@ -544,48 +521,12 @@ QUnit.module("Ticks skipping. Normal axis", $.extend({}, environment, {
     }
 }));
 
-QUnit.test("Change visible markers when axis type is discrete", function(assert) {
-    var axis = this.createSimpleAxis({ type: "discrete" });
-
-    axis.setBusinessRange({
-        addRange: sinon.stub()
-    });
-
-    axis.draw(this.canvas);
-
-    //assert
-    assert.strictEqual(this.tickManager.update.lastCall.args[2].isMarkersVisible, false);
-});
-
-QUnit.test("options to tickManager with overlappingMode = none", function(assert) {
-    this.createDrawnAxis({
-        forceUserTickInterval: "force",
-        label: { overlappingBehavior: { mode: "none" } }
-    });
-
-    assert.strictEqual(this.tickManager.update.lastCall.args[2].forceUserTickInterval, "force");
-});
-
-QUnit.test("options to tickManager with overlappingMode= ignore", function(assert) {
-    this.createDrawnAxis({
-        forceUserTickInterval: "force",
-        label: { overlappingBehavior: { mode: "ignore" } }
-    });
-
-    assert.strictEqual(this.tickManager.update.lastCall.args[2].forceUserTickInterval, true);
-});
-
 QUnit.module("Semidiscrete axis", $.extend({}, environment, {
     beforeEach: function() {
         environment.beforeEach.apply(this, arguments);
         var that = this;
 
-        that.tickManager.stub("getTicks").returns([1, 2, 3, 4]);
-        that.tickManager.getOptions.returns({});
-        this.createTickManager.restore();
-        this.createTickManager = sinon.stub(tickManagerModule, "TickManager", function() {
-            return that.tickManager;
-        });
+        that.generatedTicks = [1, 2, 3, 4];
 
         this.translator = getStub2DTranslatorWithSettings();
         this.options.drawingType = "linear";
@@ -768,7 +709,7 @@ QUnit.test("measure labels, one label", function(assert) {
     that.translator.stub("translate").withArgs(0).returns({ y: 4 });
     var axis = this.createSimpleAxis({ label: { visible: true } });
 
-    assert.deepEqual(axis.measureLabels(), {
+    assert.deepEqual(axis.measureLabels(this.canvas), {
         width: 20,
         height: 10,
         x: 1,
@@ -779,7 +720,7 @@ QUnit.test("measure labels, one label", function(assert) {
 QUnit.test("measuring label, label visibility is false", function(assert) {
     var axis = this.createSimpleAxis({ label: { visible: false } });
 
-    assert.deepEqual(axis.measureLabels(), {
+    assert.deepEqual(axis.measureLabels(this.canvas), {
         width: 0,
         height: 0,
         x: 0,
@@ -788,13 +729,13 @@ QUnit.test("measuring label, label visibility is false", function(assert) {
 });
 
 QUnit.test("measuring label, label creation", function(assert) {
-    var that = this,
-        axis = this.createSimpleAxis({ label: { visible: true, customizeText: function() { return this.value + " sec"; }, font: { color: "color" } } }),
+    this.generatedTicks = [0, 1, 2];
+    var axis = this.createSimpleAxis({ label: { visible: true, customizeText: function() { return this.value + " sec"; }, font: { color: "color" } } }),
         text;
 
-    axis.measureLabels();
+    axis.measureLabels(this.canvas);
 
-    text = that.renderer.text;
+    text = this.renderer.text;
 
     assert.equal(text.args[0][0], "0 sec", "text of the label");
     assert.equal(text.args[0][1], 0, "x coord");
@@ -803,32 +744,37 @@ QUnit.test("measuring label, label creation", function(assert) {
     assert.deepEqual(text.returnValues[0].css.args[0][0], { fill: "color" }, "font style");
     assert.deepEqual(text.returnValues[0].attr.args[0][0], { opacity: undefined, align: "center" }, "text options");
 
-    assert.equal(text.returnValues[0].append.args[0][0], that.renderer.root, "group");
+    assert.equal(text.returnValues[0].append.args[0][0], this.renderer.root, "group");
     assert.ok(text.returnValues[0].remove.called, "text is removed");
 });
 
 QUnit.test("measure labels, several labels", function(assert) {
-    var that = this;
-    that.createTickManager.restore();
-    that.tickManager.stub("getTicks").returns([1, 2, 300, 4, 5]);
-    this.createTickManager = sinon.stub(tickManagerModule, "TickManager", function() {
-        return that.tickManager;
-    });
-    var axis = that.createSimpleAxis({ label: { visible: true } });
-    axis.measureLabels();
+    this.generatedTicks = [1, 2, 300, 4, 5];
+    var axis = this.createSimpleAxis({ label: { visible: true } });
+    axis.measureLabels(this.canvas);
 
-    assert.equal(that.renderer.text.args[0][0], "300", "text of the label");
+    assert.equal(this.renderer.text.args[0][0], "300", "text of the label");
 });
 
 QUnit.test("measure empty labels", function(assert) {
     var axis = this.createSimpleAxis({ label: { customizeText: function(e) { return ""; } } });
 
-    assert.deepEqual(axis.measureLabels(), {
+    assert.deepEqual(axis.measureLabels(this.canvas), {
         width: 0,
         height: 0,
         x: 0,
         y: 0
     }, "measurements");
+});
+
+QUnit.test("call measure labels after axis draw - use ticks generated on draw", function(assert) {
+    this.generatedTicks = [1, 2, 300, 4, 5];
+    var axis = this.createSimpleAxis({ label: { visible: true } });
+    axis.createTicks(this.canvas);
+    this.generatedTicks = [2, 3, 4];
+
+    axis.measureLabels(this.canvas);
+    assert.equal(this.renderer.text.getCall(0).args[0], "300", "text of the label");
 });
 
 QUnit.module("Label overlapping, 'hide' mode", overlappingEnvironment);
@@ -902,7 +848,7 @@ QUnit.test("vertical axis", function(assert) {
 QUnit.test("Overlapping shouldn't apply if there is only one tick", function(assert) {
     var markersBBoxes = [{ x: 0, y: 0, width: 20, height: 5 }];
 
-    this.tickManager.stub("getTicks").returns([5]);
+    this.generatedTicks = [5];
 
     this.renderer.text = spyRendererText.call(this, markersBBoxes);
     this.drawAxisWithOptions({ min: 1, max: 10, label: { overlappingBehavior: { mode: "hide" } } });
@@ -969,7 +915,7 @@ QUnit.test("frequent ticks", function(assert) {
     this.translator.translate.withArgs(15).returns(23);
     this.translator.translate.withArgs(17).returns(25);
     this.translator.translate.withArgs(19).returns(27);
-    this.tickManager.stub("getTicks").returns([1, 3, 5, 7, 9, 11, 13, 15, 17, 19]);
+    this.generatedTicks = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
 
     this.renderer.text = spyRendererText.call(this, markersBBoxes);
     this.drawAxisWithOptions({
@@ -1459,7 +1405,7 @@ QUnit.test("Labels overlap, some of them hide", function(assert) {
         ],
         texts;
 
-    this.tickManager.stub("getTicks").returns([1, 3, 5, 7, 9, 11, 13, 15]);
+    this.generatedTicks = [1, 3, 5, 7, 9, 11, 13, 15];
 
     this.translator.translate.withArgs(11).returns(60);
     this.translator.translate.withArgs(13).returns(70);
@@ -1793,7 +1739,7 @@ QUnit.test("Custom rotation angle, overlapping mode is hide, labels are overlap"
 QUnit.test("Custom rotation angle, overlapping mode is hide, one tick", function(assert) {
     var markersBBoxes = [{ x: 0, y: 0, width: 20, height: 5 }];
 
-    this.tickManager.stub("getTicks").returns([5]);
+    this.generatedTicks = [5];
 
     this.renderer.text = spyRendererText.call(this, markersBBoxes);
     this.drawAxisWithOptions({ min: 1, max: 10, label: { displayMode: "rotate", rotationAngle: 40, overlappingBehavior: { mode: "hide" } } });
@@ -2191,7 +2137,6 @@ QUnit.module("Estimate size", $.extend({}, environment2DTranslator, {
         this.range.min = 100;
         this.range.max = 1000;
 
-        this.arrayRemovedElements = [];
         this.currentBBox = 0;
 
         that.bBoxes = [{
@@ -2738,26 +2683,135 @@ QUnit.test("Estimate margins does not include labels if stub data", function(ass
 });
 
 QUnit.test("Create ticks for labels format estimation", function(assert) {
-    var that = this;
-
-    this.range.min = new Date(2017, 1, 2, 10);
-    this.range.max = new Date(2017, 1, 2, 16);
-    this.createTickManager.restore();
-    this.tickManager.getOptions.returns({ labelFormat: "shorttime" });
-    this.createTickManager = sinon.stub(tickManagerModule, "TickManager", function() { return that.tickManager; });
+    this.generatedTicks = [
+        new Date(2009, 11, 1),
+        new Date(2010, 0, 1),
+        new Date(2010, 1, 1)
+    ];
 
     var axis = this.createSimpleAxis({
         isHorizontal: true,
+        type: "continuous",
+        valueType: "datetime",
         label: {
             visible: true
         }
     });
+    axis.validate();
 
     axis.estimateMargins(this.canvas);
 
-    assert.strictEqual(this.tickManager.update.lastCall.args[1].screenDelta, 890, "screenDelta");
-    assert.strictEqual(this.tickManager.getTicks.callCount, 1);
-    assert.deepEqual(this.renderer.text.getCall(0).args, ["4:00 PM", 0, 0], "cteate text args");
+    assert.equal(axis.getOptions().label.format, "monthandyear");
+});
+
+QUnit.module("Label format auto calculation", environment2DTranslator);
+
+QUnit.test("DateTime axis, no user format, no marker visible - format is calculated by ticks", function(assert) {
+    this.generatedTicks = [
+        new Date(2009, 11, 1),
+        new Date(2010, 0, 1),
+        new Date(2010, 1, 1)
+    ];
+
+    this.generatedTickInterval = { months: 1 };
+
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "datetime",
+        label: { visible: true }
+    });
+    axis.validate();
+
+    axis.createTicks(this.canvas);
+
+    assert.equal(axis.getOptions().label.format, "monthandyear");
+});
+
+QUnit.test("DateTime axis, no user format, marker visible - format is calculated by tickInterval", function(assert) {
+    this.generatedTicks = [
+        new Date(2009, 11, 1),
+        new Date(2010, 0, 1),
+        new Date(2010, 1, 1)
+    ];
+
+    this.generatedTickInterval = { months: 1 };
+
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "datetime",
+        label: { visible: true },
+        marker: { visible: true }
+    });
+    axis.validate();
+
+    axis.createTicks(this.canvas);
+
+    assert.equal(axis.getOptions().label.format, "month");
+});
+
+QUnit.test("DateTime axis, no user format, marker visible, discrete axis - format is calculated by ticks", function(assert) {
+    this.generatedTicks = [
+        new Date(2009, 11, 1),
+        new Date(2010, 0, 1),
+        new Date(2010, 1, 1)
+    ];
+
+    this.generatedTickInterval = { months: 1 };
+
+    var axis = this.createSimpleAxis({
+        type: "discrete",
+        valueType: "datetime",
+        label: { visible: true },
+        marker: { visible: true }
+    });
+    axis.validate();
+
+    axis.createTicks(this.canvas);
+
+    assert.equal(axis.getOptions().label.format, "monthandyear");
+});
+
+QUnit.test("DateTime axis, user format - format is not calculated", function(assert) {
+    this.generatedTicks = [
+        new Date(2009, 11, 1),
+        new Date(2010, 0, 1),
+        new Date(2010, 1, 1)
+    ];
+
+    this.generatedTickInterval = { months: 1 };
+
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "datetime",
+        label: {
+            visible: true,
+            format: "day"
+        }
+    });
+    axis.validate();
+
+    axis.createTicks(this.canvas);
+
+    assert.equal(axis.getOptions().label.format, "day");
+});
+
+QUnit.test("Not DateTime axis - format is not calculated", function(assert) {
+    this.generatedTicks = [100000, 200000, 300000];
+
+    this.generatedTickInterval = 100000;
+
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "numeric",
+        label: {
+            visible: true
+        }
+    });
+    axis.validate();
+
+    axis.createTicks(this.canvas);
+
+    assert.equal(axis.getOptions().label.format, "");
 });
 
 QUnit.module("Coors In", $.extend({}, environment2DTranslator, {

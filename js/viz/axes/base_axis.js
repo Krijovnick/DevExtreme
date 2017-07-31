@@ -2,12 +2,13 @@
 
 var vizUtils = require("../core/utils"),
     typeUtils = require("../../core/utils/type"),
+    dateUtils = require("../../core/utils/date"),
+    formatHelper = require("../../format_helper"),
     each = require("../../core/utils/iterator").each,
     extend = require("../../core/utils/extend").extend,
     inArray = require("../../core/utils/array").inArray,
     constants = require("./axes_constants"),
     parseUtils = require("../components/parse_utils"),
-    //tickManagerModule = require("./base_tick_manager"),
     tickGeneratorModule = require("./tick_generator"),
     Translator2DModule = require("../translators/translator2d"),
     rangeModule = require("../translators/range"),
@@ -16,9 +17,6 @@ var vizUtils = require("../core/utils"),
     convertTicksToValues = constants.convertTicksToValues,
 
     _isDefined = typeUtils.isDefined,
-    // _isNumber = typeUtils.isNumeric,
-    // _getSignificantDigitPosition = vizUtils.getSignificantDigitPosition,
-    // _roundValue = vizUtils.roundValue,
     patchFontOptions = vizUtils.patchFontOptions,
 
     _math = Math,
@@ -38,23 +36,27 @@ var vizUtils = require("../core/utils"),
     RIGHT = constants.right,
     CENTER = constants.center,
 
+    DEFAULT_AXIS_DIVISION_FACTOR = 50,
+    DEFAULT_MINOR_AXIS_DIVISION_FACTOR = 15,
+
     Axis;
 
-function getTickGenerator(options) {
+function getTickGenerator(options, incidentOccurred) {
     return tickGeneratorModule.tickGenerator({
         axisType: options.type,
         dataType: options.dataType,
         logBase: options.type === constants.logarithmic ? options.logarithmBase : undefined,
 
-        axisDivisionFactor: options.axisDivisionFactor,
-        minorAxisDivisionFactor: options.minorAxisDivisionFactor,
+        axisDivisionFactor: options.axisDivisionFactor || DEFAULT_AXIS_DIVISION_FACTOR,
+        minorAxisDivisionFactor: options.minorAxisDivisionFactor || DEFAULT_MINOR_AXIS_DIVISION_FACTOR,
         numberMultipliers: options.numberMultipliers,
-        incidentOccurred: options.incidentOccurred,
-        calculateMinors: options.minorTick.visible || options.minorGrid.visible,
+        calculateMinors: options.minorTick.visible || options.minorGrid.visible || options.calculateMinors,
 
         //TODO new options
         allowDecimals: options.allowDecimals,
         endOnTicks: options.endOnTicks,
+
+        incidentOccurred: incidentOccurred,
 
         showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
         showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
@@ -129,7 +131,7 @@ function measureLabels(items) {
     });
 }
 
-function isEmptyArray(categories) {
+function arrayLength(categories) {
     return categories && categories.length;
 }
 
@@ -187,6 +189,10 @@ function updateLabels(ticks, step, func) {
     });
 }
 
+function valueOf(value) {
+    return value.valueOf();
+}
+
 Axis = exports.Axis = function(renderSettings) {
     var that = this;
 
@@ -202,7 +208,6 @@ Axis = exports.Axis = function(renderSettings) {
 
     that._setType(renderSettings.axisType, renderSettings.drawingType);
     that._createAxisGroups();
-    //that._tickManager = that._createTickManager();
     that._translator = that._createTranslator();
 };
 
@@ -221,16 +226,19 @@ Axis.prototype = {
             businessRange = translator.getBusinessRange(),
             bounds;
 
-        if(!isEmptyArray(businessRange.categories)) {
+        if(!arrayLength(businessRange.categories)) {
             ticks = that._majorTicks;
             length = ticks.length;
-            if(!businessRange.isSynchronized && that._options.endOnTicks && length) {
+            if(!businessRange.isSynchronized && length) {
                 //bounds = that._tickManager.getTickBounds();
                 //TODO
                 bounds = {};
-
-                bounds.minVisible = ticks[0].value;
-                length > 1 && (bounds.maxVisible = ticks[length - 1].value);
+                if(ticks[0].value < that._minBound) {
+                    bounds.minVisible = ticks[0].value;
+                }
+                if(length > 1 && ticks[length - 1].value > that._maxBound) {
+                    bounds.maxVisible = ticks[length - 1].value;
+                }
             }
             if(length > 1) {
                 minInterval = _abs(ticks[0].value - ticks[1].value);
@@ -288,7 +296,7 @@ Axis.prototype = {
     //         min = that._minBound,
     //         max = that._maxBound,
     //         categories = that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
-    //         customTicks = options.customTicks || (isEmptyArray(categories) ? categories : that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
+    //         customTicks = options.customTicks || (arrayLength(categories) ? categories : that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
     //         customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
 
     //     if(_isNumber(min) && options.type !== constants.logarithmic) {
@@ -370,13 +378,6 @@ Axis.prototype = {
     //         options = extend(true, /*that._getMarginsOptions(),*/ that._getTicksOptions(), that._getLabelOptions());
     //     this._tickManager.update(that._getTickManagerTypes(), that._getTickManagerData(), options);
     // },
-
-    _correctLabelFormat: function() {
-        // var labelFormat = this._tickManager.getOptions().labelFormat;
-        // if(labelFormat) {
-        //     this._options.label.format = labelFormat;
-        // }
-    },
 
     _createPathElement: function(points, attr) {
         return this._renderer.path(points, "line").attr(attr).sharp(this._getSharpParam());
@@ -915,7 +916,6 @@ Axis.prototype = {
         that._renderer = that._options = that._textOptions = that._textFontStyles = null;
         that._translator = null;
         that._majorTicks = that._minorTicks = null;
-        //that._tickManager = null;
     },
 
     getOptions: function() {
@@ -1099,11 +1099,39 @@ Axis.prototype = {
         return _isDefined(value) ? formatLabel(value, extend(true, {}, labelOptions, options), undefined, point) : null;
     },
 
-    _getBoundaryTicks: function() {
-        // var categories = this._translator.getVisibleCategories() || this._translator.getBusinessRange().categories;
+    _getBoundaryTicks: function(majors) {
+        var that = this,
+            categories = that._translator.getVisibleCategories(),
+            tickValues = majors.map(valueOf),
+            options = that._options,
+            customBounds = options.customBoundTicks,
+            min = that._minBound,
+            max = that._maxBound,
+            addMinMax = options.showCustomBoundaryTicks ? that._boundaryTicksVisibility : {},
+            boundaryTicks = [];
 
-        // return isEmptyArray(categories) && this._tickOffset ? [categories[0], categories[categories.length - 1]] : this._tickManager.getBoundaryTicks();
-        return [];
+        if(arrayLength(categories) && that._tickOffset) {
+            boundaryTicks = [categories[0], categories[categories.length - 1]];
+        } else {
+            if(customBounds) {
+                if(addMinMax.min && _isDefined(customBounds[0])) {
+                    boundaryTicks.push(customBounds[0]);
+                }
+
+                if(addMinMax.max && _isDefined(customBounds[1])) {
+                    boundaryTicks.push(customBounds[1]);
+                }
+            } else {
+                if(addMinMax.min && tickValues.indexOf(valueOf(min)) === -1) {
+                    boundaryTicks.push(min);
+                }
+
+                if(addMinMax.max && tickValues.indexOf(valueOf(max)) === -1) {
+                    boundaryTicks.push(max);
+                }
+            }
+        }
+        return boundaryTicks;
     },
 
     setPercentLabelFormat: function() {
@@ -1135,44 +1163,23 @@ Axis.prototype = {
         this._majorTicks = (ticks.majorTicks || []).map(createMajorTick(this, this._renderer));
         this._minorTicks = (ticks.minorTicks || []).map(createMinorTick(this, this._renderer));
 
+        //TODO calculate label format
         //this._updateTickManager();
     },
 
-    createTicks: function(canvas) {
+    _getTicks: function() {
         var that = this,
-            renderer = that._renderer,
-            //tickManager = that._tickManager,
             options = that._options,
-            //TODO categories are now not in custom ticks
-            //categories = that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
             //TODO looks like _majorTicks/_minorTicks are not accesible here
-            //customTicks = options.customTicks || (isEmptyArray(categories) ? categories : that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
             customTicks = options.customTicks || (that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
-            customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks)),
-            ticks,
-            boundaryTicks;
+            customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
 
-        if(!canvas) {
-            that._updateIntervalAndBounds();
-            return;
-        }
-
-        that.updateCanvas(canvas);
-
-
-        that._majorTicks = that._minorTicks = null;
-        //that._updateTickManager();
-        that._tickGenerator = getTickGenerator(options);
-        ticks = that._tickGenerator(
+        return getTickGenerator(options, that._incidentOccurred)(
             {
                 min: that._minBound,
                 max: that._maxBound,
-                categories: that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
+                categories: that._translator.getVisibleCategories()
             }, //TODO can we use rangedata?
-            //that._translator.getBusinessRange(),
-
-
-
             that._getScreenDelta(), //screenDelta,
             that._translator.getBusinessRange().stubData ? null : options.tickInterval, //tickInterval,
             options.label.overlappingBehavior.mode === "ignore" ? true : options.forceUserTickInterval, //forceUserTickInterval,
@@ -1183,25 +1190,60 @@ Axis.prototype = {
             options.minorTickInterval, //minorTickInterval,
             options.minorTickCount //minorTickCount
         );
+    },
 
-        that._tickInterval = ticks.tickInterval;
-        that._minorTickInterval = ticks.minorTickInterval;
-        that._majorTicks = ticks.ticks.map(createMajorTick(this, renderer));
-        that._minorTicks = (ticks.minorTicks || []).map(createMinorTick(this, renderer));
+    _createTicksAndLabelFormat: function(canvas) {
+        var options = this._options,
+            isMarkersVisible = options.type === "discrete" ? false : options.marker.visible,
+            ticks;
 
-        that.correctTicksOnDeprecated();
+        this.updateCanvas(canvas);
+        ticks = this._getTicks();
 
-        //TODO there is no boundaryTicks
-        boundaryTicks = that._getBoundaryTicks();
-        if(this._options.showCustomBoundaryTicks && boundaryTicks.length) {
-            that._boundaryTicks = [boundaryTicks[0]].map(createBoundaryTick(this, renderer, true));
+        if(options.dataType === "datetime" && !this._hasLabelFormat && ticks.ticks.length) {
+            options.label.format = isMarkersVisible
+                ? dateUtils.getDateFormatByTickInterval(ticks.tickInterval)
+                : formatHelper.getDateFormatByTicks(ticks.ticks);
+        }
+
+        return ticks;
+    },
+
+    createTicks: function(canvas) {
+        var that = this,
+            renderer = that._renderer,
+            options = that._options,
+            ticks,
+            boundaryTicks;
+
+        if(!canvas) {
+            that._updateIntervalAndBounds();
+            return;
+        }
+        that._majorTicks = that._minorTicks = null;
+
+        ticks = that._createTicksAndLabelFormat(canvas);
+
+        boundaryTicks = that._getBoundaryTicks(ticks.ticks);
+        if(options.showCustomBoundaryTicks && boundaryTicks.length) {
+            that._boundaryTicks = [boundaryTicks[0]].map(createBoundaryTick(that, renderer, true));
             if(boundaryTicks.length > 1) {
-                that._boundaryTicks = that._boundaryTicks.concat([boundaryTicks[1]].map(createBoundaryTick(this, renderer, false)));
+                that._boundaryTicks = that._boundaryTicks.concat([boundaryTicks[1]].map(createBoundaryTick(that, renderer, false)));
             }
         }
 
-        //TODO
-        that._correctLabelFormat();
+        var minors = (ticks.minorTicks || []).filter(function(minor) {
+            return !boundaryTicks.some(function(boundary) {
+                return valueOf(boundary) === valueOf(minor);
+            });
+        });
+
+        that._tickInterval = ticks.tickInterval;
+        that._minorTickInterval = ticks.minorTickInterval;
+        that._majorTicks = ticks.ticks.map(createMajorTick(that, renderer));
+        that._minorTicks = minors.map(createMinorTick(that, renderer));
+
+        that.correctTicksOnDeprecated();
 
         that._updateIntervalAndBounds();
     },
@@ -1465,10 +1507,19 @@ Axis.prototype = {
     },
 
     getFullTicks: function() {
-        //return this._tickManager.getFullTicks();
+        var categories = this._translator.getVisibleCategories();
+
+        if(categories) {
+            return categories;
+        } else {
+            return convertTicksToValues((this._majorTicks || []).concat(this._minorTicks, this._boundaryTicks || []))
+                .sort(function(a, b) {
+                    return valueOf(a) - valueOf(b);
+                });
+        }
     },
 
-    measureLabels: function(withIndents) {
+    measureLabels: function(canvas, withIndents) {
         var that = this,
             options = that._options,
             widthAxis = options.visible ? options.width : 0,
@@ -1482,7 +1533,11 @@ Axis.prototype = {
             return { height: widthAxis, width: widthAxis, x: 0, y: 0 };
         }
 
-        ticks = [];//that._tickManager.getTicks();
+        if(that._majorTicks) {
+            ticks = convertTicksToValues(that._majorTicks);
+        } else {
+            ticks = that._createTicksAndLabelFormat(canvas).ticks;
+        }
         maxText = ticks.reduce(function(prevValue, tick, index) {
             var label = that._formatTickLabel(tick);
             if(prevValue[0].length < label.length) {

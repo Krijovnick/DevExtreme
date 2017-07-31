@@ -977,12 +977,7 @@
                 if(!this._majorTicks) {
                     this._majorTicks = $.map(this._options.mockTickValues || [], function(item) { return { value: item }; });
                 }
-                this._tickManager = {
-                    _tickInterval: this._options.mockTickInterval,
-                    getTickInterval: function() {
-                        return this._tickInterval;
-                    }
-                };
+                this._tickInterval = this._options.mockTickInterval;
                 return {
                     majorTicksValues: $.map(this._majorTicks, function(item) { return item.value; }),
                     minorTicksValues: $.map(this._minorTicks || [], function(item) { return item.value; })

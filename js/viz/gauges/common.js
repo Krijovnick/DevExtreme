@@ -127,7 +127,7 @@ exports.dxGauge = dxBaseGauge.inherit({
 
         if(!majorTickEnabled && !minorTickEnabled && !label.visible) { return {}; }
 
-        textParams = that._scale.measureLabels();
+        textParams = that._scale.measureLabels(extend({}, that._canvas));
         layoutValue = that._getScaleLayoutValue();
         result = { min: layoutValue, max: layoutValue };
         coefs = that._getTicksCoefficients(scaleOptions);

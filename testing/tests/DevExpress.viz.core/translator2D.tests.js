@@ -2645,10 +2645,46 @@ QUnit.test('getMinScale', function(assert) {
 
 });
 
-QUnit.test('getMinScale', function(assert) {
+QUnit.test('getVisibleCategories without min and maxVisible - return all categories', function(assert) {
+    var translator = this.createTranslator({ });
+
+    assert.deepEqual(translator.getVisibleCategories(), ['a1', 'a2', 'a3', 'a4', 'a5']);
+});
+
+QUnit.test('getVisibleCategories with min and maxVisible - return categories between minVisible and maxVisible', function(assert) {
     var translator = this.createTranslator({ minVisible: 'a2', maxVisible: 'a4' });
 
     assert.deepEqual(translator.getVisibleCategories(), ["a2", "a3", "a4"]);
+});
+
+QUnit.test('getVisibleCategories with min and maxVisible in wrong order - return categories between minVisible and maxVisible', function(assert) {
+    var translator = this.createTranslator({ minVisible: 'a4', maxVisible: 'a2' });
+
+    assert.deepEqual(translator.getVisibleCategories(), ["a2", "a3", "a4"]);
+});
+
+QUnit.test('getVisibleCategories without minVisible - return categories from start to maxVisible', function(assert) {
+    var translator = this.createTranslator({ maxVisible: "a4" });
+
+    assert.deepEqual(translator.getVisibleCategories(), ['a1', 'a2', 'a3', 'a4']);
+});
+
+QUnit.test('getVisibleCategories without maxVisible - return categories from minVisible to the end', function(assert) {
+    var translator = this.createTranslator({ minVisible: "a2" });
+
+    assert.deepEqual(translator.getVisibleCategories(), ['a2', 'a3', 'a4', 'a5']);
+});
+
+QUnit.test('getVisibleCategories maxVisible is incorrect - return categories from minVisible to the end', function(assert) {
+    var translator = this.createTranslator({ minVisible: "a2", maxVisible: "b1" });
+
+    assert.deepEqual(translator.getVisibleCategories(), ['a2', 'a3', 'a4', 'a5']);
+});
+
+QUnit.test('getVisibleCategories minVisible is incorrect - return categories from start to maxVisible', function(assert) {
+    var translator = this.createTranslator({ minVisible: "b1", maxVisible: "a4" });
+
+    assert.deepEqual(translator.getVisibleCategories(), ['a1', 'a2', 'a3', 'a4']);
 });
 
 QUnit.test('get scale. stick=true', function(assert) {

@@ -75,7 +75,7 @@ var dxPolarChart = AdvancedChart.inherit({
             valueAxis = that._getValueAxis(),
             argumentAxis = that._getArgumentAxis();
 
-        var canvas = that._calcCanvas(argumentAxis.measureLabels(true));
+        var canvas = that._calcCanvas(argumentAxis.measureLabels(extend({}, that._canvas), true));
 
         argumentAxis.draw(canvas);
         valueAxis.setSpiderTicks(argumentAxis.getSpiderTicks());

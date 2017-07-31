@@ -4,7 +4,7 @@
 
 var $ = require("jquery"),
     noop = require("core/utils/common").noop,
-    tickManagerModule = require("viz/axes/base_tick_manager"),
+    tickGeneratorModule = require("viz/axes/tick_generator"),
     errors = require("viz/core/errors_warnings"),
     translator2DModule = require("viz/translators/translator2d"),
     dxErrors = errors.ERROR_MESSAGES,
@@ -13,28 +13,30 @@ var $ = require("jquery"),
     StubTranslator = vizMocks.stubClass(translator2DModule.Translator2D, {
         updateBusinessRange: function(range) {
             this.getBusinessRange.returns(range);
+            range.categories && this.getVisibleCategories.returns(range.categories);
         }
-    }),
-    StubTickManager = vizMocks.stubClass(tickManagerModule.TickManager, {});
-
-tickManagerModule.TickManager = sinon.spy(function() {
-    return currentTest().tickManager;
-});
+    });
 
 var environment = {
     beforeEach: function() {
         this.renderer = new vizMocks.Renderer();
 
-        this.tickManager = new StubTickManager();
-        this.tickManager.stub("getOptions").returns({});
-        this.tickManager.stub("getBoundaryTicks").returns([]);
-        this.tickManager.stub("getTicks").returns([]);
-        this.tickManager.stub("getMinorTicks").returns([]);
+        var that = this;
+        this.tickGenerator = sinon.stub(tickGeneratorModule, "tickGenerator", function() {
+            return function() {
+                return {
+                    ticks: that.generatedTicks || [],
+                    minorTicks: that.generatedMinorTicks || [],
+                    tickInterval: that.generatedTickInterval
+                };
+            };
+        });
 
         this.translator = new StubTranslator();
         this.translator.stub("getBusinessRange").returns({
             addRange: sinon.stub()
         });
+        this.translator.stub("getVisibleCategories");
 
         this.canvas = {
             top: 200,
@@ -45,7 +47,9 @@ var environment = {
             height: 400
         };
     },
-    afterEach: function() { },
+    afterEach: function() {
+        this.tickGenerator.restore();
+    },
     updateOptions: function(options) {
         var defaultOptions = {
             isHorizontal: true,
@@ -71,7 +75,9 @@ Axis.prototype = $.extend({}, originalAxis.prototype, {
 
     _getTranslatedValue: sinon.stub().returns({ x: "x", y: "y" }),
 
-    _getCanvasStartEnd: sinon.stub().returns({ })
+    _getCanvasStartEnd: sinon.stub().returns({ }),
+
+    _boundaryTicksVisibility: { min: true, max: true }
 });
 
 QUnit.module("Creation", environment);
@@ -155,122 +161,6 @@ QUnit.test("Update options", function(assert) {
     assert.equal(axis.pane, "testPane", "Axis has correct pane");
 });
 
-QUnit.test("Get ticks options", function(assert) {
-    var renderer = this.renderer,
-        settings = {
-            renderer: renderer,
-            labelAxesGroup: renderer.g(),
-            constantLinesGroup: renderer.g(),
-            axesContainerGroup: renderer.g(),
-            gridGroup: renderer.g(),
-            stripsGroup: renderer.g()
-        };
-    var axis = new Axis(settings);
-    axis.updateOptions({
-        showCustomBoundaryTicks: true,
-        axisDivisionFactor: 1,
-        minorAxisDivisionFactor: 2,
-        numberMultipliers: [3],
-        minValueMargin: 0.1,
-        maxValueMargin: 0.2,
-        customTicks: [4],
-        customBoundTicks: [4, 5],
-        customMinorTicks: [5],
-        stick: "stick",
-        showMinorTicks: true,
-        label: { overlappingBehavior: {} },
-        grid: {},
-        minorGrid: {},
-        tick: {
-            showCalculatedTicks: true
-        },
-        minorTick: {
-            showCalculatedTicks: true
-        },
-        marker: {}
-    });
-
-    axis.setBusinessRange({
-        addRange: sinon.stub()
-    });
-    axis.draw(this.canvas);
-
-    assert.ok(axis);
-
-    var ticksOptions = this.tickManager.update.lastCall.args[2],
-        ticksData = this.tickManager.update.lastCall.args[1];
-
-    assert.equal(ticksOptions.stick, "stick");
-    assert.equal(ticksOptions.gridSpacingFactor, 1, "axis division mode");
-    assert.equal(ticksOptions.minorGridSpacingFactor, 2, "minor axis division mode");
-    assert.deepEqual(ticksData.customTicks, [4], "custom ticks");
-    assert.deepEqual(ticksData.customBoundTicks, [4, 5], "custom bound ticks");
-    assert.deepEqual(ticksData.customMinorTicks, [5], "custom minor ticks");
-    assert.deepEqual(ticksOptions.numberMultipliers, [3], "number multipliers");
-    assert.strictEqual(ticksOptions.showCalculatedTicks, true, "showCalculatedTicks");
-    assert.strictEqual(ticksOptions.showMinorCalculatedTicks, true, "showMinorCalculatedTicks");
-    assert.strictEqual(ticksOptions.minValueMargin, 0.1, "minValueMargin");
-    assert.strictEqual(ticksOptions.maxValueMargin, 0.2, "maxValueMargin");
-});
-
-QUnit.test("Check tickManager data if min and max are small values, close to exponential", function(assert) {
-    var renderer = this.renderer,
-        settings = {
-            renderer: renderer,
-            labelAxesGroup: renderer.g(),
-            constantLinesGroup: renderer.g(),
-            axesContainerGroup: renderer.g(),
-            gridGroup: renderer.g(),
-            stripsGroup: renderer.g()
-        };
-    var axis = new Axis(settings);
-    axis.updateOptions({
-        label: { overlappingBehavior: {} }
-    });
-
-    axis.setBusinessRange({
-        addRange: sinon.stub(),
-        minVisible: -0.0000017854,
-        maxVisible: 2.88e-9
-    });
-
-    axis.draw(this.canvas);
-
-    var ticksData = this.tickManager.update.lastCall.args[1];
-
-    assert.deepEqual(ticksData.min, -0.000001785, "custom ticks");
-    assert.deepEqual(ticksData.max, 2.88e-9, "custom ticks");
-});
-
-QUnit.test("Check tickManager data if min and max are small values, close to exponential, rounded min can not be less than min", function(assert) {
-    var renderer = this.renderer,
-        settings = {
-            renderer: renderer,
-            labelAxesGroup: renderer.g(),
-            constantLinesGroup: renderer.g(),
-            axesContainerGroup: renderer.g(),
-            gridGroup: renderer.g(),
-            stripsGroup: renderer.g()
-        };
-    var axis = new Axis(settings);
-    axis.updateOptions({
-        label: { overlappingBehavior: {} }
-    });
-
-    axis.setBusinessRange({
-        addRange: sinon.stub(),
-        minVisible: -0.0000017856,
-        maxVisible: 2.88e-9
-    });
-
-    axis.draw(this.canvas);
-
-    var ticksData = this.tickManager.update.lastCall.args[1];
-
-    assert.deepEqual(ticksData.min, -0.000001785, "custom ticks");
-    assert.deepEqual(ticksData.max, 2.88e-9, "custom ticks");
-});
-
 QUnit.module("API", {
     beforeEach: function() {
         var that = this;
@@ -289,8 +179,6 @@ QUnit.module("API", {
 
         renderer.g.reset();
 
-        this.tickManager.stub("getFullTicks").returns(["full", "ticks"]);
-        this.tickManager.stub("getTickBounds").returns({ minVisible: 0, maxVisible: 6 });
         this.axis = new Axis({
             renderer: renderer,
             stripsGroup: stripsGroup,
@@ -309,8 +197,44 @@ QUnit.module("API", {
     updateOptions: environment.updateOptions
 });
 
-QUnit.test("Get full ticks", function(assert) {
-    assert.deepEqual(this.axis.getFullTicks(), ["full", "ticks"]);
+QUnit.test("Get full ticks - concat and sort major, minor and boundary ticks", function(assert) {
+    this.updateOptions({
+        showCustomBoundaryTicks: true,
+        tick: {
+            visible: true
+        },
+        minorTick: {
+            visible: true
+        }
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 4, addRange: function() { } });
+    this.generatedTicks = [1, 2, 3];
+    this.generatedMinorTicks = [1.5, 2.5];
+    this.axis.createTicks(this.canvas);
+
+    var fullTicks = this.axis.getFullTicks();
+
+    assert.deepEqual(fullTicks, [0, 1, 1.5, 2, 2.5, 3, 4]);
+});
+
+QUnit.test("Get full ticks for discrete axis - return categories", function(assert) {
+    this.updateOptions({
+        showCustomBoundaryTicks: true,
+        tick: {
+            visible: true
+        },
+        minorTick: {
+            visible: true
+        }
+    });
+
+    this.axis.setBusinessRange({ categories: ["a", "b", "c"], addRange: function() { } });
+    this.axis.createTicks(this.canvas);
+
+    var fullTicks = this.axis.getFullTicks();
+
+    assert.deepEqual(fullTicks, ["a", "b", "c"]);
 });
 
 QUnit.test("Get options", function(assert) {
@@ -430,36 +354,6 @@ QUnit.test("applyClipRects", function(assert) {
 
     assert.equal(renderer.g.getCall(1).returnValue.attr.lastCall.args[0]["clip-path"], "clipRectForElements", "axis strip group");
     assert.equal(renderer.g.getCall(0).returnValue.attr.lastCall.args[0]["clip-path"], "clipRectForCanvas", "axis group");
-});
-
-QUnit.test("First createTicks call should update tickManager with no custom ticks", function(assert) {
-    this.updateOptions();
-
-    this.axis.createTicks(this.canvas);
-
-    assert.deepEqual(this.tickManager.update.lastCall.args[1].customTicks, null, "Major ticks should be correct");
-    assert.deepEqual(this.tickManager.update.lastCall.args[1].customMinorTicks, null, "Minor ticks should be correct");
-});
-
-QUnit.test("setTicks after createTicks should update tickManager with custom ticks", function(assert) {
-    this.updateOptions();
-
-    this.axis.createTicks(this.canvas);
-    this.axis.setTicks({ majorTicks: [0, 1], minorTicks: [0.2, 0.4, 0.6, 0.8] });
-
-    assert.deepEqual(this.tickManager.update.lastCall.args[1].customTicks, [0, 1], "Major ticks should be correct");
-    assert.deepEqual(this.tickManager.update.lastCall.args[1].customMinorTicks, [0.2, 0.4, 0.6, 0.8], "Minor ticks should be correct");
-});
-
-QUnit.test("createTicks after setTicks should update tickManager with no custom ticks", function(assert) {
-    this.updateOptions();
-
-    this.axis.createTicks(this.canvas);
-    this.axis.setTicks({ majorTicks: [0, 1], minorTicks: [0.2, 0.4, 0.6, 0.8] });
-    this.axis.createTicks(this.canvas);
-
-    assert.deepEqual(this.tickManager.update.lastCall.args[1].customTicks, null, "Major ticks should be correct");
-    assert.deepEqual(this.tickManager.update.lastCall.args[1].customMinorTicks, null, "Minor ticks should be correct");
 });
 
 QUnit.test("Disposing", function(assert) {
@@ -691,9 +585,7 @@ QUnit.module("Labels Settings", {
             gridGroup: gridGroup
         });
 
-        this.tickManager.stub("getTicks").returns([1, 2, 3]);
-        this.tickManager.stub("getTickBounds").returns({ minVisible: 1, maxVisible: 3 });
-
+        this.generatedTicks = [1, 2, 3];
     },
     afterEach: environment.afterEach,
     updateOptions: environment.updateOptions
@@ -759,7 +651,7 @@ QUnit.test("Customize color", function(assert) {
     assert.equal(this.renderer.text.getCall(2).returnValue.css.getCall(0).args[0].fill, "red", "third color");
 });
 
-QUnit.module("Params for tick manager", {
+QUnit.module("Params for tick manager. TODO to delete or rewrite", {
     beforeEach: function() {
         environment.beforeEach.call(this);
 
@@ -799,10 +691,11 @@ QUnit.test("update translator when ticks are synchronized", function(assert) {
 });
 
 QUnit.test("check add range on update translator interval", function(assert) {
-    this.tickManager.stub("getTickBounds").returns({ minVisible: 1, maxVisible: 2 });
-    this.tickManager.stub("getTicks").returns([0, 1, 4]);
+    this.generatedTicks = [0, 1, 4];
 
     var range = {
+        minVisible: 1,
+        maxVisible: 2,
         addRange: sinon.stub()
     };
 
@@ -811,14 +704,15 @@ QUnit.test("check add range on update translator interval", function(assert) {
     this.axis.draw(this.canvas);
 
     assert.equal(range.addRange.callCount, 1);
-    assert.deepEqual(range.addRange.getCall(0).args[0], { minVisible: 1, maxVisible: 2, interval: 1 }, "Bounds should be correct");
+    assert.deepEqual(range.addRange.getCall(0).args[0], { minVisible: 0, maxVisible: 4, interval: 1 }, "Bounds should be correct");
 });
 
 QUnit.test("check add range on update translator interval after axis is synchronized", function(assert) {
-    this.tickManager.stub("getTickBounds").returns({ minVisible: 1, maxVisible: 2 });
-    this.tickManager.stub("getTicks").returns([0, 1, 4]);
+    this.generatedTicks = [0, 1, 4];
 
     var range = {
+        minVisible: 1,
+        maxVisible: 2,
         addRange: sinon.stub()
     };
 
@@ -830,12 +724,12 @@ QUnit.test("check add range on update translator interval after axis is synchron
     this.axis.draw();
 
     assert.equal(range.addRange.callCount, 2);
-    assert.deepEqual(range.addRange.getCall(0).args[0], { minVisible: 1, maxVisible: 2, interval: 1 }, "Bounds with interval should be set");
+    assert.deepEqual(range.addRange.getCall(0).args[0], { minVisible: 0, maxVisible: 4, interval: 1 }, "Bounds with interval should be set");
     assert.deepEqual(range.addRange.getCall(1).args[0], { interval: 1 }, "Only interval should be set");
 });
 
 QUnit.test("check get ticks on update translator interval. Categories", function(assert) {
-    this.tickManager.stub("getTicks").returns(["a", "b", "c"]);
+    this.generatedTicks = ["a", "b", "c"];
 
     var range = {
         addRange: sinon.stub(),
@@ -849,32 +743,12 @@ QUnit.test("check get ticks on update translator interval. Categories", function
 });
 
 QUnit.test("check get ticks on update translator interval. Categories with 0 length", function(assert) {
-    this.tickManager.stub("getTicks").returns([0, 1, 2]);
-    this.tickManager.stub("getTickBounds").returns({ minVisible: 0, maxVisible: 2 });
+    this.generatedTicks = [0, 1, 4];
 
     var range = {
-        addRange: sinon.stub(),
-        categories: []
-    };
-
-    this.updateOptions();
-    this.axis.setBusinessRange(range);
-    this.axis.draw(this.canvas);
-
-    assert.equal(range.addRange.callCount, 1);
-    assert.deepEqual(range.addRange.getCall(0).args[0], { minVisible: 0, maxVisible: 2, interval: 1 }, "Bounds should be correct");
-});
-
-QUnit.test("check bounds", function(assert) {
-    var that = this;
-    this.tickManager.getTicks = function() {
-        that.minVisible = 0;
-        that.maxVisible = 4;
-        return [0, 1, 2];
-    };
-    this.tickManager.getTickBounds = function() { return { minVisible: that.minVisible, maxVisible: that.maxVisible }; };
-
-    var range = {
+        minVisible: 1,
+        maxVisible: 2,
+        categories: [],
         addRange: sinon.stub()
     };
 
@@ -886,13 +760,12 @@ QUnit.test("check bounds", function(assert) {
     assert.deepEqual(range.addRange.getCall(0).args[0], { minVisible: 0, maxVisible: 4, interval: 1 }, "Bounds should be correct");
 });
 
-QUnit.test("check interval", function(assert) {
-    this.tickManager.getTicks = function() {
-        return [0, 1, 2];
-    };
-    this.tickManager.stub("getTickBounds").returns({ minVisible: 0, maxVisible: 2 });
+QUnit.test("check bounds. ticks are between bounds - do not provide bounds", function(assert) {
+    this.generatedTicks = [0, 1, 2];
 
     var range = {
+        minVisible: 0,
+        maxVisible: 3,
         addRange: sinon.stub()
     };
 
@@ -901,7 +774,7 @@ QUnit.test("check interval", function(assert) {
     this.axis.draw(this.canvas);
 
     assert.equal(range.addRange.callCount, 1);
-    assert.deepEqual(range.addRange.getCall(0).args[0], { minVisible: 0, maxVisible: 2, interval: 1 }, "Bounds should be correct");
+    assert.deepEqual(range.addRange.getCall(0).args[0], { interval: 1 }, "Bounds should be correct");
 });
 
 QUnit.module("Formats", {
@@ -933,8 +806,7 @@ QUnit.module("Formats", {
             return value;
         };
 
-        this.tickManager.stub("getTicks").returns([0, 1, 2]);
-        this.tickManager.stub("getTickBounds").returns({ minVisible: 0, maxVisible: 2 });
+        this.generatedTicks = [0, 1, 2];
     },
     afterEach: function() {
         translator2DModule.Translator2D.restore();
@@ -987,7 +859,7 @@ QUnit.test("Date format with custom", function(assert) {
             visible: true
         }
     });
-    this.tickManager.getTicks.returns([new Date(2010, 1, 1), new Date(2010, 2, 1), new Date(2010, 3, 1)]);
+    this.generatedTicks = [new Date(2010, 1, 1), new Date(2010, 2, 1), new Date(2010, 3, 1)];
     this.axis.draw(this.canvas);
 
     assert.equal(this.renderer.text.callCount, 3, "number of rendered labels");
@@ -1006,7 +878,7 @@ QUnit.test("setPercentLabelFormat for default format", function(assert) {
 
 QUnit.test("setPercentLabelFormat for auto set up format (datetime)", function(assert) {
     this.updateOptions();
-    this.tickManager.getTicks.returns([new Date(2010, 1, 1), new Date(2010, 2, 1), new Date(2010, 3, 1)]);
+    this.generatedTicks = [new Date(2010, 1, 1), new Date(2010, 2, 1), new Date(2010, 3, 1)];
 
     this.axis.draw(this.canvas);
     this.axis.setPercentLabelFormat();
@@ -1025,7 +897,7 @@ QUnit.test("resetAutoLabelFormat for default format", function(assert) {
 
 QUnit.test("resetAutoLabelFormat for auto set up format (datetime without setPercentLabelFormat call)", function(assert) {
     this.updateOptions();
-    this.tickManager.getTicks.returns([new Date(2010, 1, 1), new Date(2010, 2, 1), new Date(2010, 3, 1)]);
+    this.generatedTicks = [new Date(2010, 1, 1), new Date(2010, 2, 1), new Date(2010, 3, 1)];
 
     this.axis.draw(this.canvas);
 
@@ -1219,8 +1091,7 @@ QUnit.module("Zoom", {
             return value;
         };
 
-        this.tickManager.stub("getTicks").returns([0, 1, 2]);
-        this.tickManager.stub("getTickBounds").returns({ minVisible: 0, maxVisible: 2 });
+        this.generatedTicks = [0, 1, 2];
     },
     afterEach: function() {
         translator2DModule.Translator2D.restore();

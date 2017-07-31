@@ -110,7 +110,6 @@ var populateAxesInfo = function(axes) {
 
         if(majorTicks && majorTicks.length > 0 && typeUtils.isNumeric(majorTicks[0]) && options.type !== "discrete") {
             businessRange = axis.getTranslator().getBusinessRange();
-            //tickInterval = axis._tickManager.getTickInterval();
             tickInterval = axis._tickInterval;
             minValue = businessRange.minVisible;
             maxValue = businessRange.maxVisible;

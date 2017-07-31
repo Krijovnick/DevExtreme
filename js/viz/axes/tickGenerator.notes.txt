@@ -16,8 +16,8 @@ gridSpacingFactor shoould be passed to tickGenerator, there is no default value
 tickGenerator would not accept gridSpacingFactor <= 0
 tickGenerator would not accept tickInterval <= 0
 
-showCustomBoundaryTicks, customBoundTicks options in RangeSelector (and internal use in Polar chart) is passed tickManager as addMinMax and tickManager generates boundary ticks
-This will not be included in tickGenerator and should be processed on Axis level
++showCustomBoundaryTicks, customBoundTicks options in RangeSelector (and internal use in Polar chart) is passed tickManager as addMinMax and tickManager generates boundary ticks
++This will not be included in tickGenerator and should be processed on Axis level
 
 No margins
 
@@ -34,4 +34,14 @@ add one extra tick if there are point labels
 
 stick - used in translator, in tick manager it prevents from bounds generating and is used minor ticks generating
 
+checkBoundedTicksOverlapping - ??
+getMaxLabelParams - ??
+
+minStickValue, maxStickValue - ограничивает расширение рейнжа в tickManager за 0. В tickGenerator уже тики не должны за 0 генерится
+
+
+valueType, argumentType, dataType - in RangeSelector and gauges
+
+
+do we need dummyGenerator? when there is no dataType and stubData - we do not draw stub grids
 
