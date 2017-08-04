@@ -3,7 +3,6 @@
 var utils = require("../core/utils"),
     dateUtils = require("../../core/utils/date"),
     typeUtils = require("../../core/utils/type"),
-    isExponential = typeUtils.isExponential,
     convertDateUnitToMilliseconds = dateUtils.convertDateUnitToMilliseconds,
     dateToMilliseconds = dateUtils.dateToMilliseconds,
     adjustValue = utils.adjustValue,
@@ -47,7 +46,7 @@ function discreteGenerator(options) {
 }
 
 function adjustValueByPrecision(value, interval, min) {
-    return isExponential(value) ? adjustValue(value) : utils.applyPrecisionByMinDelta(min, interval, value);
+    return utils.applyPrecisionByMinDelta(min, interval, value);
 }
 
 function getValue(value) {

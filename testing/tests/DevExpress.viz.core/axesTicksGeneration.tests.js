@@ -669,6 +669,20 @@ QUnit.test("Custom axisDivisionFactor", function(assert) {
     assert.deepEqual(this.axis._tickInterval, 2);
 });
 
+QUnit.test("exponencial ticks generation", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous"
+    });
+
+    this.axis.setBusinessRange({ minVisible: 1.0e-7, maxVisible: 1.03e-7, addRange: function() { } });
+
+    this.axis.createTicks(canvas(300));
+
+    assert.equal(this.axis._tickInterval, 5.0e-10);
+});
+
 QUnit.test("No data - do not generate ticks nor calculate tickInterval", function(assert) {
     this.createAxis();
     this.updateOptions({
