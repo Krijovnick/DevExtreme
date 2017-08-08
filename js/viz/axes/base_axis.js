@@ -45,7 +45,7 @@ function getTickGenerator(options, incidentOccurred) {
     return tickGeneratorModule.tickGenerator({
         axisType: options.type,
         dataType: options.dataType,
-        logBase: options.type === constants.logarithmic ? options.logarithmBase : undefined,
+        logBase: options.logarithmBase,
 
         axisDivisionFactor: options.axisDivisionFactor || DEFAULT_AXIS_DIVISION_FACTOR,
         minorAxisDivisionFactor: options.minorAxisDivisionFactor || DEFAULT_MINOR_AXIS_DIVISION_FACTOR,
@@ -230,8 +230,7 @@ Axis.prototype = {
             ticks = that._majorTicks;
             length = ticks.length;
             if(!businessRange.isSynchronized && length) {
-                //bounds = that._tickManager.getTickBounds();
-                //TODO
+                //TODO see same code in RS
                 bounds = {};
                 if(ticks[0].value < that._minBound) {
                     bounds.minVisible = ticks[0].value;
@@ -269,115 +268,6 @@ Axis.prototype = {
             .sharp(this._getSharpParam(true))
             .append(this._axisLineGroup);
     },
-
-    // _correctMinForTicks: function(min, max, screenDelta) {
-    //     var diff = _abs(max - min) / screenDelta,
-    //         digitPosition = typeUtils.isExponential(diff) && diff < 1
-    //             ? vizUtils.getPrecision(diff)
-    //             : _getSignificantDigitPosition(diff),
-    //         newMin = _roundValue(Number(min), digitPosition),
-    //         correctingValue;
-
-    //     if(newMin < min) {
-    //         correctingValue = _math.pow(10, -digitPosition);
-    //         newMin = vizUtils.applyPrecisionByMinDelta(newMin, correctingValue, newMin + correctingValue);
-    //     }
-    //     if(newMin > max) {
-    //         newMin = min;
-    //     }
-
-    //     return newMin;
-    // },
-
-    // _getTickManagerData: function() {
-    //     var that = this,
-    //         options = that._options,
-    //         screenDelta = that._getScreenDelta(),
-    //         min = that._minBound,
-    //         max = that._maxBound,
-    //         categories = that._translator.getVisibleCategories() || that._translator.getBusinessRange().categories,
-    //         customTicks = options.customTicks || (arrayLength(categories) ? categories : that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
-    //         customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
-
-    //     if(_isNumber(min) && options.type !== constants.logarithmic) {
-    //         min = that._correctMinForTicks(min, max, screenDelta);
-    //     }
-
-    //     return {
-    //         min: min,
-    //         max: max,
-    //         customTicks: customTicks,
-    //         customMinorTicks: customMinorTicks,
-    //         customBoundTicks: options.customBoundTicks,
-    //         screenDelta: screenDelta
-    //     };
-    // },
-
-    // _getTickManagerTypes: function() {
-    //     return {
-    //         axisType: this._options.type,
-    //         dataType: this._options.dataType
-    //     };
-    // },
-
-    // _getTicksOptions: function() {
-    //     var options = this._options;
-    //     return {
-    //         // base: options.type === constants.logarithmic ? options.logarithmBase : undefined,
-    //         // tickInterval: this._translator.getBusinessRange().stubData ? null : options.tickInterval,
-    //         // gridSpacingFactor: options.axisDivisionFactor,
-    //         // minorGridSpacingFactor: options.minorAxisDivisionFactor,
-    //         // numberMultipliers: options.numberMultipliers,
-    //         // incidentOccurred: options.incidentOccurred,
-    //         // setTicksAtUnitBeginning: options.setTicksAtUnitBeginning,
-    //         // showMinorTicks: options.minorTick.visible || options.minorGrid.visible,
-    //         // minorTickInterval: options.minorTickInterval,
-    //         // minorTickCount: options.minorTickCount,
-    //         // showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
-    //         // showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
-
-
-    //         tickInterval: this._translator.getBusinessRange().stubData ? null : options.tickInterval,
-    //         setTicksAtUnitBeginning: options.setTicksAtUnitBeginning,
-    //         minorTickInterval: options.minorTickInterval,
-    //         minorTickCount: options.minorTickCount,
-    //         showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
-    //         showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
-    //     };
-    // },
-
-    // _createTickManager: function() {
-    //     return new tickManagerModule.TickManager({}, {});
-    // },
-
-    // _getMarginsOptions: function() {
-    //     // var range = this._translator.getBusinessRange();
-    //     // return {
-    //     //     //stick: range.stick || this._options.stick,
-    //     //     // minStickValue: range.minStickValue,
-    //     //     // maxStickValue: range.maxStickValue,
-    //     //     //percentStick: range.percentStick,
-    //     //     // minSpaceCorrection: range.minSpaceCorrection,
-    //     //     // maxSpaceCorrection: range.maxSpaceCorrection,
-    //     //     // minValueMargin: this._options.minValueMargin,
-    //     //     // maxValueMargin: this._options.maxValueMargin
-    //     // };
-    // },
-
-    // _getLabelOptions: function() {
-    //     return {
-    //         hasLabelFormat: this._hasLabelFormat,
-    //         isMarkersVisible: this._options.type === "discrete" ? false : this._options.marker.visible,
-    //         addMinMax: this._options.showCustomBoundaryTicks ? this._boundaryTicksVisibility : undefined,
-    //         forceUserTickInterval: this._options.label.overlappingBehavior.mode === "ignore" ? true : this._options.forceUserTickInterval
-    //     };
-    // },
-
-    // _updateTickManager: function() {
-    //     var that = this,
-    //         options = extend(true, /*that._getMarginsOptions(),*/ that._getTicksOptions(), that._getLabelOptions());
-    //     this._tickManager.update(that._getTickManagerTypes(), that._getTickManagerData(), options);
-    // },
 
     _createPathElement: function(points, attr) {
         return this._renderer.path(points, "line").attr(attr).sharp(this._getSharpParam());
@@ -1164,7 +1054,6 @@ Axis.prototype = {
         this._minorTicks = (ticks.minorTicks || []).map(createMinorTick(this, this._renderer));
 
         //TODO calculate label format
-        //this._updateTickManager();
     },
 
     _getTicks: function() {

@@ -22,7 +22,7 @@ var registerComponent = require("../../core/component_registrator"),
     rangeViewModule = require("./range_view"),
     seriesDataSourceModule = require("./series_data_source"),
     themeManagerModule = require("./theme_manager"),
-    tickManagerModule = require("../axes/base_tick_manager"),
+    tickGeneratorModule = require("../axes/tick_generator"),
     log = require("../../core/errors").log,
 
     _isDefined = typeUtils.isDefined,
@@ -48,6 +48,8 @@ var registerComponent = require("../../core/component_registrator"),
     LOGARITHMIC = "logarithmic",
     INVISIBLE_POS = -1000,
     SEMIDISCRETE_GRID_SPACING_FACTOR = 50,
+    DEFAULT_AXIS_DIVISION_FACTOR = 30,
+    DEFAULT_MINOR_AXIS_DIVISION_FACTOR = 15,
     logarithmBase = 10;
 
 function calculateMarkerHeight(renderer, value, sliderMarkerOptions) {
@@ -270,39 +272,52 @@ function updateTickIntervals(scaleOptions, screenDelta, incidentOccurred, range)
         min = _isDefined(range.minVisible) ? range.minVisible : range.min,
         max = _isDefined(range.maxVisible) ? range.maxVisible : range.max,
         categoriesInfo = scaleOptions._categoriesInfo,
-        tickManager,
-        ticks;
+        ticksInfo,
+        length,
+        bounds = {};
 
     if(scaleOptions.type === SEMIDISCRETE) {
         result = calculateTickIntervalsForSemidiscreteScale(scaleOptions, min, max, screenDelta);
     } else {
-        tickManager = new tickManagerModule.TickManager({
+        ticksInfo = tickGeneratorModule.tickGenerator({
             axisType: scaleOptions.type,
-            dataType: scaleOptions.valueType
-        }, {
-            min: min,
-            max: max,
-            screenDelta: screenDelta,
-            customTicks: categoriesInfo && categoriesInfo.categories
-        }, {
-            labelOptions: {
+            dataType: scaleOptions.valueType,
+            logBase: scaleOptions.logarithmBase,
+
+            axisDivisionFactor: scaleOptions.axisDivisionFactor,
+            minorAxisDivisionFactor: scaleOptions.minorAxisDivisionFactor,
+            calculateMinors: true,
+
+            allowDecimals: scaleOptions.allowDecimals,
+            endOnTicks: scaleOptions.endOnTicks,
+
+            incidentOccurred: incidentOccurred
+        })(
+            {
+                min: min,
+                max: max,
+                categories: _isDefined(categoriesInfo) && _isDefined(categoriesInfo.categories) ? categoriesInfo.categories : []
             },
-            boundCoef: 1,
-            minorTickInterval: scaleOptions.minorTickInterval,
-            tickInterval: scaleOptions.tickInterval,
-            incidentOccurred: incidentOccurred,
-            base: scaleOptions.logarithmBase,
-            showMinorTicks: true,
-            withMinorCorrection: true,
-            stick: range.stick !== false
-        });
-        ticks = tickManager.getTicks(true); //Important to call this method before those below
+            screenDelta,
+            scaleOptions.tickInterval, //tickInterval,
+            scaleOptions.forceUserTickInterval, //forceUserTickInterval,
+            undefined, //customTicks
+            scaleOptions.minorTickInterval, //minorTickInterval,
+            scaleOptions.minorTickCount //minorTickCount
+        );
+
+        //TODO see same code in base axis
+        length = ticksInfo.ticks.length;
+        if(length > 1) {
+            bounds.minVisible = ticksInfo.ticks[0].value < min ? ticksInfo.ticks[0].value : min;
+            bounds.maxVisible = ticksInfo.ticks[length - 1].value > max ? ticksInfo.ticks[length - 1].value : max;
+        }
 
         result = {
-            tickInterval: tickManager.getTickInterval(),
-            minorTickInterval: tickManager.getMinorTickInterval(),
-            bounds: tickManager.getTickBounds(),
-            ticks: ticks
+            tickInterval: ticksInfo.tickInterval,
+            minorTickInterval: scaleOptions.minorTickInterval === 0 ? 0 : ticksInfo.minorTickInterval,
+            bounds: bounds,
+            ticks: ticksInfo.ticks
         };
     }
 
@@ -521,6 +536,9 @@ function prepareScaleOptions(scaleOption, seriesDataSource, incidentOccurred) {
         scaleOption.marker.visible = false;
         scaleOption.maxRange = undefined;
     }
+
+    scaleOption.axisDivisionFactor = scaleOption.axisDivisionFactor !== undefined ? scaleOption.axisDivisionFactor : DEFAULT_AXIS_DIVISION_FACTOR;
+    scaleOption.minorAxisDivisionFactor = scaleOption.minorAxisDivisionFactor !== undefined ? scaleOption.minorAxisDivisionFactor : DEFAULT_MINOR_AXIS_DIVISION_FACTOR;
     return scaleOption;
 }
 
@@ -555,6 +573,7 @@ function getIntervalCustomTicks(options) {
         max = correctValueByInterval(max, isDate, tickInterval);
 
         res.intervals = getSequenceByInterval(min, max, tickInterval);
+        res.intervals[0] = res.altIntervals[0];
     }
 
     return res;

@@ -186,13 +186,23 @@ QUnit.test("set range by dataSource for non-stick series", function(assert) {
         }
     });
 
+
+    //TODO check stick
+    // var options = this.axis.updateOptions.lastCall.args[0];
+    // assert.strictEqual(options.startValue, 0.5);
+    // assert.strictEqual(options.endValue, 5.5);
+    // assert.strictEqual(options.valueType, "numeric");
+    // var range = this.axis.setBusinessRange.lastCall.args[0];
+    // assert.strictEqual(range.minVisible, 0.5);
+    // assert.strictEqual(range.maxVisible, 5.5);
+
     var options = this.axis.updateOptions.lastCall.args[0];
-    assert.strictEqual(options.startValue, 0.5);
-    assert.strictEqual(options.endValue, 5.5);
+    assert.strictEqual(options.startValue, 1);
+    assert.strictEqual(options.endValue, 5);
     assert.strictEqual(options.valueType, "numeric");
     var range = this.axis.setBusinessRange.lastCall.args[0];
-    assert.strictEqual(range.minVisible, 0.5);
-    assert.strictEqual(range.maxVisible, 5.5);
+    assert.strictEqual(range.minVisible, 1);
+    assert.strictEqual(range.maxVisible, 5);
 });
 
 QUnit.test("set valueType by startValue (numeric)", function(assert) {
@@ -776,7 +786,7 @@ QUnit.test("Calculate custom ticks and minor custom ticks depended on tickInterv
     });
 
     assert.deepEqual(this.axis.updateOptions.lastCall.args[0].customMinorTicks, [10, 15, 20, 25, 30, 35, 40, 45, 50, 55]);
-    assert.deepEqual(this.axis.updateOptions.lastCall.args[0].customTicks, [0, 20, 40]);
+    assert.deepEqual(this.axis.updateOptions.lastCall.args[0].customTicks, [10, 20, 40]);
 });
 
 QUnit.test("Custom bound ticks only contain first customTick", function(assert) {
@@ -860,7 +870,7 @@ QUnit.test("Calculate tickInterval based on screen delta (3*minRange. numeric)",
     var options = this.axis.updateOptions.lastCall.args[0];
     assert.strictEqual(options.minorTickInterval, 5);
     assert.strictEqual(options.tickInterval, 15);
-    assert.deepEqual(options.customTicks, [0, 15, 30, 45]);
+    assert.deepEqual(options.customTicks, [10, 15, 30, 45]);
 });
 
 QUnit.test("Calculate tickInterval based on screen delta (datetime. minRange is day)", function(assert) {
@@ -878,7 +888,7 @@ QUnit.test("Calculate tickInterval based on screen delta (datetime. minRange is 
     var options = this.axis.updateOptions.lastCall.args[0];
     assert.strictEqual(options.minorTickInterval, "day");
     assert.strictEqual(options.tickInterval, "month");
-    assert.deepEqual(options.customTicks, [new Date(2015, 0, 1), new Date(2015, 1, 1)]);
+    assert.deepEqual(options.customTicks, [new Date(2015, 0, 15), new Date(2015, 1, 1)]);
 });
 
 QUnit.test("Calculate tickInterval based on screen delta (datetime. minRange is month)", function(assert) {
@@ -956,7 +966,7 @@ QUnit.test("Calculate tickInterval based on screen delta (datetime. minRange is 
     var options = this.axis.updateOptions.lastCall.args[0];
     assert.strictEqual(options.minorTickInterval, "day");
     assert.strictEqual(options.tickInterval, "month");
-    assert.deepEqual(options.customTicks, [new Date(2015, 0, 1), new Date(2015, 1, 1)]);
+    assert.deepEqual(options.customTicks, [new Date(2015, 0, 15), new Date(2015, 1, 1)]);
 });
 
 QUnit.test("If not set - scale label format depends on tickInterval", function(assert) {
@@ -1309,7 +1319,7 @@ QUnit.test("Init selection format before calculate canvas for dateTime type", fu
             format: ""
         },
         scale: {
-            minorTickInterval: "day",
+            minorTickInterval: { days: 1 },
             startValue: new Date(2010, 2, 13),
             endValue: new Date(2010, 2, 20)
         }

@@ -78,9 +78,6 @@ function getBusinessDelta(data) {
 function getBusinessDeltaLog(base) {
     var getLog = getLogValue(base);
     return function(data) {
-        if(data.min === 0 || data.max === 0) {
-            return;
-        }
         return mathCeil(mathAbs(getLog(data.max / data.min)));
     };
 }
@@ -220,7 +217,7 @@ function getTickIntervalByCustomTicks(getValue, postProcess) {
         if(!ticks) {
             return undefined;
         }
-        return postProcess(mathAbs(getValue(ticks[1]) - getValue(ticks[0]))) || 0;
+        return postProcess(mathAbs(getValue(ticks[1]) - getValue(ticks[0]))) || undefined;
     };
 }
 
@@ -372,9 +369,11 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
         var businessDelta = getBusinessDelta(data),
             result = processCustomTicks(customTicks);
 
-        result = generateMajorTicks(result, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks);
+        if(!isNaN(businessDelta)) {
+            result = generateMajorTicks(result, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks);
 
-        result = generateMinorTicks(result, data, businessDelta, screenDelta, result.tickInterval, minorTickInterval, minorTickCount, customTicks);
+            result = generateMinorTicks(result, data, businessDelta, screenDelta, result.tickInterval, minorTickInterval, minorTickCount, customTicks);
+        }
 
         return result;
     };
@@ -470,15 +469,6 @@ function dateGenerator(options) {
     );
 }
 
-function dummyGenerator() {
-    return {
-        tickInterval: undefined,
-        ticks: [],
-        minorTickInterval: undefined,
-        minorTicks: []
-    };
-}
-
 // {
 //     dataType: "numeric",
 //     axisType: "continuous",
@@ -492,16 +482,16 @@ function dummyGenerator() {
 //     numberMultipliers: [1, 2]
 // }
 exports.tickGenerator = function(options) {
-    var result = dummyGenerator;
+    var result;
 
     if(options.axisType === "discrete") {
         result = discreteGenerator(options);
     } else if(options.axisType === "logarithmic") {
         result = logarithmicGenerator(options);
-    } else if(options.dataType === "numeric") {
-        result = numericGenerator(options);
     } else if(options.dataType === "datetime") {
         result = dateGenerator(options);
+    } else {
+        result = numericGenerator(options);
     }
 
     return result;

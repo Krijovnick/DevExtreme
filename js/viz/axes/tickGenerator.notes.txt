@@ -45,3 +45,7 @@ valueType, argumentType, dataType - in RangeSelector and gauges
 
 do we need dummyGenerator? when there is no dataType and stubData - we do not draw stub grids
 
+boundCoef ???
+
+tickGenerator не умеет принимать строковый tickInterval вида "day", "year". Только полноценные объекты. Надо реализовать или в нем или снаружи.
+

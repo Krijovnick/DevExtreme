@@ -143,7 +143,7 @@ QUnit.test("Calculate tickInterval if ratio of (categories count) to (count by s
     assert.deepEqual(this.axis._tickInterval, 10);
 });
 
-QUnit.module("Numeric. Calculate tickInterval and ticks. allowDecimals false", environment);
+QUnit.module("Numeric. Calculate tickInterval. allowDecimals false", environment);
 
 QUnit.test("0-10, screenDelta 200 - tickInterval 5", function(assert) {
     this.createAxis();
@@ -209,7 +209,7 @@ QUnit.test("0-2, screenDelta 500 - tickInterval 1", function(assert) {
     assert.deepEqual(this.axis._tickInterval, 1);
 });
 
-QUnit.module("Numeric. Calculate tickInterval and ticks. allowDecimals true", environment);
+QUnit.module("Numeric. Calculate tickInterval. allowDecimals true", environment);
 
 QUnit.test("0-10, screenDelta 200 - tickInterval 2.5", function(assert) {
     this.createAxis();
@@ -259,7 +259,7 @@ QUnit.test("0-2.1, screenDelta 5000 - tickInterval 0.025", function(assert) {
     assert.deepEqual(this.axis._tickInterval, 0.025);
 });
 
-QUnit.module("Numeric. forceTickInterval", environment);
+QUnit.module("Numeric. Calculate tickInterval. forceTickInterval", environment);
 
 QUnit.test("forceTickInterval false. User's tickIntervsal 1, calculated tickInterval 2 - return calculated", function(assert) {
     this.createAxis();
@@ -443,38 +443,6 @@ QUnit.test("Stub data. User's tickIntervsal 4 - ignore users tickInterval", func
     assert.deepEqual(this.axis._tickInterval, 2);
 });
 
-QUnit.test("0-1. Screen delta is 500. Interval is 0.1", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "continuous",
-        allowDecimals: true
-    });
-
-    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 1, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(500));
-
-    assert.deepEqual(this.axis._tickInterval, 0.1);
-});
-
-QUnit.test("0-20. Screen delta is 1000. Interval is 1", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "continuous",
-        allowDecimals: true
-    });
-
-    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 20, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(1000));
-
-    assert.deepEqual(this.axis._tickInterval, 1);
-});
-
 QUnit.test("BusinessDelta is 0", function(assert) {
     this.createAxis();
     this.updateOptions({
@@ -598,7 +566,7 @@ QUnit.test("Custom one tick", function(assert) {
     this.axis.createTicks(canvas(200));
 
     assert.deepEqual(this.axis._majorTicks.map(value), [5]);
-    assert.deepEqual(this.axis._tickInterval, 0);
+    assert.deepEqual(this.axis._tickInterval, undefined);
 });
 
 QUnit.test("customTicks with showCalculatedTicks", function(assert) { //DEPRECATED IN 15_2
@@ -699,6 +667,26 @@ QUnit.test("Custom axisDivisionFactor", function(assert) {
     this.axis.createTicks(canvas(200));
 
     assert.deepEqual(this.axis._tickInterval, 2);
+});
+
+QUnit.test("No data - do not generate ticks nor calculate tickInterval", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        allowDecimals: false
+    });
+
+    this.axis.setBusinessRange({ addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.deepEqual(this.axis._minorTicks, []);
+    assert.deepEqual(this.axis._minorTickInterval, undefined);
+
+    assert.deepEqual(this.axis._majorTicks, []);
+    assert.deepEqual(this.axis._tickInterval, undefined);
 });
 
 QUnit.module("Numeric. Minor ticks", environment);
@@ -1051,7 +1039,7 @@ QUnit.test("Custom minorAxisDivisionFactor", function(assert) {
     assert.deepEqual(this.axis._minorTickInterval, 0.5);
 });
 
-QUnit.module("Logarithmic. Calculate tickInterval and ticks", environment);
+QUnit.module("Logarithmic. Calculate tickInterval", environment);
 
 QUnit.test("0.0001 - 10000, screenDelta 450 - tickInterval 1", function(assert) {
     this.createAxis();
@@ -1239,7 +1227,7 @@ QUnit.test("min = 0, max = 0", function(assert) {
     this.axis.createTicks(canvas(300));
 
     assert.deepEqual(this.axis._majorTicks.map(value), []);
-    assert.deepEqual(this.axis._tickInterval, 0);
+    assert.deepEqual(this.axis._tickInterval, undefined);
 });
 
 QUnit.test("customTicks", function(assert) {
@@ -1867,7 +1855,6 @@ QUnit.test("Minor ticks when there is only one major tick in the middle (big tic
     assert.deepEqual(this.axis._minorTicks.map(value), [new Date(2012, 2, 20), new Date(2012, 2, 27), new Date(2012, 3, 8)].map(function(d) { return d.valueOf(); }));
     assert.deepEqual(this.axis._minorTickInterval, { days: 7 });
 });
-
 
 QUnit.module("Polar axes", environment);
 
