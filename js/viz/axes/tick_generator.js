@@ -2,7 +2,8 @@
 
 var utils = require("../core/utils"),
     dateUtils = require("../../core/utils/date"),
-    isExponential = require("../../core/utils/type").isExponential,
+    typeUtils = require("../../core/utils/type"),
+    isExponential = typeUtils.isExponential,
     convertDateUnitToMilliseconds = dateUtils.convertDateUnitToMilliseconds,
     dateToMilliseconds = dateUtils.dateToMilliseconds,
     adjustValue = utils.adjustValue,
@@ -422,27 +423,28 @@ function logarithmicGenerator(options) {
 function dateGenerator(options) {
     function floor(value, interval) {
         var floorNumber = correctValueByInterval(getValue, mathFloor, getValue),
+            intervalObject = typeUtils.isString(interval) ? dateUtils.getDateIntervalByString(interval.toLowerCase()) : interval,
             divider = dateToMilliseconds(interval);
 
-        value = dateUtils.correctDateWithUnitBeginning(value, interval);
+        value = dateUtils.correctDateWithUnitBeginning(value, intervalObject);
 
-        if("years" in interval) {
-            value.setFullYear(floorNumber(value.getFullYear(), interval.years, 0));
-        } else if("quarters" in interval) {
+        if("years" in intervalObject) {
+            value.setFullYear(floorNumber(value.getFullYear(), intervalObject.years, 0));
+        } else if("quarters" in intervalObject) {
             //correctDateWithUnitBeginning is enough here
-        } else if("months" in interval) {
-            value.setMonth(floorNumber(value.getMonth(), interval.months, 0));
-        } else if("weeks" in interval) {
+        } else if("months" in intervalObject) {
+            value.setMonth(floorNumber(value.getMonth(), intervalObject.months, 0));
+        } else if("weeks" in intervalObject) {
             //correctDateWithUnitBeginning is enough here
-        } else if("days" in interval) {
+        } else if("days" in intervalObject) {
             //correctDateWithUnitBeginning is enough here
-        } else if("hours" in interval) {
-            value.setHours(floorNumber(value.getHours(), interval.hours, 0));
-        } else if("minutes" in interval) {
-            value.setMinutes(floorNumber(value.getMinutes(), interval.minutes, 0));
-        } else if("seconds" in interval) {
-            value.setSeconds(floorNumber(value.getSeconds(), interval.seconds, 0));
-        } else if("milliseconds" in interval) {
+        } else if("hours" in intervalObject) {
+            value.setHours(floorNumber(value.getHours(), intervalObject.hours, 0));
+        } else if("minutes" in intervalObject) {
+            value.setMinutes(floorNumber(value.getMinutes(), intervalObject.minutes, 0));
+        } else if("seconds" in intervalObject) {
+            value.setSeconds(floorNumber(value.getSeconds(), intervalObject.seconds, 0));
+        } else if("milliseconds" in intervalObject) {
             value = new Date(mathFloor(value.getTime() / divider) * divider);
         }
 

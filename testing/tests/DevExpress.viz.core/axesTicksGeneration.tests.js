@@ -1781,6 +1781,26 @@ QUnit.test("Custom tickInterval is very small - ignore tickInterval and raise W2
     assert.deepEqual(this.axis._tickInterval, { weeks: 1 });
 });
 
+QUnit.test("Tick interval can be set as string value", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "datetime",
+        type: "continuous",
+        tickInterval: "day"
+    });
+
+    this.axis.setBusinessRange({ minVisible: new Date(2017, 1, 3, 13, 28, 33), maxVisible: new Date(2017, 1, 7, 5, 3), addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(300));
+
+    assert.deepEqual(this.axis._majorTicks.map(value), [new Date(2017, 1, 4),
+        new Date(2017, 1, 5),
+        new Date(2017, 1, 6),
+        new Date(2017, 1, 7)].map(function(d) { return d.valueOf(); }));
+    assert.deepEqual(this.axis._tickInterval, { "days": 1 });
+});
+
 QUnit.module("DateTime. Minor ticks", environment);
 
 QUnit.test("tickInterval month - minorTickInterval can not be in weeks", function(assert) {

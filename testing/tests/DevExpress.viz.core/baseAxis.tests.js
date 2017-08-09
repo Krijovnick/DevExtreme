@@ -1,7 +1,5 @@
 "use strict";
 
-/* global currentTest */
-
 var $ = require("jquery"),
     noop = require("core/utils/common").noop,
     tickGeneratorModule = require("viz/axes/tick_generator"),
