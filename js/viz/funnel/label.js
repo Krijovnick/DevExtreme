@@ -28,7 +28,7 @@ function getOutsideLeftLabelPosition(item, bBox, options) {
 
 function getInsideLabelPosition(item, bBox, options) {
     var width = item.coords[2] - item.coords[0],
-        height = item.coords[5] - item.coords[1];
+        height = item.coords[7] - item.coords[1];
 
     return {
         x: item.coords[0] + width / 2 + options.horizontalOffset - bBox.width / 2,

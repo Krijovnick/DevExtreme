@@ -309,6 +309,27 @@ QUnit.test("Place labels with inside position", function(assert) {
     assert.deepEqual(label.shift.args[0], [365, 175]);
 });
 
+QUnit.test("Place labels with inside position, figure is hexagon", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 0.5, 1, 1, 0, 1, 0, 0.5]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        valueField: "value",
+        label: {
+            visible: true,
+            position: "inside",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+    assert.deepEqual(label.shift.args[0], [365, 325]);
+});
+
 QUnit.test("Place labels with columns position", function(assert) {
     stubAlgorithm.getFigures.returns([
         [0, 0, 1, 0, 1, 0.5, 0, 0.5],
