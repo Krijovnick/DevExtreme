@@ -152,6 +152,7 @@ exports.plugin = {
             } else {
                 if(width - labelWidth < adaptiveLayout.width) {
                     labelWidth = width - adaptiveLayout.width;
+                    labelWidth = labelWidth > 0 ? labelWidth : 0;
                 }
                 this._labels.forEach(function(label) {
                     label.clearVisibility();

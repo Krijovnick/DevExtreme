@@ -520,3 +520,25 @@ QUnit.test("Do not hide labels if keepLabels true", function(assert) {
     assert.ok(!labelModule.Label.getCall(1).returnValue.hide.called);
 });
 
+QUnit.test("Do not hide labels if keepLabels true. Container width less than adaptiveLayout", function(assert) {
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 2 }],
+        label: {
+            visible: true,
+            position: "outside"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 140
+        }
+    });
+
+    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 5, 140, 600]);
+    assert.ok(!labelModule.Label.getCall(0).returnValue.hide.called);
+    assert.ok(!labelModule.Label.getCall(1).returnValue.hide.called);
+});
+
