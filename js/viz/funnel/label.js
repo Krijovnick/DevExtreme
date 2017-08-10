@@ -6,7 +6,9 @@ var labelModule = require("../series/points/label"),
     OUTSIDE_POSITION = "outside",
     COLUMNS_POSITION = "columns",
     OUTSIDE_LABEL_INDENT = 5,
-    COLUMNS_LABEL_INDENT = 20;
+    COLUMNS_LABEL_INDENT = 20,
+    CONNECTOR_INDENT = 4,
+    PREVENT_EMPTY_PIXEL_OFFSET = 1;
 
 function getLabelIndent(pos) {
     pos = _normalizeEnum(pos);
@@ -72,18 +74,29 @@ function getColumnLabelLeftPosition(labelRect, rect, textAlignment) {
     };
 }
 
-function getFigureCenter(figure) {
-    return [figure[2], figure[3]];
-}
 
-function getConnectorStrategy(options) {
+function getConnectorStrategy(options, inverted) {
+    var isLeftPos = options.horizontalAlignment === "left",
+        connectorIndent = isLeftPos ? CONNECTOR_INDENT : -CONNECTOR_INDENT,
+        verticalCorrection = inverted ? -PREVENT_EMPTY_PIXEL_OFFSET : 0;
+
+    function getFigureCenter(figure) {
+        return isLeftPos ? [figure[0] + PREVENT_EMPTY_PIXEL_OFFSET, figure[1] + verticalCorrection] : [figure[2] - PREVENT_EMPTY_PIXEL_OFFSET, figure[3] + verticalCorrection];
+    }
+
     return {
         isLabelInside: function() {
             return !isOutsidePosition(options.position);
         },
         getFigureCenter: getFigureCenter,
         prepareLabelPoints: function(points) {
-            return points;
+            var bBox = this.getBoundingRect(),
+                x = bBox.x + connectorIndent,
+                y = bBox.y + verticalCorrection,
+                x1 = x + bBox.width,
+                y1 = y + bBox.height;
+
+            return [[x, y], [x1, y], [x1, y1], [x, y1]];
         },
 
         findFigurePoint: function(figure) {
@@ -255,7 +268,7 @@ exports.plugin = {
         _createLabels: function() {
             var that = this,
                 labelOptions = that._getOption("label"),
-                connectorStrategy = getConnectorStrategy(labelOptions);
+                connectorStrategy = getConnectorStrategy(labelOptions, that._getOption("inverted", true));
 
             this._labelsGroup.clear();
 

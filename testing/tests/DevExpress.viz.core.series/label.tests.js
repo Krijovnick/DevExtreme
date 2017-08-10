@@ -575,26 +575,28 @@ QUnit.test("Drawn connector to label with odd side", function(assert) {
 QUnit.test("Use external connector strategy", function(assert) {
     this.options.background.fill = "none";
 
-    var label = new labelModule.Label({
-        renderer: this.renderer,
-        point: this.point,
-        labelsGroup: this.group,
-        strategy: {
-            isLabelInside: function(labelPoint, figure) {
-                return false;
-            },
-            getFigureCenter: function() {
-                return [0, 0];
-            },
-            prepareLabelPoints: function(points) {
-                return points;
-            },
+    var prepareLabelPointsThisArg,
+        label = new labelModule.Label({
+            renderer: this.renderer,
+            point: this.point,
+            labelsGroup: this.group,
+            strategy: {
+                isLabelInside: function(labelPoint, figure) {
+                    return false;
+                },
+                getFigureCenter: function() {
+                    return [0, 0];
+                },
+                prepareLabelPoints: function(points) {
+                    prepareLabelPointsThisArg = this;
+                    return points;
+                },
 
-            findFigurePoint: function(figure, labelPoint) {
-                return [10, 10];
+                findFigurePoint: function(figure, labelPoint) {
+                    return [10, 10];
+                }
             }
-        }
-    });
+        });
     label.setOptions(this.options);
     label.setData(this.data.formatObject);
 
@@ -604,6 +606,7 @@ QUnit.test("Use external connector strategy", function(assert) {
     label.shift(100, 50);
 
     assert.deepEqual(this.getConnectorElement()._stored_settings.points, [10, 10, 100, 55]);
+    assert.equal(prepareLabelPointsThisArg, label);
 });
 
 QUnit.module("Set options", $.extend({}, environment, {
