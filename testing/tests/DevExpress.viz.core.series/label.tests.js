@@ -1010,6 +1010,21 @@ QUnit.test("fit", function(assert) {
     assert.strictEqual(background.attr.called, true, "New background rect");
 });
 
+QUnit.test("resetEllipsis", function(assert) {
+    this.options.background = { fill: "red" };
+
+    var label = this.createAndDrawLabel();
+
+    label.shift(-7, -2);
+    label.resetEllipsis(15);
+
+    var text = this.renderer.text.getCall(0).returnValue,
+        background = this.renderer.rect.getCall(0).returnValue;
+
+    assert.strictEqual(text.restoreText.called, true, "text is restored");
+    assert.strictEqual(background.attr.called, true, "New background rect");
+});
+
 QUnit.module("Format label", $.extend({}, environment, {
     beforeEach: function() {
         this.renderer = new vizMocks.Renderer();

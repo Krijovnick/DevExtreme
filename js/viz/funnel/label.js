@@ -124,6 +124,16 @@ function getLabelOptions(labelOptions, defaultColor) {
     };
 }
 
+function correctLabelPosition(pos, bBox, rect) {
+    if(pos.x < rect[0]) {
+        pos.x = rect[0];
+    }
+    if(pos.x + bBox.width > rect[2]) {
+        pos.x = rect[2] - bBox.width;
+    }
+    return pos;
+}
+
 exports.plugin = {
     name: "lables",
     init: function() {
@@ -155,6 +165,7 @@ exports.plugin = {
             }
 
             groupWidth = this._labels.map(function(label) {
+                label.resetEllipsis();
                 return label.getBoundingRect().width;
             }).reduce(function(max, width) {
                 return Math.max(max, width);
@@ -207,7 +218,15 @@ exports.plugin = {
 
             that._labels.forEach(function(label, index) {
                 var item = that._items[index],
-                    pos = getCoords(item, label.getBoundingRect(), options, inverted);
+                    bBox,
+                    pos;
+
+                if(isOutsidePosition(options.position)) {
+                    that._correctLabelWidth(label, item.coords, options);
+                }
+
+                bBox = label.getBoundingRect();
+                pos = correctLabelPosition(getCoords(item, bBox, options, inverted), bBox, that._labelRect);
 
                 label.setFigureToDrawConnector(item.coords);
                 label.shift(pos.x, pos.y);
@@ -215,6 +234,18 @@ exports.plugin = {
         }
     },
     members: {
+
+        _correctLabelWidth: function(label, item, options) {
+            var isLeftPos = options.horizontalAlignment === "left",
+                minX = isLeftPos ? this._labelRect[0] : item[2],
+                maxX = isLeftPos ? item[0] : this._labelRect[2],
+                maxWidth = maxX - minX;
+
+            if(label.getBoundingRect().width > maxWidth) {
+                label.fit(maxWidth);
+            }
+        },
+
         _createLabels: function() {
             var that = this,
                 labelOptions = that._getOption("label"),
