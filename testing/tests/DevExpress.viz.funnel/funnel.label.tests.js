@@ -259,10 +259,10 @@ QUnit.test("Place labels with outside position", function(assert) {
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [357.5, 327.5]);
+    assert.deepEqual(label.shift.args[0], [357.5, 332.5]);
 
     label = labelModule.Label.getCall(1).returnValue;
-    assert.deepEqual(label.shift.args[0], [700, 625]);
+    assert.deepEqual(label.shift.args[0], [700, 630]);
 });
 
 QUnit.test("Place labels with outside position and left horizontal alignment", function(assert) {
@@ -285,7 +285,7 @@ QUnit.test("Place labels with outside position and left horizontal alignment", f
 
     var label = labelModule.Label.getCall(0).returnValue;
 
-    assert.deepEqual(label.shift.args[0], [0, 30]);
+    assert.deepEqual(label.shift.args[0], [0, 35]);
 });
 
 QUnit.test("Place labels with inside position", function(assert) {

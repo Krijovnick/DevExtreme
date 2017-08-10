@@ -15,14 +15,14 @@ function isOutsidePosition(pos) {
 function getOutsideRightLabelPosition(item, bBox, options) {
     return {
         x: item.coords[2] + options.horizontalOffset,
-        y: item.coords[3] - bBox.height / 2 + options.verticalOffset
+        y: item.coords[3] + options.verticalOffset
     };
 }
 
 function getOutsideLeftLabelPosition(item, bBox, options) {
     return {
         x: item.coords[0] - bBox.width - options.horizontalOffset,
-        y: item.coords[1] - bBox.height / 2 + options.verticalOffset
+        y: item.coords[1] + options.verticalOffset
     };
 }
 
