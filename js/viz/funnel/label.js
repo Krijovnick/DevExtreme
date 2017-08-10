@@ -126,7 +126,6 @@ exports.plugin = {
             var options = this._getOption("label"),
                 adaptiveLayout = this._getOption("adaptiveLayout"),
                 rect = this._rect,
-                labelHeight = 0,
                 labelWidth = 0,
                 groupWidth,
                 width = rect[2] - rect[0];
@@ -143,7 +142,6 @@ exports.plugin = {
                 return Math.max(max, width);
             }, 0);
 
-            labelHeight = this._labels[0].getBoundingRect().height / 2;
             labelWidth = groupWidth + options.horizontalOffset;
 
             if(!adaptiveLayout.keepLabels && width - labelWidth < adaptiveLayout.width) {
@@ -167,7 +165,6 @@ exports.plugin = {
                 rect[2] -= labelWidth;
             }
 
-            rect[1] += labelHeight;
         },
 
         _buildNodes: function() {

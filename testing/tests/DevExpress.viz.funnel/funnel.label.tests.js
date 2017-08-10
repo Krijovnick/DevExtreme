@@ -158,7 +158,7 @@ QUnit.test("Reserve space for labels if position outside", function(assert) {
 
     var items = this.items();
     assert.equal(items.length, 1);
-    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 5, 685, 600]);
+    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 0, 685, 600]);
 });
 
 QUnit.test("Reserve space for labels if position outside and horizontal alignment is left", function(assert) {
@@ -177,7 +177,7 @@ QUnit.test("Reserve space for labels if position outside and horizontal alignmen
 
     var items = this.items();
     assert.equal(items.length, 1);
-    assert.deepEqual(items[0].attr.firstCall.args[0].points, [115, 5, 800, 600]);
+    assert.deepEqual(items[0].attr.firstCall.args[0].points, [115, 0, 800, 600]);
 });
 
 QUnit.test("Reserve space for labels if position columns", function(assert) {
@@ -195,7 +195,7 @@ QUnit.test("Reserve space for labels if position columns", function(assert) {
 
     var items = this.items();
     assert.equal(items.length, 1);
-    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 5, 685, 600]);
+    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 0, 685, 600]);
 });
 
 QUnit.test("Do not reserve space for labels if position inside", function(assert) {
@@ -235,7 +235,7 @@ QUnit.test("Relayout labels after dataSource changed", function(assert) {
 
     var items = this.items();
     assert.equal(items.length, 1);
-    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 5, 740, 600]);
+    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 0, 740, 600]);
 });
 
 QUnit.test("Place labels with outside position", function(assert) {
@@ -259,7 +259,7 @@ QUnit.test("Place labels with outside position", function(assert) {
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [357.5, 332.5]);
+    assert.deepEqual(label.shift.args[0], [357.5, 330]);
 
     label = labelModule.Label.getCall(1).returnValue;
     assert.deepEqual(label.shift.args[0], [700, 630]);
@@ -285,7 +285,7 @@ QUnit.test("Place labels with outside position and left horizontal alignment", f
 
     var label = labelModule.Label.getCall(0).returnValue;
 
-    assert.deepEqual(label.shift.args[0], [0, 35]);
+    assert.deepEqual(label.shift.args[0], [0, 30]);
 });
 
 QUnit.test("Place labels with inside position", function(assert) {
@@ -350,8 +350,8 @@ QUnit.test("Place labels with columns position", function(assert) {
     var label1 = labelModule.Label.getCall(0).returnValue,
         label2 = labelModule.Label.getCall(1).returnValue;
 
-    assert.deepEqual(label1.shift.args[0], [700, 35]);
-    assert.deepEqual(label2.shift.args[0], [700, 35]);
+    assert.deepEqual(label1.shift.args[0], [700, 30]);
+    assert.deepEqual(label2.shift.args[0], [700, 30]);
 });
 
 QUnit.test("Place labels with columns position. rtl", function(assert) {
@@ -375,8 +375,8 @@ QUnit.test("Place labels with columns position. rtl", function(assert) {
     var label1 = labelModule.Label.getCall(0).returnValue,
         label2 = labelModule.Label.getCall(1).returnValue;
 
-    assert.deepEqual(label1.shift.args[0], [700, 35]);
-    assert.deepEqual(label2.shift.args[0], [755, 35]);
+    assert.deepEqual(label1.shift.args[0], [700, 30]);
+    assert.deepEqual(label2.shift.args[0], [755, 30]);
 });
 
 QUnit.test("Place labels with columns position and left horizontal alignment", function(assert) {
@@ -400,8 +400,8 @@ QUnit.test("Place labels with columns position and left horizontal alignment", f
     var label1 = labelModule.Label.getCall(0).returnValue,
         label2 = labelModule.Label.getCall(1).returnValue;
 
-    assert.deepEqual(label1.shift.args[0], [0, 35]);
-    assert.deepEqual(label2.shift.args[0], [0, 35]);
+    assert.deepEqual(label1.shift.args[0], [0, 30]);
+    assert.deepEqual(label2.shift.args[0], [0, 30]);
 });
 
 QUnit.test("Place labels with columns position and left horizontal alignment. rtl", function(assert) {
@@ -426,8 +426,8 @@ QUnit.test("Place labels with columns position and left horizontal alignment. rt
     var label1 = labelModule.Label.getCall(0).returnValue,
         label2 = labelModule.Label.getCall(1).returnValue;
 
-    assert.deepEqual(label1.shift.args[0], [0, 35]);
-    assert.deepEqual(label2.shift.args[0], [55, 35]);
+    assert.deepEqual(label1.shift.args[0], [0, 30]);
+    assert.deepEqual(label2.shift.args[0], [55, 30]);
 });
 
 QUnit.test("Connector strategy", function(assert) {
@@ -451,8 +451,8 @@ QUnit.test("Connector strategy", function(assert) {
         connectorStrategy = labelModule.Label.getCall(0).args[0].strategy,
         figure = label.setFigureToDrawConnector.lastCall.args[0];
 
-    assert.deepEqual(connectorStrategy.getFigureCenter(figure), [685, 5], "center");
-    assert.deepEqual(connectorStrategy.findFigurePoint(figure), [685, 5], "figure point");
+    assert.deepEqual(connectorStrategy.getFigureCenter(figure), [685, 0], "center");
+    assert.deepEqual(connectorStrategy.findFigurePoint(figure), [685, 0], "figure point");
     var points = [];
     assert.equal(connectorStrategy.prepareLabelPoints(points), points, "prepareLabelPoints");
     assert.equal(connectorStrategy.isLabelInside(), false, "isLabelInside");
@@ -547,7 +547,7 @@ QUnit.test("Show hidden labels", function(assert) {
         }
     });
 
-    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 5, 300, 600]);
+    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 0, 300, 600]);
     assert.ok(!label.hide.called);
     assert.ok(label.clearVisibility.called);
 });
@@ -566,7 +566,7 @@ QUnit.test("Do not hide labels if keepLabels true", function(assert) {
         }
     });
 
-    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 5, 150, 600]);
+    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 0, 150, 600]);
     assert.ok(!labelModule.Label.getCall(0).returnValue.hide.called);
     assert.ok(!labelModule.Label.getCall(1).returnValue.hide.called);
 });
@@ -588,7 +588,7 @@ QUnit.test("Do not hide labels if keepLabels true. Container width less than ada
         }
     });
 
-    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 5, 140, 600]);
+    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 0, 140, 600]);
     assert.ok(!labelModule.Label.getCall(0).returnValue.hide.called);
     assert.ok(!labelModule.Label.getCall(1).returnValue.hide.called);
 });
