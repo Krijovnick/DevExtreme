@@ -301,7 +301,7 @@ Label.prototype = {
         if(!strategy.isLabelInside(bBox, figure, that._options.position !== "inside")) {
             xc = bBox.x + bBox.width / 2;
             yc = bBox.y + bBox.height / 2;
-            points = strategy.prepareLabelPoints([
+            points = strategy.prepareLabelPoints.call(this, [
                     [xc, yc - that._textSize[1] / 2],
                     [xc + that._textSize[0] / 2, yc],
                     [xc, yc + that._textSize[1] / 2],

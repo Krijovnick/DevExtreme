@@ -542,11 +542,86 @@ QUnit.test("Connector strategy", function(assert) {
         connectorStrategy = labelModule.Label.getCall(0).args[0].strategy,
         figure = label.setFigureToDrawConnector.lastCall.args[0];
 
-    assert.deepEqual(connectorStrategy.getFigureCenter(figure), [680, 0], "center");
-    assert.deepEqual(connectorStrategy.findFigurePoint(figure), [680, 0], "figure point");
-    var points = [];
-    assert.equal(connectorStrategy.prepareLabelPoints(points), points, "prepareLabelPoints");
+    label.getBoundingRect.returns({
+        x: 10,
+        y: 15,
+        height: 20,
+        width: 40
+    });
+
+    assert.deepEqual(connectorStrategy.getFigureCenter(figure), [679, 0], "center");
+    assert.deepEqual(connectorStrategy.findFigurePoint(figure), [679, 0], "figure point");
+    assert.deepEqual(connectorStrategy.prepareLabelPoints.call(label), [[ 6, 15 ], [ 46, 15 ], [ 46, 35 ], [ 6, 35 ]], "prepareLabelPoints");
     assert.equal(connectorStrategy.isLabelInside(), false, "isLabelInside");
+});
+
+QUnit.test("Connector strategy. left horizontalAlignment", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 0.5, 0, 0.5]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        valueField: "value",
+        label: {
+            visible: true,
+            position: "outside",
+            horizontalAlignment: "left",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue,
+        connectorStrategy = labelModule.Label.getCall(0).args[0].strategy,
+        figure = label.setFigureToDrawConnector.lastCall.args[0];
+
+    label.getBoundingRect.returns({
+        x: 10,
+        y: 15,
+        height: 20,
+        width: 40
+    });
+
+    assert.deepEqual(connectorStrategy.getFigureCenter(figure), [121, 0], "center");
+    assert.deepEqual(connectorStrategy.findFigurePoint(figure), [121, 0], "figure point");
+    assert.deepEqual(connectorStrategy.prepareLabelPoints.call(label), 	[ [ 14, 15 ], [ 54, 15 ], [ 54, 35 ], [ 14, 35 ]], "prepareLabelPoints");
+});
+
+
+QUnit.test("Connector strategy. inverted", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 0.5, 0, 0.5]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        valueField: "value",
+        inverted: true,
+        label: {
+            visible: true,
+            position: "outside",
+            horizontalAlignment: "left",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue,
+        connectorStrategy = labelModule.Label.getCall(0).args[0].strategy,
+        figure = label.setFigureToDrawConnector.lastCall.args[0];
+
+    label.getBoundingRect.returns({
+        x: 10,
+        y: 15,
+        height: 20,
+        width: 40
+    });
+
+    assert.deepEqual(connectorStrategy.getFigureCenter(figure), [121, 599], "center");
+    assert.deepEqual(connectorStrategy.prepareLabelPoints.call(label), 	[ [ 14, 14 ], [ 54, 14 ], [ 54, 34 ], [ 14, 34 ]], "prepareLabelPoints");
 });
 
 QUnit.test("change label option", function(assert) {
