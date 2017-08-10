@@ -956,6 +956,25 @@ QUnit.test("getBoundingRect after shift", function(assert) {
     }, "equal bbox");
 });
 
+QUnit.test("getBackgroundPadding", function(assert) {
+    var label = this.createLabel();
+
+    label.show();
+
+    assert.equal(label.getBackgroundPadding(), 16);
+});
+
+QUnit.test("getBackgroundPadding. No background", function(assert) {
+    this.options.background = {
+        fill: "none"
+    };
+    var label = this.createLabel();
+
+    label.show();
+
+    assert.equal(label.getBackgroundPadding(), 0);
+});
+
 QUnit.test("getBoundingRect after double shift", function(assert) {
     var label = this.createLabel(),
         innerGroup,

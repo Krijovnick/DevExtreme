@@ -38,6 +38,7 @@ var labelEnvironment = $.extend({}, environment, {
         sinon.stub(labelModule, "Label", function() {
             var stub = new stubLabel();
             stub.stub("getBoundingRect").returns(labelBoxes[(labelBoxesIndex++) % labelBoxes.length]);
+            stub.stub("getBackgroundPadding").returns(5);
             return stub;
         });
 
@@ -704,7 +705,7 @@ QUnit.test("Apply label ellipsis and correct label coordinates", function(assert
         }
     });
 
-    assert.equal(labelModule.Label.getCall(0).returnValue.fit.lastCall.args[0], 45);
+    assert.equal(labelModule.Label.getCall(0).returnValue.fit.lastCall.args[0], 40);
     assert.ok(!labelModule.Label.getCall(1).returnValue.stub("fit").called);
 });
 
@@ -729,7 +730,7 @@ QUnit.test("Apply label ellipsis and correct label coordinates. Right horizontal
         }
     });
 
-    assert.equal(labelModule.Label.getCall(0).returnValue.fit.lastCall.args[0], 45);
+    assert.equal(labelModule.Label.getCall(0).returnValue.fit.lastCall.args[0], 40);
     assert.ok(!labelModule.Label.getCall(1).returnValue.stub("fit").called);
 });
 

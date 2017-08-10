@@ -132,7 +132,7 @@ function correctLabelPosition(pos, bBox, rect) {
         pos.x = rect[2] - bBox.width;
     }
     if(pos.y < rect[1]) {
-        pos.y = rect[1]
+        pos.y = rect[1];
     }
     if(pos.y + bBox.height > rect[3]) {
         pos.y = rect[3] - bBox.height;
@@ -248,7 +248,7 @@ exports.plugin = {
                 maxWidth = maxX - minX;
 
             if(label.getBoundingRect().width > maxWidth) {
-                label.fit(maxWidth);
+                label.fit(maxWidth - label.getBackgroundPadding());
             }
         },
 

@@ -281,6 +281,13 @@ Label.prototype = {
         that._bBox = bBox;
     },
 
+    getBackgroundPadding: function() {
+        if(this._background) {
+            return 2 * LABEL_BACKGROUND_PADDING_X;
+        }
+        return 0;
+    },
+
     _getConnectorPoints: function() {
         var that = this,
             figure = that._figure,
