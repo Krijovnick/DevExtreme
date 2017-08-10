@@ -520,6 +520,7 @@ QUnit.test("Place labels with columns position and left horizontal alignment. rt
     assert.deepEqual(label2.shift.args[0], [55, 30]);
 });
 
+
 QUnit.test("Connector strategy", function(assert) {
     stubAlgorithm.getFigures.returns([
         [0, 0, 1, 0, 1, 0.5, 0, 0.5]
