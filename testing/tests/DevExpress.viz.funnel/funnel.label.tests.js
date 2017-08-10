@@ -38,6 +38,7 @@ var labelEnvironment = $.extend({}, environment, {
         sinon.stub(labelModule, "Label", function() {
             var stub = new stubLabel();
             stub.stub("getBoundingRect").returns(labelBoxes[(labelBoxesIndex++) % labelBoxes.length]);
+            stub.stub("getBackgroundPadding").returns(5);
             return stub;
         });
 
@@ -243,7 +244,7 @@ QUnit.test("Place labels with outside position", function(assert) {
 
     stubAlgorithm.getFigures.returns([
         [0, 0, 0.5, 0.5],
-        [0, 0.6, 1, 1]
+        [0, 0.6, 1, 0.8]
     ]);
 
     createFunnel({
@@ -262,12 +263,12 @@ QUnit.test("Place labels with outside position", function(assert) {
     assert.deepEqual(label.shift.args[0], [360, 330]);
 
     label = labelModule.Label.getCall(1).returnValue;
-    assert.deepEqual(label.shift.args[0], [700, 630]);
+    assert.deepEqual(label.shift.args[0], [700, 510]);
 });
 
 QUnit.test("Place labels with outside position. inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -284,7 +285,7 @@ QUnit.test("Place labels with outside position. inverted", function(assert) {
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [700, 620]);
+    assert.deepEqual(label.shift.args[0], [700, 590]);
 });
 
 QUnit.test("Place labels with outside position and left horizontal alignment", function(assert) {
@@ -312,7 +313,7 @@ QUnit.test("Place labels with outside position and left horizontal alignment", f
 
 QUnit.test("Place labels with outside position. horizontalAlignment left. inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -330,7 +331,7 @@ QUnit.test("Place labels with outside position. horizontalAlignment left. invert
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [0, 620]);
+    assert.deepEqual(label.shift.args[0], [0, 590]);
 });
 
 QUnit.test("Place labels with inside position", function(assert) {
@@ -401,7 +402,7 @@ QUnit.test("Place labels with columns position", function(assert) {
 
 QUnit.test("Place labels with columns position. inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -418,7 +419,7 @@ QUnit.test("Place labels with columns position. inverted", function(assert) {
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [700, 620]);
+    assert.deepEqual(label.shift.args[0], [700, 590]);
 });
 
 QUnit.test("Place labels with columns position. rtl", function(assert) {
@@ -473,7 +474,7 @@ QUnit.test("Place labels with columns position and left horizontal alignment", f
 
 QUnit.test("Place labels with columns position. horizontalAlignment left inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -491,7 +492,7 @@ QUnit.test("Place labels with columns position. horizontalAlignment left inverte
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [0, 620]);
+    assert.deepEqual(label.shift.args[0], [0, 590]);
 });
 
 QUnit.test("Place labels with columns position and left horizontal alignment. rtl", function(assert) {
@@ -630,6 +631,7 @@ QUnit.test("Show hidden labels", function(assert) {
         label = labelModule.Label.getCall(0).returnValue;
 
     label.hide.reset();
+    label.resetEllipsis.reset();
 
     funnel.option({
         size: {
@@ -640,6 +642,7 @@ QUnit.test("Show hidden labels", function(assert) {
     assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 0, 295, 600]);
     assert.ok(!label.hide.called);
     assert.ok(label.clearVisibility.called);
+    assert.ok(label.resetEllipsis.called);
 });
 
 QUnit.test("Do not hide labels if keepLabels true", function(assert) {
@@ -683,3 +686,155 @@ QUnit.test("Do not hide labels if keepLabels true. Container width less than ada
     assert.ok(!labelModule.Label.getCall(1).returnValue.hide.called);
 });
 
+QUnit.test("Apply label ellipsis and correct label coordinates", function(assert) {
+    stubAlgorithm.getFigures.returns([[0.1, 0, 0.9, 1], [0.2, 0, 0.8, 1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 2 }],
+        label: {
+            visible: true,
+            position: "columns"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180
+        }
+    });
+
+    assert.equal(labelModule.Label.getCall(0).returnValue.fit.lastCall.args[0], 40);
+    assert.ok(!labelModule.Label.getCall(1).returnValue.stub("fit").called);
+});
+
+QUnit.test("Apply label ellipsis and correct label coordinates. Right horizontalAlignment", function(assert) {
+
+    stubAlgorithm.getFigures.returns([[0.1, 0, 0.9, 1], [0.2, 0, 0.8, 1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        label: {
+            visible: true,
+            position: "columns",
+            horizontalAlignment: "right"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180
+        }
+    });
+
+    assert.equal(labelModule.Label.getCall(0).returnValue.fit.lastCall.args[0], 40);
+    assert.ok(!labelModule.Label.getCall(1).returnValue.stub("fit").called);
+});
+
+QUnit.test("Correct label pos if label out from left", function(assert) {
+
+    stubAlgorithm.getFigures.returns([[0.1, 0, 0.9, 1], [0.2, 0, 0.8, 1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        label: {
+            visible: true,
+            position: "columns",
+            horizontalAlignment: "left"
+        },
+        rtlEnabled: true,
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+
+    assert.equal(label.shift.lastCall.args[0], 0);
+});
+
+QUnit.test("Correct label pos if label out from right", function(assert) {
+
+    stubAlgorithm.getFigures.returns([[0.1, 0, 0.9, 1], [0.2, 0, 0.8, 1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        label: {
+            visible: true,
+            position: "columns",
+            horizontalAlignment: "right"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+
+    assert.equal(label.shift.lastCall.args[0], 80);
+});
+
+QUnit.test("Correct label pos if label out from top", function(assert) {
+
+    stubAlgorithm.getFigures.returns([[0, 0, 1, 0, 1, 0.1, 0, 0.1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        label: {
+            visible: true,
+            position: "inside"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180,
+            height: 50,
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+
+    assert.equal(label.shift.lastCall.args[1], 0);
+});
+
+QUnit.test("Correct label pos if label out from top", function(assert) {
+
+    stubAlgorithm.getFigures.returns([[0, 0.9, 1, 0.9, 1, 1, 0, 1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        label: {
+            visible: true,
+            position: "inside"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180,
+            height: 50,
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+
+    assert.equal(label.shift.lastCall.args[1], 40);
+});

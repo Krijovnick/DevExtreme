@@ -281,6 +281,13 @@ Label.prototype = {
         that._bBox = bBox;
     },
 
+    getBackgroundPadding: function() {
+        if(this._background) {
+            return 2 * LABEL_BACKGROUND_PADDING_X;
+        }
+        return 0;
+    },
+
     _getConnectorPoints: function() {
         var that = this,
             figure = that._figure,
@@ -314,6 +321,12 @@ Label.prototype = {
         this._text && this._text.applyEllipsis(maxWidth);
         this._updateBackground(this._text.getBBox());
     },
+
+    resetEllipsis: function() {
+        this._text && this._text.restoreText();
+        this._updateBackground(this._text.getBBox());
+    },
+
     setTrackerData: function(point) {
         this._text.data({ "chart-data-point": point });
         this._background && this._background.data({ "chart-data-point": point });
