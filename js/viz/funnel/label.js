@@ -4,8 +4,19 @@ var labelModule = require("../series/points/label"),
     _normalizeEnum = require("../core/utils").normalizeEnum,
     extend = require("../../core/utils/extend").extend,
     OUTSIDE_POSITION = "outside",
-    COLUMNS_POSITION = "columns";
+    COLUMNS_POSITION = "columns",
+    OUTSIDE_LABEL_INDENT = 5,
+    COLUMNS_LABEL_INDENT = 20;
 
+function getLabelIndent(pos) {
+    pos = _normalizeEnum(pos);
+    if(pos === OUTSIDE_POSITION) {
+        return OUTSIDE_LABEL_INDENT;
+    } else if(pos === COLUMNS_POSITION) {
+        return COLUMNS_LABEL_INDENT;
+    }
+    return 0;
+}
 
 function isOutsidePosition(pos) {
     pos = _normalizeEnum(pos);
@@ -21,14 +32,14 @@ function correctYForInverted(y, bBox, inverted) {
 
 function getOutsideRightLabelPosition(item, bBox, options, inverted) {
     return {
-        x: item.coords[2] + options.horizontalOffset,
+        x: item.coords[2] + options.horizontalOffset + OUTSIDE_LABEL_INDENT,
         y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
     };
 }
 
 function getOutsideLeftLabelPosition(item, bBox, options, inverted) {
     return {
-        x: item.coords[0] - bBox.width - options.horizontalOffset,
+        x: item.coords[0] - bBox.width - options.horizontalOffset - OUTSIDE_LABEL_INDENT,
         y: correctYForInverted(item.coords[1] + options.verticalOffset, bBox, inverted)
     };
 }
@@ -46,7 +57,7 @@ function getInsideLabelPosition(item, bBox, options) {
 function getColumnLabelRightPosition(labelRect, rect, textAlignment) {
     return function(item, bBox, options, inverted) {
         return {
-            x: textAlignment === "left" ? rect[2] + options.horizontalOffset : labelRect[2] - bBox.width,
+            x: textAlignment === "left" ? rect[2] + options.horizontalOffset + COLUMNS_LABEL_INDENT : labelRect[2] - bBox.width,
             y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
         };
     };
@@ -55,7 +66,7 @@ function getColumnLabelRightPosition(labelRect, rect, textAlignment) {
 function getColumnLabelLeftPosition(labelRect, rect, textAlignment) {
     return function(item, bBox, options, inverted) {
         return {
-            x: textAlignment === "left" ? labelRect[0] : rect[0] - bBox.width - options.horizontalOffset,
+            x: textAlignment === "left" ? labelRect[0] : rect[0] - bBox.width - options.horizontalOffset - COLUMNS_LABEL_INDENT,
             y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
         };
     };
@@ -149,7 +160,7 @@ exports.plugin = {
                 return Math.max(max, width);
             }, 0);
 
-            labelWidth = groupWidth + options.horizontalOffset;
+            labelWidth = groupWidth + options.horizontalOffset + getLabelIndent(options.position);
 
             if(!adaptiveLayout.keepLabels && width - labelWidth < adaptiveLayout.width) {
                 this._labels.forEach(function(label) {
