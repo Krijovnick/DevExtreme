@@ -350,8 +350,33 @@ QUnit.test("Place labels with columns position", function(assert) {
     var label1 = labelModule.Label.getCall(0).returnValue,
         label2 = labelModule.Label.getCall(1).returnValue;
 
-    assert.deepEqual(label1.shift.args[0], [700, 30]);
-    assert.deepEqual(label2.shift.args[0], [755, 30]);
+    assert.deepEqual(label1.shift.args[0], [700, 35]);
+    assert.deepEqual(label2.shift.args[0], [700, 35]);
+});
+
+QUnit.test("Place labels with columns position. rtl", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 0.5, 0, 0.5],
+        [0, 0, 0.5, 0, 1, 0.5, 0, 0.5]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        valueField: "value",
+        rtlEnabled: true,
+        label: {
+            visible: true,
+            position: "columns",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+    var label1 = labelModule.Label.getCall(0).returnValue,
+        label2 = labelModule.Label.getCall(1).returnValue;
+
+    assert.deepEqual(label1.shift.args[0], [700, 35]);
+    assert.deepEqual(label2.shift.args[0], [755, 35]);
 });
 
 QUnit.test("Place labels with columns position and left horizontal alignment", function(assert) {
@@ -375,8 +400,34 @@ QUnit.test("Place labels with columns position and left horizontal alignment", f
     var label1 = labelModule.Label.getCall(0).returnValue,
         label2 = labelModule.Label.getCall(1).returnValue;
 
-    assert.deepEqual(label1.shift.args[0], [0, 30]);
-    assert.deepEqual(label2.shift.args[0], [0, 30]);
+    assert.deepEqual(label1.shift.args[0], [0, 35]);
+    assert.deepEqual(label2.shift.args[0], [0, 35]);
+});
+
+QUnit.test("Place labels with columns position and left horizontal alignment. rtl", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 0.5, 0, 0.5],
+        [0, 0, 0.5, 0, 1, 0.5, 0, 0.5]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        valueField: "value",
+        rtlEnabled: true,
+        label: {
+            visible: true,
+            horizontalAlignment: "left",
+            position: "columns",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+    var label1 = labelModule.Label.getCall(0).returnValue,
+        label2 = labelModule.Label.getCall(1).returnValue;
+
+    assert.deepEqual(label1.shift.args[0], [0, 35]);
+    assert.deepEqual(label2.shift.args[0], [55, 35]);
 });
 
 QUnit.test("Connector strategy", function(assert) {

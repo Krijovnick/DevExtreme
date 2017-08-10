@@ -36,20 +36,20 @@ function getInsideLabelPosition(item, bBox, options) {
     };
 }
 
-function getColumnLabelRightPosition(x, maxWidth) {
+function getColumnLabelRightPosition(labelRect, rect, textAlignment) {
     return function(item, bBox, options) {
         return {
-            x: x + maxWidth - bBox.width + options.horizontalOffset,
-            y: item.coords[3] - bBox.height / 2 + options.verticalOffset
+            x: textAlignment === "left" ? rect[2] + options.horizontalOffset : labelRect[2] - bBox.width,
+            y: item.coords[3] + options.verticalOffset
         };
     };
 }
 
-function getColumnLabelLeftPosition(x, maxWidth) {
+function getColumnLabelLeftPosition(labelRect, rect, textAlignment) {
     return function(item, bBox, options) {
         return {
-            x: x - maxWidth - options.horizontalOffset,
-            y: item.coords[3] - bBox.height / 2 + options.verticalOffset
+            x: textAlignment === "left" ? labelRect[0] : rect[0] - bBox.width - options.horizontalOffset,
+            y: item.coords[3] + options.verticalOffset
         };
     };
 }
@@ -131,6 +131,8 @@ exports.plugin = {
                 groupWidth,
                 width = rect[2] - rect[0];
 
+            this._labelRect = rect.slice();
+
             if(!this._labels.length || !isOutsidePosition(options.position)) {
                 return;
             }
@@ -179,6 +181,7 @@ exports.plugin = {
                     return label.getBoundingRect();
                 }),
                 getCoords = getInsideLabelPosition,
+                textAlignment,
                 maxWidth;
 
             if(isOutsidePosition(options.position)) {
@@ -186,10 +189,11 @@ exports.plugin = {
             }
 
             if(_normalizeEnum(options.position) === COLUMNS_POSITION) {
+                textAlignment = this._getOption("rtlEnabled", true) ? "right" : "left";
                 maxWidth = bBoxes.reduce(function(max, bBox) {
                     return Math.max(max, bBox.width);
                 }, 0);
-                getCoords = options.horizontalAlignment === "left" ? getColumnLabelLeftPosition(this._rect[0], maxWidth) : getColumnLabelRightPosition(this._rect[2], maxWidth);
+                getCoords = options.horizontalAlignment === "left" ? getColumnLabelLeftPosition(this._labelRect, this._rect, textAlignment) : getColumnLabelRightPosition(this._labelRect, this._rect, textAlignment);
             }
 
             that._labels.forEach(function(label, index) {
