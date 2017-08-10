@@ -131,6 +131,12 @@ function correctLabelPosition(pos, bBox, rect) {
     if(pos.x + bBox.width > rect[2]) {
         pos.x = rect[2] - bBox.width;
     }
+    if(pos.y < rect[1]) {
+        pos.y = rect[1]
+    }
+    if(pos.y + bBox.height > rect[3]) {
+        pos.y = rect[3] - bBox.height;
+    }
     return pos;
 }
 

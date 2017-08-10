@@ -243,7 +243,7 @@ QUnit.test("Place labels with outside position", function(assert) {
 
     stubAlgorithm.getFigures.returns([
         [0, 0, 0.5, 0.5],
-        [0, 0.6, 1, 1]
+        [0, 0.6, 1, 0.8]
     ]);
 
     createFunnel({
@@ -262,12 +262,12 @@ QUnit.test("Place labels with outside position", function(assert) {
     assert.deepEqual(label.shift.args[0], [360, 330]);
 
     label = labelModule.Label.getCall(1).returnValue;
-    assert.deepEqual(label.shift.args[0], [700, 630]);
+    assert.deepEqual(label.shift.args[0], [700, 510]);
 });
 
 QUnit.test("Place labels with outside position. inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -284,7 +284,7 @@ QUnit.test("Place labels with outside position. inverted", function(assert) {
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [700, 620]);
+    assert.deepEqual(label.shift.args[0], [700, 590]);
 });
 
 QUnit.test("Place labels with outside position and left horizontal alignment", function(assert) {
@@ -312,7 +312,7 @@ QUnit.test("Place labels with outside position and left horizontal alignment", f
 
 QUnit.test("Place labels with outside position. horizontalAlignment left. inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -330,7 +330,7 @@ QUnit.test("Place labels with outside position. horizontalAlignment left. invert
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [0, 620]);
+    assert.deepEqual(label.shift.args[0], [0, 590]);
 });
 
 QUnit.test("Place labels with inside position", function(assert) {
@@ -401,7 +401,7 @@ QUnit.test("Place labels with columns position", function(assert) {
 
 QUnit.test("Place labels with columns position. inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -418,7 +418,7 @@ QUnit.test("Place labels with columns position. inverted", function(assert) {
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [700, 620]);
+    assert.deepEqual(label.shift.args[0], [700, 590]);
 });
 
 QUnit.test("Place labels with columns position. rtl", function(assert) {
@@ -473,7 +473,7 @@ QUnit.test("Place labels with columns position and left horizontal alignment", f
 
 QUnit.test("Place labels with columns position. horizontalAlignment left inverted", function(assert) {
     stubAlgorithm.getFigures.returns([
-        [0, 0, 1, 0, 1, 1, 0, 1]
+        [0, 0, 1, 0, 1, 0.8, 0, 0.8]
     ]);
 
     createFunnel({
@@ -491,7 +491,7 @@ QUnit.test("Place labels with columns position. horizontalAlignment left inverte
     });
 
     var label = labelModule.Label.getCall(0).returnValue;
-    assert.deepEqual(label.shift.args[0], [0, 620]);
+    assert.deepEqual(label.shift.args[0], [0, 590]);
 });
 
 QUnit.test("Place labels with columns position and left horizontal alignment. rtl", function(assert) {
@@ -786,3 +786,54 @@ QUnit.test("Correct label pos if label out from right", function(assert) {
     assert.equal(label.shift.lastCall.args[0], 80);
 });
 
+QUnit.test("Correct label pos if label out from top", function(assert) {
+
+    stubAlgorithm.getFigures.returns([[0, 0, 1, 0, 1, 0.1, 0, 0.1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        label: {
+            visible: true,
+            position: "inside"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180,
+            height: 50,
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+
+    assert.equal(label.shift.lastCall.args[1], 0);
+});
+
+QUnit.test("Correct label pos if label out from top", function(assert) {
+
+    stubAlgorithm.getFigures.returns([[0, 0.9, 1, 0.9, 1, 1, 0, 1]]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        label: {
+            visible: true,
+            position: "inside"
+        },
+        adaptiveLayout: {
+            width: 150,
+            keepLabels: true
+        },
+        size: {
+            width: 180,
+            height: 50,
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+
+    assert.equal(label.shift.lastCall.args[1], 40);
+});
