@@ -4,25 +4,43 @@ var labelModule = require("../series/points/label"),
     _normalizeEnum = require("../core/utils").normalizeEnum,
     extend = require("../../core/utils/extend").extend,
     OUTSIDE_POSITION = "outside",
-    COLUMNS_POSITION = "columns";
+    COLUMNS_POSITION = "columns",
+    OUTSIDE_LABEL_INDENT = 5,
+    COLUMNS_LABEL_INDENT = 20;
 
+function getLabelIndent(pos) {
+    pos = _normalizeEnum(pos);
+    if(pos === OUTSIDE_POSITION) {
+        return OUTSIDE_LABEL_INDENT;
+    } else if(pos === COLUMNS_POSITION) {
+        return COLUMNS_LABEL_INDENT;
+    }
+    return 0;
+}
 
 function isOutsidePosition(pos) {
     pos = _normalizeEnum(pos);
     return pos === OUTSIDE_POSITION || pos === COLUMNS_POSITION;
 }
 
-function getOutsideRightLabelPosition(item, bBox, options) {
+function correctYForInverted(y, bBox, inverted) {
+    if(inverted) {
+        return y - bBox.height;
+    }
+    return y;
+}
+
+function getOutsideRightLabelPosition(item, bBox, options, inverted) {
     return {
-        x: item.coords[2] + options.horizontalOffset,
-        y: item.coords[3] - bBox.height / 2 + options.verticalOffset
+        x: item.coords[2] + options.horizontalOffset + OUTSIDE_LABEL_INDENT,
+        y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
     };
 }
 
-function getOutsideLeftLabelPosition(item, bBox, options) {
+function getOutsideLeftLabelPosition(item, bBox, options, inverted) {
     return {
-        x: item.coords[0] - bBox.width - options.horizontalOffset,
-        y: item.coords[1] - bBox.height / 2 + options.verticalOffset
+        x: item.coords[0] - bBox.width - options.horizontalOffset - OUTSIDE_LABEL_INDENT,
+        y: correctYForInverted(item.coords[1] + options.verticalOffset, bBox, inverted)
     };
 }
 
@@ -36,20 +54,20 @@ function getInsideLabelPosition(item, bBox, options) {
     };
 }
 
-function getColumnLabelRightPosition(x, maxWidth) {
-    return function(item, bBox, options) {
+function getColumnLabelRightPosition(labelRect, rect, textAlignment) {
+    return function(item, bBox, options, inverted) {
         return {
-            x: x + maxWidth - bBox.width + options.horizontalOffset,
-            y: item.coords[3] - bBox.height / 2 + options.verticalOffset
+            x: textAlignment === "left" ? rect[2] + options.horizontalOffset + COLUMNS_LABEL_INDENT : labelRect[2] - bBox.width,
+            y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
         };
     };
 }
 
-function getColumnLabelLeftPosition(x, maxWidth) {
-    return function(item, bBox, options) {
+function getColumnLabelLeftPosition(labelRect, rect, textAlignment) {
+    return function(item, bBox, options, inverted) {
         return {
-            x: x - maxWidth - options.horizontalOffset,
-            y: item.coords[3] - bBox.height / 2 + options.verticalOffset
+            x: textAlignment === "left" ? labelRect[0] : rect[0] - bBox.width - options.horizontalOffset - COLUMNS_LABEL_INDENT,
+            y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
         };
     };
 }
@@ -126,10 +144,11 @@ exports.plugin = {
             var options = this._getOption("label"),
                 adaptiveLayout = this._getOption("adaptiveLayout"),
                 rect = this._rect,
-                labelHeight = 0,
                 labelWidth = 0,
                 groupWidth,
                 width = rect[2] - rect[0];
+
+            this._labelRect = rect.slice();
 
             if(!this._labels.length || !isOutsidePosition(options.position)) {
                 return;
@@ -141,8 +160,7 @@ exports.plugin = {
                 return Math.max(max, width);
             }, 0);
 
-            labelHeight = this._labels[0].getBoundingRect().height / 2;
-            labelWidth = groupWidth + options.horizontalOffset;
+            labelWidth = groupWidth + options.horizontalOffset + getLabelIndent(options.position);
 
             if(!adaptiveLayout.keepLabels && width - labelWidth < adaptiveLayout.width) {
                 this._labels.forEach(function(label) {
@@ -152,6 +170,7 @@ exports.plugin = {
             } else {
                 if(width - labelWidth < adaptiveLayout.width) {
                     labelWidth = width - adaptiveLayout.width;
+                    labelWidth = labelWidth > 0 ? labelWidth : 0;
                 }
                 this._labels.forEach(function(label) {
                     label.clearVisibility();
@@ -164,7 +183,6 @@ exports.plugin = {
                 rect[2] -= labelWidth;
             }
 
-            rect[1] += labelHeight;
         },
 
         _buildNodes: function() {
@@ -173,28 +191,23 @@ exports.plugin = {
 
         _change_TILING: function() {
             var that = this,
-                options = this._getOption("label"),
-                bBoxes = that._labels.map(function(label) {
-                    return label.getBoundingRect();
-                }),
+                options = that._getOption("label"),
                 getCoords = getInsideLabelPosition,
-                maxWidth;
+                inverted = that._getOption("inverted", true),
+                textAlignment;
 
             if(isOutsidePosition(options.position)) {
                 getCoords = options.horizontalAlignment === "left" ? getOutsideLeftLabelPosition : getOutsideRightLabelPosition;
             }
 
             if(_normalizeEnum(options.position) === COLUMNS_POSITION) {
-                maxWidth = bBoxes.reduce(function(max, bBox) {
-                    return Math.max(max, bBox.width);
-                }, 0);
-                getCoords = options.horizontalAlignment === "left" ? getColumnLabelLeftPosition(this._rect[0], maxWidth) : getColumnLabelRightPosition(this._rect[2], maxWidth);
+                textAlignment = this._getOption("rtlEnabled", true) ? "right" : "left";
+                getCoords = options.horizontalAlignment === "left" ? getColumnLabelLeftPosition(this._labelRect, this._rect, textAlignment) : getColumnLabelRightPosition(this._labelRect, this._rect, textAlignment);
             }
 
             that._labels.forEach(function(label, index) {
-                var bBox = bBoxes[index],
-                    item = that._items[index],
-                    pos = getCoords(item, bBox, options);
+                var item = that._items[index],
+                    pos = getCoords(item, label.getBoundingRect(), options, inverted);
 
                 label.setFigureToDrawConnector(item.coords);
                 label.shift(pos.x, pos.y);
