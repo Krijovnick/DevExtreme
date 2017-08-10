@@ -265,6 +265,28 @@ QUnit.test("Place labels with outside position", function(assert) {
     assert.deepEqual(label.shift.args[0], [700, 630]);
 });
 
+QUnit.test("Place labels with outside position. inverted", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 1, 0, 1]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        valueField: "value",
+        inverted: true,
+        label: {
+            visible: true,
+            position: "outside",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+    assert.deepEqual(label.shift.args[0], [700, 620]);
+});
+
 QUnit.test("Place labels with outside position and left horizontal alignment", function(assert) {
     stubAlgorithm.getFigures.returns([
         [0, 0, 0.5, 0.5]
@@ -286,6 +308,29 @@ QUnit.test("Place labels with outside position and left horizontal alignment", f
     var label = labelModule.Label.getCall(0).returnValue;
 
     assert.deepEqual(label.shift.args[0], [0, 30]);
+});
+
+QUnit.test("Place labels with outside position. horizontalAlignment left. inverted", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 1, 0, 1]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        valueField: "value",
+        inverted: true,
+        label: {
+            visible: true,
+            horizontalAlignment: "left",
+            position: "outside",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+    assert.deepEqual(label.shift.args[0], [0, 620]);
 });
 
 QUnit.test("Place labels with inside position", function(assert) {
@@ -354,6 +399,28 @@ QUnit.test("Place labels with columns position", function(assert) {
     assert.deepEqual(label2.shift.args[0], [700, 30]);
 });
 
+QUnit.test("Place labels with columns position. inverted", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 1, 0, 1]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        valueField: "value",
+        inverted: true,
+        label: {
+            visible: true,
+            position: "columns",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+    assert.deepEqual(label.shift.args[0], [700, 620]);
+});
+
 QUnit.test("Place labels with columns position. rtl", function(assert) {
     stubAlgorithm.getFigures.returns([
         [0, 0, 1, 0, 1, 0.5, 0, 0.5],
@@ -402,6 +469,29 @@ QUnit.test("Place labels with columns position and left horizontal alignment", f
 
     assert.deepEqual(label1.shift.args[0], [0, 30]);
     assert.deepEqual(label2.shift.args[0], [0, 30]);
+});
+
+QUnit.test("Place labels with columns position. horizontalAlignment left inverted", function(assert) {
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 1, 0, 1, 1, 0, 1]
+    ]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }],
+        valueField: "value",
+        inverted: true,
+        label: {
+            visible: true,
+            position: "columns",
+            horizontalAlignment: "left",
+            horizontalOffset: 15,
+            verticalOffset: 30
+        }
+    });
+
+    var label = labelModule.Label.getCall(0).returnValue;
+    assert.deepEqual(label.shift.args[0], [0, 620]);
 });
 
 QUnit.test("Place labels with columns position and left horizontal alignment. rtl", function(assert) {

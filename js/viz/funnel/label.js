@@ -12,17 +12,24 @@ function isOutsidePosition(pos) {
     return pos === OUTSIDE_POSITION || pos === COLUMNS_POSITION;
 }
 
-function getOutsideRightLabelPosition(item, bBox, options) {
+function correctYForInverted(y, bBox, inverted) {
+    if(inverted) {
+        return y - bBox.height;
+    }
+    return y;
+}
+
+function getOutsideRightLabelPosition(item, bBox, options, inverted) {
     return {
         x: item.coords[2] + options.horizontalOffset,
-        y: item.coords[3] + options.verticalOffset
+        y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
     };
 }
 
-function getOutsideLeftLabelPosition(item, bBox, options) {
+function getOutsideLeftLabelPosition(item, bBox, options, inverted) {
     return {
         x: item.coords[0] - bBox.width - options.horizontalOffset,
-        y: item.coords[1] + options.verticalOffset
+        y: correctYForInverted(item.coords[1] + options.verticalOffset, bBox, inverted)
     };
 }
 
@@ -37,19 +44,19 @@ function getInsideLabelPosition(item, bBox, options) {
 }
 
 function getColumnLabelRightPosition(labelRect, rect, textAlignment) {
-    return function(item, bBox, options) {
+    return function(item, bBox, options, inverted) {
         return {
             x: textAlignment === "left" ? rect[2] + options.horizontalOffset : labelRect[2] - bBox.width,
-            y: item.coords[3] + options.verticalOffset
+            y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
         };
     };
 }
 
 function getColumnLabelLeftPosition(labelRect, rect, textAlignment) {
-    return function(item, bBox, options) {
+    return function(item, bBox, options, inverted) {
         return {
             x: textAlignment === "left" ? labelRect[0] : rect[0] - bBox.width - options.horizontalOffset,
-            y: item.coords[3] + options.verticalOffset
+            y: correctYForInverted(item.coords[3] + options.verticalOffset, bBox, inverted)
         };
     };
 }
@@ -173,8 +180,9 @@ exports.plugin = {
 
         _change_TILING: function() {
             var that = this,
-                options = this._getOption("label"),
+                options = that._getOption("label"),
                 getCoords = getInsideLabelPosition,
+                inverted = that._getOption("inverted", true),
                 textAlignment;
 
             if(isOutsidePosition(options.position)) {
@@ -188,7 +196,7 @@ exports.plugin = {
 
             that._labels.forEach(function(label, index) {
                 var item = that._items[index],
-                    pos = getCoords(item, label.getBoundingRect(), options);
+                    pos = getCoords(item, label.getBoundingRect(), options, inverted);
 
                 label.setFigureToDrawConnector(item.coords);
                 label.shift(pos.x, pos.y);
