@@ -174,12 +174,8 @@ exports.plugin = {
         _change_TILING: function() {
             var that = this,
                 options = this._getOption("label"),
-                bBoxes = that._labels.map(function(label) {
-                    return label.getBoundingRect();
-                }),
                 getCoords = getInsideLabelPosition,
-                textAlignment,
-                maxWidth;
+                textAlignment;
 
             if(isOutsidePosition(options.position)) {
                 getCoords = options.horizontalAlignment === "left" ? getOutsideLeftLabelPosition : getOutsideRightLabelPosition;
@@ -187,16 +183,12 @@ exports.plugin = {
 
             if(_normalizeEnum(options.position) === COLUMNS_POSITION) {
                 textAlignment = this._getOption("rtlEnabled", true) ? "right" : "left";
-                maxWidth = bBoxes.reduce(function(max, bBox) {
-                    return Math.max(max, bBox.width);
-                }, 0);
                 getCoords = options.horizontalAlignment === "left" ? getColumnLabelLeftPosition(this._labelRect, this._rect, textAlignment) : getColumnLabelRightPosition(this._labelRect, this._rect, textAlignment);
             }
 
             that._labels.forEach(function(label, index) {
-                var bBox = bBoxes[index],
-                    item = that._items[index],
-                    pos = getCoords(item, bBox, options);
+                var item = that._items[index],
+                    pos = getCoords(item, label.getBoundingRect(), options);
 
                 label.setFigureToDrawConnector(item.coords);
                 label.shift(pos.x, pos.y);
