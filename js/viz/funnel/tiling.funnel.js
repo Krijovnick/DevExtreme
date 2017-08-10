@@ -12,7 +12,8 @@ module.exports = {
                 CENTER - value / 2, height * index,
                 CENTER + value / 2, height * index,
                 CENTER + nextValue / 2, height * (index + 1),
-                CENTER - nextValue / 2, height * (index + 1)
+                CENTER - nextValue / 2, height * (index + 1),
+                CENTER - value / 2, height * index,
             ];
         });
     },

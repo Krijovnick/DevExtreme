@@ -324,9 +324,9 @@ var dxFunnel = {
         * @publicName position
         * @type string
         * @acceptValues 'inside'|'outside'|'columns'
-        * @default 'inside'
+        * @default 'columns'
         */
-        position: "inside",
+        position: "columns",
         /**
         * @name dxfunneloptions_label_horizontaloffset
         * @publicName horizontalOffset
@@ -358,9 +358,9 @@ var dxFunnel = {
             * @name dxfunneloptions_label_connector_visible
             * @publicName visible
             * @type boolean
-            * @default false
+            * @default true
             */
-            visible: false,
+            visible: true,
             /**
             * @name dxfunneloptions_label_connector_width
             * @publicName width
@@ -374,7 +374,14 @@ var dxFunnel = {
             * @type string
             * @default undefined
             */
-            color: undefined
+            color: undefined,
+            /**
+            * @name dxfunneloptions_label_connector_opacity
+            * @publicName opacity
+            * @type number
+            * @default 0.5
+            */
+            opacity: 0.5
         },
 
         /**
@@ -535,9 +542,9 @@ var dxFunnel = {
         * @name dxfunneloptions_legend_visible
         * @publicName visible
         * @type boolean
-        * @default true
+        * @default false
         */
-        visible: true,
+        visible: false,
         /**
         * @name dxfunneloptions_legend_margin
         * @publicName margin

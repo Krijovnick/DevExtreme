@@ -118,7 +118,8 @@ function getLabelOptions(labelOptions, defaultColor) {
         },
         connectorAttr = {
             stroke: labelConnector.visible && labelConnector.width ? labelConnector.color || defaultColor : "none",
-            "stroke-width": labelConnector.visible ? labelConnector.width || 0 : 0
+            "stroke-width": labelConnector.visible ? labelConnector.width || 0 : 0,
+            opacity: labelConnector.opacity
         };
 
     labelFont.color = (opt.backgroundColor === "none" && _normalizeEnum(labelFont.color) === "#ffffff" && opt.position !== "inside") ? defaultColor : labelFont.color;

@@ -116,8 +116,9 @@ QUnit.test("Create labels", function(assert) {
             "stroke-width": 0
         },
         "connector": {
-            "stroke": "none",
-            "stroke-width": 0
+            "stroke": "#5f8b95",
+            "stroke-width": 1,
+            opacity: 0.5
         },
         "customizeText": undefined,
         "format": undefined,

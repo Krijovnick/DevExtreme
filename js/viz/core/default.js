@@ -1467,7 +1467,8 @@ registerTheme({
         selectionMode: "single",
         item: {
             border: {
-                width: 0
+                width: 0,
+                color: WHITE
             },
             hoverStyle: {
                 hatching: {
@@ -1477,7 +1478,8 @@ registerTheme({
                     direction: RIGHT
                 },
                 border: {
-                    width: 0
+                    width: 0,
+                    color: WHITE
                 }
             },
             selectionStyle: {
@@ -1488,24 +1490,10 @@ registerTheme({
                     direction: RIGHT
                 },
                 border: {
-                    width: 0
+                    width: 0,
+                    color: WHITE
                 }
-            },
-            label: {
-                visible: true,
-                font: {
-                    color: "#ffffff",
-                    weight: 300
-                },
-                border: {
-                    width: 0
-                },
-                position: INSIDE
-            },
-            selectionMode: "single"
-        },
-        dataPrepareSettings: {
-            sortingMethod: true
+            }
         },
         title: {
             margin: 10
@@ -1514,6 +1502,9 @@ registerTheme({
             width: 80,
             height: 80,
             keepLabels: true
+        },
+        legend: {
+            visible: false
         },
         _rtl: {
             legend: {
@@ -1531,7 +1522,7 @@ registerTheme({
             verticalOffset: 0,
             showForZeroValues: true,
             customizeText: undefined,
-            position: INSIDE,
+            position: "columns",
             font: {
                 color: WHITE
             },
@@ -1542,8 +1533,9 @@ registerTheme({
                 dashStyle: SOLID
             },
             connector: {
-                visible: false,
-                width: 1
+                visible: true,
+                width: 1,
+                opacity: 0.5
             }
         }
     }
