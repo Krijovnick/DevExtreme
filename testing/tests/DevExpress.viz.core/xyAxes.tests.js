@@ -2814,6 +2814,25 @@ QUnit.test("Not DateTime axis - format is not calculated", function(assert) {
     assert.equal(axis.getOptions().label.format, "");
 });
 
+QUnit.test("DateTime axis, but no ticks - format is not calculated", function(assert) {
+    this.generatedTicks = [];
+
+    this.generatedTickInterval = { months: 1 };
+
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "datetime",
+        label: {
+            visible: true
+        }
+    });
+    axis.validate();
+
+    axis.createTicks(this.canvas);
+
+    assert.equal(axis.getOptions().label.format, "");
+});
+
 QUnit.module("Coors In", $.extend({}, environment2DTranslator, {
     beforeEach: function() {
         environment2DTranslator.beforeEach.call(this);
