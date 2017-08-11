@@ -126,7 +126,6 @@ function getLabelOptions(labelOptions, defaultColor) {
 
     return {
         format: opt.format,
-        argumentFormat: opt.argumentFormat,
         customizeText: opt.customizeText,
         attributes: { font: labelFont },
         visible: labelFont.size !== 0 ? opt.visible : false,
@@ -284,9 +283,10 @@ exports.plugin = {
                     strategy: connectorStrategy
                 });
 
-                label.setOptions(getLabelOptions(labelOptions, item.color)); //TODO process options
+                label.setOptions(getLabelOptions(labelOptions, item.color));
 
                 label.setData({
+                    item: item,
                     value: item.data.value
                 });
 

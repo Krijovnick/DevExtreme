@@ -69,6 +69,37 @@ QUnit.test("Create label group on initialization", function(assert) {
 
 QUnit.test("Create labels", function(assert) {
     stubAlgorithm.getFigures.returns([[0], [0]]);
+    stubAlgorithm.normalizeValues.returns([1, 0.5]);
+
+    createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 2, argument: "One", color: "#123123" }, { value: 5, argument: "Two", color: "#121212" }],
+        valueField: "value",
+        label: {
+            visible: true
+        }
+    });
+    var labelsGroup = this.labelGroup(),
+        label = labelModule.Label.getCall(0).returnValue;
+
+    assert.ok(labelsGroup.clear.called);
+
+    assert.equal(labelModule.Label.callCount, 2, "two labels are created");
+    assert.equal(labelModule.Label.getCall(0).args[0].renderer, this.renderer);
+    assert.equal(labelModule.Label.getCall(0).args[0].labelsGroup, labelsGroup);
+    assert.ok(label.draw.calledOnce);
+
+    assert.equal(label.setData.lastCall.args[0].value, 5, "value");
+    assert.deepEqual(label.setData.lastCall.args[0].item.data, {
+        argument: "Two",
+        value: 5,
+        color: "#121212"
+    }, "data");
+    assert.equal(label.setData.lastCall.args[0].item.id, 0);
+});
+
+QUnit.test("Create labels with styles", function(assert) {
+    stubAlgorithm.getFigures.returns([[0], [0]]);
     createFunnel({
         algorithm: "stub",
         dataSource: [{ value: 2 }, { value: 1 }],
@@ -87,46 +118,36 @@ QUnit.test("Create labels", function(assert) {
             showForZeroValues: false
         }
     });
-    var labelsGroup = this.labelGroup(),
-        label = labelModule.Label.getCall(0).returnValue;
 
-    assert.ok(labelsGroup.clear.called);
+    var options = labelModule.Label.getCall(0).returnValue.setOptions.lastCall.args[0];
 
-    assert.equal(labelModule.Label.callCount, 2, "two labels are created");
-    assert.equal(labelModule.Label.getCall(0).args[0].renderer, this.renderer);
-    assert.equal(labelModule.Label.getCall(0).args[0].labelsGroup, labelsGroup);
-    assert.ok(label.draw.calledOnce);
+    assert.deepEqual(options.attributes.font, {
+        color: "red",
+        cursor: "default",
+        family: "'Segoe UI', 'Helvetica Neue', 'Trebuchet MS', Verdana",
+        size: 12,
+        weight: 400
+    }, "font");
 
-    assert.deepEqual(label.setData.lastCall.args[0], {
-        value: 2
-    }, "data");
+    assert.deepEqual(options.background, {
+        dashStyle: "solid",
+        fill: "#5f8b95",
+        stroke: "none",
+        "stroke-width": 0
+    }, "background");
 
-    //TODO
-    assert.deepEqual(label.setOptions.lastCall.args[0], {
-        "argumentFormat": undefined,
-        "attributes": {
-            "font": {
-                "color": "red"
-            }
-        },
-        "background": {
-            "dashStyle": "solid",
-            "fill": "#5f8b95",
-            "stroke": "none",
-            "stroke-width": 0
-        },
-        "connector": {
-            "stroke": "#5f8b95",
-            "stroke-width": 1,
-            opacity: 0.5
-        },
-        "customizeText": undefined,
-        "format": undefined,
-        "horizontalOffset": 0,
-        "showForZeroValues": false,
-        "verticalOffset": 0,
-        "visible": true
-    }, "options");
+    assert.deepEqual(options.connector, {
+        stroke: "#5f8b95",
+        "stroke-width": 1,
+        opacity: 0.5
+    }, "connector");
+
+    assert.deepEqual(options.format, undefined, "format");
+    assert.deepEqual(options.horizontalOffset, 0, "horizontalOffset");
+    assert.deepEqual(options.verticalOffset, 0, "verticalOffset");
+    assert.deepEqual(options.visible, true, "visible");
+    assert.deepEqual(options.showForZeroValues, false, "showForZeroValues");
+    assert.deepEqual(options.customizeText({ valueText: "value", item: { data: { argument: "argument" } } }), "argument value", "customizeText");
 });
 
 QUnit.test("Do not create labels if label.visible set to false", function(assert) {

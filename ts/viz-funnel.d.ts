@@ -5,10 +5,10 @@
 
 export interface Legend extends core.BaseLegend {
     /** @docid dxfunneloptions_legend_customizehint */
-    customizeHint?: (itemsInfo: { text: any; index: number; color: string; value: number; }) => string;
+    customizeHint?: (itemsInfo: { item: funnelItem; text: string; }) => string;
 
     /** @docid dxfunneloptions_legend_customizetext */
-    customizeText?: (itemsInfo: { text: any; index: number; color: string; value: number; }) => string;
+    customizeText?: (itemsInfo: { item: funnelItem; text: string; }) => string;
 }
 
 declare module DevExpress.viz.funnel {
@@ -158,7 +158,7 @@ declare module DevExpress.viz.funnel {
             showForZeroValues?: boolean;
 
             /** @docid dxfunneloptions_label_customizetext */
-            customizeText?: (itemInfo: Object) => string;
+            customizeText?: (itemsInfo: { valueText: string; item: funnelItem; }) => string;
 
             /** @docid dxfunneloptions_label_format */
             format?: any;

@@ -52,6 +52,7 @@ QUnit.test("Show tooltip", function(assert) {
 
     assert.deepEqual(this.tooltip.show.lastCall.args, [{ value: 1, valueText: "formatted", item: widget.getAllItems()[0] }, { x: 0, y: 0, offset: 0 }], "show");
     assert.deepEqual(this.tooltip.move.lastCall.args, [440, 330, 0], "move");
+    assert.equal(this.tooltip.formatValue.args[0][0], 1);
 });
 
 QUnit.test("Show tooltip with passed coords", function(assert) {
@@ -156,4 +157,15 @@ QUnit.test("Recalculate coords on resize", function(assert) {
 
     assert.deepEqual(this.tooltip.move.lastCall.args, [190, 130, 0], "move");
     assert.ok(!this.tooltip.hide.called);
+});
+
+QUnit.test("Customize tooltip", function(assert) {
+    var widget = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }]
+    });
+
+    widget.getAllItems()[0].showTooltip();
+
+    assert.equal(this.tooltip.update.args[0][0].customizeTooltip({ valueText: "value", item: { data: { argument: "argument" } } }).text, "argument value");
 });

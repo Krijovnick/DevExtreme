@@ -25,8 +25,7 @@ module.exports = {
                     x, y,
                     RIGHTCORNER - x, y,
                     RIGHTCORNER - offsetX, height,
-                    LEFTCORNER + offsetX, height,
-                    x, y,
+                    LEFTCORNER + offsetX, height
                 ];
             } else if(y <= funnelHeight && height > funnelHeight) {
                 return [
@@ -35,16 +34,14 @@ module.exports = {
                     neckRightCorner, funnelHeight,
                     neckRightCorner, height,
                     neckLeftCorner, height,
-                    neckLeftCorner, funnelHeight,
-                    x, y,
+                    neckLeftCorner, funnelHeight
                 ];
             } else {
                 return [
                     neckLeftCorner, y,
                     neckRightCorner, y,
                     neckRightCorner, height,
-                    neckLeftCorner, height,
-                    neckLeftCorner, y,
+                    neckLeftCorner, height
                 ];
             }
         });

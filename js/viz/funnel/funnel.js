@@ -72,7 +72,7 @@ var dxFunnel = require("../core/base_widget").inherit({
                     var offset = index % 2;
                     return rect[0 + offset] + (rect[2 + offset] - rect[0 + offset]) * c;
                 }),
-                element = that._renderer.path([], "line")
+                element = that._renderer.path([], "area")
                     .attr({
                         points: coords
                     })
@@ -229,7 +229,7 @@ var dxFunnel = require("../core/base_widget").inherit({
 
 var ThemeManager = require("../core/base_theme_manager").BaseThemeManager.inherit({
     _themeSection: "funnel",
-    _fontFields: ["loadingIndicator.font", "title.font", "title.subtitle.font", "tooltip.font", "export.font", "legend.font"]
+    _fontFields: ["loadingIndicator.font", "title.font", "title.subtitle.font", "tooltip.font", "export.font", "legend.font", "label.font"]
 });
 
 require("../../core/component_registrator")("dxFunnel", dxFunnel);

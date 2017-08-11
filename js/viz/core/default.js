@@ -1511,17 +1511,24 @@ registerTheme({
                 itemTextPosition: LEFT
             }
         },
+        tooltip: {
+            customizeTooltip: function(info) {
+                return { text: info.item.data.argument + " " + info.valueText };
+            }
+        },
         inverted: false,
         algorithm: "dynamicSlope",
         neckWidth: 0,
         neckHeight: 0,
         label: {
-            visible: false,
+            visible: true,
             horizontalAlignment: RIGHT,
             horizontalOffset: 0,
             verticalOffset: 0,
             showForZeroValues: true,
-            customizeText: undefined,
+            customizeText: function(info) {
+                return info.item.data.argument + " " + info.valueText;
+            },
             position: "columns",
             font: {
                 color: WHITE

@@ -138,6 +138,7 @@ QUnit.test("Draw Items", function(assert) {
     assert.equal(items.length, 2);
     assert.equal(this.itemsGroup().clear.callCount, 1);
 
+    assert.equal(this.renderer.path.args[0][1], "area");
     assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 0, 500, 0, 0, 200, 500, 200]);
     assert.deepEqual(items[1].attr.firstCall.args[0].points, [500, 200, 1000, 200, 500, 400, 1000, 400]);
 });
@@ -614,10 +615,11 @@ QUnit.test("Creation", function(assert) {
     assert.equal(legendCtorArgs.renderer, this.renderer);
     assert.equal(legendCtorArgs.group, this.renderer.root);
     assert.equal(legendCtorArgs.textField, "text");
-    assert.equal(formatObject.text, "One");
-    assert.equal(formatObject.value, 5);
-    assert.equal(formatObject.index, 0);
-    assert.equal(formatObject.color, "orange");
+    assert.equal(formatObject.item.data.argument, "One");
+    assert.equal(formatObject.item.data.value, 5);
+    assert.equal(formatObject.item.id, 0);
+    assert.equal(formatObject.item.color, "orange");
+    assert.equal(formatObject.item.percent, 1);
 });
 
 QUnit.test("Update", function(assert) {

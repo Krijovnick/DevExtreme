@@ -870,10 +870,8 @@ exports.plugin = {
             textField: "text",
             getFormatObject: function(item) {
                 return {
-                    text: item.data.argument,
-                    value: item.data.value,
-                    index: item.id,
-                    color: item.color
+                    item: item,
+                    text: item.data.argument
                 };
             },
         });

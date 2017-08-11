@@ -430,9 +430,9 @@ var dxFunnel = {
         * @name dxfunneloptions_label_visible
         * @publicName visible
         * @type boolean
-        * @default false
+        * @default true
         */
-        visible: false,
+        visible: true,
         /**
         * @name dxfunneloptions_label_showforzerovalues
         * @publicName showForZeroValues
@@ -445,6 +445,9 @@ var dxFunnel = {
         * @publicName customizeText
         * @type function(itemInfo)
         * @type_function_param1 itemInfo:object
+        * @type_function_param1_field1 item:dxfunnelItem
+        * @type_function_param1_field2 valueText:string
+        * @type_function_param1_field3 value:Number
         * @type_function_return string
         * @notUsedInTheme
         */
@@ -692,10 +695,8 @@ var dxFunnel = {
         * @publicName customizeText
         * @type function(itemsInfo)
         * @type_function_param1 itemsInfo:object
-        * @type_function_param1_field1 text:any
-        * @type_function_param1_field2 index:Number
-        * @type_function_param1_field3 color:string
-        * @type_function_param1_field4 value:Number
+        * @type_function_param1_field1 item:dxfunnelItem
+        * @type_function_param1_field2 text:string
         * @type_function_return string
         * @notUsedInTheme
         */
@@ -705,10 +706,8 @@ var dxFunnel = {
         * @publicName customizeHint
         * @type function(itemsInfo)
         * @type_function_param1 itemsInfo:object
-        * @type_function_param1_field1 text:any
-        * @type_function_param1_field2 index:Number
-        * @type_function_param1_field3 color:string
-        * @type_function_param1_field4 value:Number
+        * @type_function_param1_field1 item:dxfunnelItem
+        * @type_function_param1_field2 text:string
         * @type_function_return string
         */
         customizeHint: undefined,
