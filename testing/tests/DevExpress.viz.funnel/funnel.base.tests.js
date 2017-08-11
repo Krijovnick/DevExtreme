@@ -685,6 +685,24 @@ QUnit.test("Clear selection of all elements", function(assert) {
     assert.ok(!items[1].smartAttr.lastCall.args[0].hatching);
 });
 
+QUnit.test("Select and hover item", function(assert) {
+    var funnel = createFunnel({
+        dataSource: [{ value: 10, argument: "One" }, { value: 5, argument: "Two", color: "#234234" }],
+    });
+
+    funnel.getAllItems()[1].select(true);
+    funnel.getAllItems()[1].hover(true);
+    var items = this.items();
+
+    assert.equal(items[1].smartAttr.lastCall.args[0].fill, "#234234");
+    assert.deepEqual(items[1].smartAttr.lastCall.args[0].hatching, {
+        opacity: 0.5,
+        step: 6,
+        width: 2,
+        direction: "right"
+    });
+});
+
 QUnit.test("getColor method", function(assert) {
     var funnel = createFunnel({
             dataSource: [{ value: 10, argument: "One", color: "#987987" }, { value: 5, argument: "Two", color: "#234234" }],

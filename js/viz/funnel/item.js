@@ -1,6 +1,6 @@
 "use strict";
 
-var states = ["normal", "hover", "selection"];
+var states = ["normal", "hover", "selection", "selection"];
 
 function parseStyles(color, style) {
     return {
