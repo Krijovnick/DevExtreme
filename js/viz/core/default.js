@@ -1734,7 +1734,21 @@ registerTheme({
         targetColor: TARGET_COLOR
     },
     funnel: {
-
+        item: {
+            border: {
+                color: "#494949"
+            },
+            hoverStyle: {
+                border: {
+                    color: "#494949"
+                }
+            },
+            selectionStyle: {
+                border: {
+                    color: "#494949"
+                }
+            }
+        }
     }
 }, "generic.light");
 
@@ -2002,7 +2016,11 @@ registerTheme({
         }
     },
     funnel: {
-
+        label: {
+            connector: {
+                opacity: 1
+            }
+        }
     }
 }, "generic.light");
 
