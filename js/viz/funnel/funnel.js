@@ -27,7 +27,13 @@ var dxFunnel = require("../core/base_widget").inherit({
         neckWidth: "NODES_CREATE",
         neckHeight: "NODES_CREATE",
         inverted: "NODES_CREATE",
-        algorithm: "NODES_CREATE"
+        algorithm: "NODES_CREATE",
+        item: "NODES_CREATE",
+        valueField: "NODES_CREATE",
+        argumentField: "NODES_CREATE",
+        colorField: "NODES_CREATE",
+        palette: "NODES_CREATE",
+        sortData: "NODES_CREATE"
     },
 
     _getDefaultSize: function() {

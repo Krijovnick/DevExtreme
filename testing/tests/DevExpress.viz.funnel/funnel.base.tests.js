@@ -165,29 +165,6 @@ QUnit.test("Draw Items, inverted chart", function(assert) {
     assert.deepEqual(items[1].attr.firstCall.args[0].points, [500, 200, 1000, 200, 500, 0, 1000, 0]);
 });
 
-QUnit.test("Update inverted option", function(assert) {
-    stubAlgorithm.normalizeValues.returns([1, 1]);
-    stubAlgorithm.getFigures.returns([
-        [0, 0, 0.5, 0, 0, 0.5, 0.5, 0.5],
-        [0.5, 0.5, 1, 0.5, 0.5, 1, 1, 1]
-    ]);
-
-    var funnel = createFunnel({
-        algorithm: "stub",
-        dataSource: [{ value: 1 }, { value: 1 }],
-        inverted: true
-    });
-    funnel.option({ inverted: false });
-
-    var items = this.items();
-
-    assert.equal(items.length, 2);
-    assert.equal(this.itemsGroup().clear.callCount, 2);
-
-    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 0, 500, 0, 0, 200, 500, 200]);
-    assert.deepEqual(items[1].attr.firstCall.args[0].points, [500, 200, 1000, 200, 500, 400, 1000, 400]);
-});
-
 QUnit.test("Resize", function(assert) {
     stubAlgorithm.normalizeValues.returns([1, 1]);
     stubAlgorithm.getFigures.returns([
@@ -233,6 +210,171 @@ QUnit.test("palette", function(assert) {
 
     //teardown
     paletteModule.Palette.restore();
+});
+
+QUnit.module("Update options", environment);
+
+QUnit.test("Update styles of items", function(assert) {
+    stubAlgorithm.normalizeValues.returns([1, 1]);
+    stubAlgorithm.getFigures.returns([
+        [1], [1]
+    ]);
+
+    var funnel = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }]
+    });
+
+    funnel.option({ item: { border: { width: 3, color: "red" } } });
+
+    var items = this.items();
+
+    assert.deepEqual(items[0].smartAttr.lastCall.args[0]["stroke-width"], 3);
+    assert.deepEqual(items[0].smartAttr.lastCall.args[0]["stroke"], "red");
+
+    assert.deepEqual(items[1].smartAttr.lastCall.args[0]["stroke-width"], 3);
+    assert.deepEqual(items[1].smartAttr.lastCall.args[0]["stroke"], "red");
+});
+
+QUnit.test("Update value field", function(assert) {
+    stubAlgorithm.normalizeValues.returns([1]);
+    stubAlgorithm.getFigures.returns([
+        [1]
+    ]);
+
+    var funnel = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ val: 1, value: 5, argument: "One", color: "red" }],
+        valueField: "value",
+        argumentField: "argument",
+        colorField: "color"
+    });
+
+    funnel.option({
+        valueField: "val"
+    });
+
+    var items = funnel.getAllItems();
+
+    assert.equal(items[0].data.value, 1);
+    assert.equal(items[0].data.argument, "One");
+    assert.equal(items[0].color, "red");
+});
+
+QUnit.test("Update argument field", function(assert) {
+    stubAlgorithm.normalizeValues.returns([1]);
+    stubAlgorithm.getFigures.returns([
+        [1]
+    ]);
+
+    var funnel = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1, argument: "One", arg: "Two", color: "red" }],
+        valueField: "value",
+        argumentField: "argument",
+        colorField: "color"
+    });
+
+    funnel.option({
+        argumentField: "arg"
+    });
+
+    var items = funnel.getAllItems();
+
+    assert.equal(items[0].data.value, 1);
+    assert.equal(items[0].data.argument, "Two");
+    assert.equal(items[0].color, "red");
+});
+
+QUnit.test("Update color field", function(assert) {
+    stubAlgorithm.normalizeValues.returns([1]);
+    stubAlgorithm.getFigures.returns([
+        [1]
+    ]);
+
+    var funnel = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1, argument: "One", color1: "red", color2: "green" }],
+        valueField: "value",
+        argumentField: "argument",
+        colorField: "color1"
+    });
+
+    funnel.option({
+        colorField: "color2"
+    });
+
+    var items = funnel.getAllItems();
+
+    assert.equal(items[0].data.value, 1);
+    assert.equal(items[0].data.argument, "One");
+    assert.equal(items[0].color, "green");
+});
+
+QUnit.test("Update inverted option", function(assert) {
+    stubAlgorithm.normalizeValues.returns([1, 1]);
+    stubAlgorithm.getFigures.returns([
+        [0, 0, 0.5, 0, 0, 0.5, 0.5, 0.5],
+        [0.5, 0.5, 1, 0.5, 0.5, 1, 1, 1]
+    ]);
+
+    var funnel = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        inverted: true
+    });
+    funnel.option({ inverted: false });
+
+    var items = this.items();
+
+    assert.equal(items.length, 2);
+    assert.equal(this.itemsGroup().clear.callCount, 2);
+
+    assert.deepEqual(items[0].attr.firstCall.args[0].points, [0, 0, 500, 0, 0, 200, 500, 200]);
+    assert.deepEqual(items[1].attr.firstCall.args[0].points, [500, 200, 1000, 200, 500, 400, 1000, 400]);
+});
+
+QUnit.test("Update palette", function(assert) {
+    sinon.spy(paletteModule, "Palette");
+
+    stubAlgorithm.normalizeValues.returns([1, 1]);
+    stubAlgorithm.getFigures.returns([
+        [1], [1]
+    ]);
+
+    var funnel = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 1 }],
+        palette: ["red", "blue"]
+    });
+
+    funnel.option({ palette: ["green", "orange"] });
+
+    var items = this.items();
+
+    assert.deepEqual(items[0].smartAttr.lastCall.args[0].fill, "green");
+    assert.deepEqual(items[1].smartAttr.lastCall.args[0].fill, "orange");
+});
+
+QUnit.test("SortData option", function(assert) {
+    stubAlgorithm.normalizeValues.returns([1, 1]);
+    stubAlgorithm.getFigures.returns([
+        [1], [1]
+    ]);
+
+    var funnel = createFunnel({
+        algorithm: "stub",
+        dataSource: [{ value: 1 }, { value: 10 }],
+        palette: ["red", "blue"],
+        sortData: true
+    });
+
+    funnel.option({ sortData: false });
+
+    var items = funnel.getAllItems();
+
+    assert.equal(items[0].data.value, 1);
+    assert.equal(items[1].data.value, 10);
 });
 
 QUnit.module("Items", environment);
