@@ -1313,6 +1313,24 @@ QUnit.test("Init selection format before calculate canvas for number type", func
 
     assert.deepEqual(this.slidersController.update.lastCall.args[4].format, { type: "fixedPoint", precision: 1 }, "format");
 });
+
+QUnit.test("format for sliders", function(assert) {
+    this.createWidget({
+        sliderMarker: {
+            format: ""
+        },
+        behavior: {
+            snapToTicks: false
+        },
+        scale: {
+            startValue: 0,
+            endValue: 8000
+        }
+    });
+
+    assert.strictEqual(this.slidersController.update.lastCall.args[4].format.precision, 1);
+});
+
 QUnit.test("Init selection format before calculate canvas for dateTime type", function(assert) {
     this.createWidget({
         sliderMarker: {

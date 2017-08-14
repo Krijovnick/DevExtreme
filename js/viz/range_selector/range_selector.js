@@ -5,7 +5,6 @@ var registerComponent = require("../../core/component_registrator"),
     extend = require("../../core/utils/extend").extend,
     each = require("../../core/utils/iterator").each,
     vizUtils = require("../core/utils"),
-    adjustValue = vizUtils.adjustValue,
     dateUtils = require("../../core/utils/date"),
     addInterval = dateUtils.addInterval,
     dateToMilliseconds = dateUtils.dateToMilliseconds,
@@ -546,7 +545,7 @@ function correctValueByInterval(value, isDate, interval) {
     if(_isDefined(value)) {
         value = isDate
             ? dateUtils.correctDateWithUnitBeginning(new Date(value), interval)
-            : adjustValue(_floor(value / interval) * interval);
+            : _floor(value / interval) * interval;
     }
     return value;
 }
@@ -577,6 +576,13 @@ function getIntervalCustomTicks(options) {
     }
 
     return res;
+}
+
+function getPrecisionForSlider(startValue, endValue, screenDelta) {
+    var d = Math.abs(endValue - startValue) / screenDelta,
+        tail = d - Math.floor(d);
+
+    return tail > 0 ? Math.ceil(Math.abs(Math.log10(tail))) : 0;
 }
 
 var dxRangeSelector = require("../core/base_widget").inherit({
@@ -970,7 +976,6 @@ var dxRangeSelector = require("../core/base_widget").inherit({
             endValue = scaleOptions.endValue,
             startValue = scaleOptions.startValue,
             sliderMarkerOptions = that._getOption(SLIDER_MARKER),
-            businessInterval,
             sliderMarkerUserOption = that.option(SLIDER_MARKER) || {},
             isTypeDiscrete = scaleOptions.type === DISCRETE,
             isValueTypeDatetime = scaleOptions.valueType === DATETIME;
@@ -979,9 +984,9 @@ var dxRangeSelector = require("../core/base_widget").inherit({
 
         if(!sliderMarkerOptions.format) {
             if(!that._getOption("behavior").snapToTicks && _isNumber(scaleOptions.startValue)) {
-                businessInterval = Math.abs(endValue - startValue);
                 sliderMarkerOptions.format = {
-                    type: "fixedPoint", precision: vizUtils.getSignificantDigitPosition(businessInterval / screenDelta)
+                    type: "fixedPoint",
+                    precision: getPrecisionForSlider(startValue, endValue, screenDelta)
                 };
             }
             if(isValueTypeDatetime && !isTypeDiscrete) {

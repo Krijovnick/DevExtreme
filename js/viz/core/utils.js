@@ -136,56 +136,6 @@ var getAppropriateFormat = function(start, end, count) {
     return null;
 };
 
-var getFraction = function(value) {
-    var valueString,
-        dotIndex;
-
-    if(isNumber(value)) {
-        valueString = value.toString();
-        dotIndex = valueString.indexOf('.');
-
-        if(dotIndex >= 0) {
-            if(isExponential(value)) {
-                return valueString.substr(dotIndex + 1, valueString.indexOf('e') - dotIndex - 1);
-            } else {
-                valueString = value.toFixed(20);
-                return valueString.substr(dotIndex + 1, valueString.length - dotIndex + 1);
-            }
-        }
-    }
-    return '';
-};
-
-var getSignificantDigitPosition = function(value) {
-    var fraction = getFraction(value),
-        i;
-
-    if(fraction) {
-        for(i = 0; i < fraction.length; i++) {
-            if(fraction.charAt(i) !== '0') {
-                return i + 1;
-            }
-        }
-    }
-    return 0;
-};
-
-var adjustValue = function(value) {
-    var fraction = getFraction(value),
-        nextValue,
-        i;
-
-    if(fraction) {
-        for(i = 1; i <= fraction.length; i++) {
-            nextValue = roundValue(value, i);
-            if(nextValue !== 0 && fraction[i - 2] && fraction[i - 1] && fraction[i - 2] === fraction[i - 1]) {
-                return nextValue;
-            }
-        }
-    }
-    return value;
-};
-
 var roundValue = function(value, precision) {
     if(precision > 20) {
         precision = 20;
@@ -197,13 +147,6 @@ var roundValue = function(value, precision) {
             return Number(value.toFixed(precision));
         }
     }
-};
-
-var applyPrecisionByMinDelta = function(min, delta, value) {
-    var minPrecision = getPrecision(min),
-        deltaPrecision = getPrecision(delta);
-
-    return roundValue(value, minPrecision < deltaPrecision ? deltaPrecision : minPrecision);
 };
 
 var getPower = function(value) {
@@ -490,12 +433,7 @@ exports.getDecimalOrder = getDecimalOrder;
 exports.getAppropriateFormat = getAppropriateFormat;
 exports.getDistance = getDistance;
 
-exports.getFraction = getFraction;
-exports.adjustValue = adjustValue;
-
 exports.roundValue = roundValue;
-exports.applyPrecisionByMinDelta = applyPrecisionByMinDelta;
-exports.getSignificantDigitPosition = getSignificantDigitPosition;
 exports.getPower = getPower;
 
 exports.rotateBBox = rotateBBox;

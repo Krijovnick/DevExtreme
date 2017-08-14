@@ -324,11 +324,11 @@ QUnit.test("axis applies valueMargins", function(assert) {
 
     var range = axis.getTranslator().getBusinessRange();
 
-    assert.strictEqual(range.min, 0, "minValue");
-    assert.strictEqual(range.max, 0.84, "maxValue");
+    assert.strictEqual(range.min.toFixed(2), "0.04", "minValue");
+    assert.strictEqual(range.max.toFixed(2), "0.84", "maxValue");
 
-    assert.strictEqual(range.minVisible, 0, "minVisibleValue");
-    assert.strictEqual(range.maxVisible, 0.84, "maxVisibleValue");
+    assert.strictEqual(range.minVisible.toFixed(2), "0.04", "minVisibleValue");
+    assert.strictEqual(range.maxVisible.toFixed(2), "0.84", "maxVisibleValue");
 });
 
 QUnit.test("axis applies valueMargins to minVisible, maxVisible", function(assert) {

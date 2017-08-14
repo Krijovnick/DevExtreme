@@ -15,36 +15,6 @@ var format = function() {
     return args[0].replace(/{(\d+)}/g, function(match, i) { return toString(args[i + 1]); });
 };
 
-QUnit.test('adjustValue', function(assert) {
-    //assert
-    assert.equal(vizUtils.adjustValue(45), 45);
-    assert.equal(vizUtils.adjustValue(57.345), 57.345);
-    assert.strictEqual(vizUtils.adjustValue(-57.4).toString(), '-57.4');
-    assert.strictEqual(vizUtils.adjustValue(-57.400000000000006).toString(), '-57.4');
-    assert.equal(vizUtils.adjustValue(17.599999999999994), 17.6);
-    assert.equal(vizUtils.adjustValue(13.109), 13.109);
-    assert.equal(vizUtils.adjustValue(13.0000109), 13);
-    assert.equal(vizUtils.adjustValue(3.3333333333333333), 3.33);
-    assert.equal(vizUtils.adjustValue(3.55333333333333333), 3.55);
-    assert.equal(vizUtils.adjustValue(3.012333333333333333), 3.01233);
-    assert.equal(vizUtils.adjustValue(0.0000000006), 6e-10);
-    assert.equal(vizUtils.adjustValue(5.00689e+34), 5.01e+34);
-    assert.equal(vizUtils.adjustValue(1.0000000000000003e+34), 1e+34);
-    assert.equal(vizUtils.adjustValue(0.01111), 0.011);
-    assert.equal(vizUtils.adjustValue(0), 0);
-    assert.equal(vizUtils.adjustValue(3.500000000000), 3.5);
-    assert.equal(vizUtils.adjustValue(-0.001), -0.001);
-});
-
-QUnit.test('getFraction', function(assert) {
-    //assert
-    assert.strictEqual(vizUtils.getFraction(1e+21), '');
-    assert.strictEqual(vizUtils.getFraction(1.01234e+15), '');
-    assert.strictEqual(vizUtils.getFraction(1.012340000000000000013e+21), '01234');
-    assert.strictEqual(vizUtils.getFraction(1.01234e+34), '01234');
-    assert.strictEqual(vizUtils.getFraction(2.123e-8), '123');
-});
-
 QUnit.module('Angular utils');
 
 QUnit.test('normalizeAngle', function(assert) {

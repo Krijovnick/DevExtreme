@@ -95,6 +95,14 @@ function canvas(width) {
     };
 }
 
+function compareFloatNumbers(ticks, expectedNumbers, assert) {
+    ticks.forEach(function(tick, index) {
+        var number = tick.value.valueOf();
+
+        assert.strictEqual(parseFloat(number.toFixed(Math.floor(Math.abs(Math.log10(number))) + 1)), expectedNumbers[index], (index + 1) + "tick");
+    });
+}
+
 QUnit.module("Discrete", environment);
 
 QUnit.test("Return all categories", function(assert) {
@@ -610,48 +618,6 @@ QUnit.test("showCalculatedTicks w/o customTicks", function(assert) { //DEPRECATE
     assert.deepEqual(this.axis._tickInterval, 5);
 });
 
-QUnit.test("Tick values adjusting", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "continuous",
-        allowDecimals: true
-    });
-
-    this.axis.setBusinessRange({ minVisible: 1.2398493489999, maxVisible: 9.3892384888888, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(2500));
-
-    assert.deepEqual(this.axis._majorTicks.map(value), [1.4, 1.6, 1.8,
-        2.0, 2.2, 2.4, 2.6, 2.8,
-        3.0, 3.2, 3.4, 3.6, 3.8,
-        4.0, 4.2, 4.4, 4.6, 4.8,
-        5.0, 5.2, 5.4, 5.6, 5.8,
-        6.0, 6.2, 6.4, 6.6, 6.8,
-        7.0, 7.2, 7.4, 7.6, 7.8,
-        8.0, 8.2, 8.4, 8.6, 8.8,
-        9.0, 9.2]);
-    assert.deepEqual(this.axis._tickInterval, 0.2);
-});
-
-QUnit.test("Tick values adjusting on very small numbers", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "continuous",
-        allowDecimals: true
-    });
-
-    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 0.0001, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(800));
-
-    assert.deepEqual(this.axis._majorTicks.map(value), [0, 0.00001, 0.00002, 0.00003, 0.00004, 0.00005, 0.00006, 0.00007, 0.00008, 0.00009, 0.0001]);
-    assert.deepEqual(this.axis._tickInterval, 0.00001);
-});
-
 QUnit.test("Custom axisDivisionFactor", function(assert) {
     this.createAxis();
     this.updateOptions({
@@ -667,20 +633,6 @@ QUnit.test("Custom axisDivisionFactor", function(assert) {
     this.axis.createTicks(canvas(200));
 
     assert.deepEqual(this.axis._tickInterval, 2);
-});
-
-QUnit.test("exponencial ticks generation", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "continuous"
-    });
-
-    this.axis.setBusinessRange({ minVisible: 1.0e-7, maxVisible: 1.03e-7, addRange: function() { } });
-
-    this.axis.createTicks(canvas(300));
-
-    assert.equal(this.axis._tickInterval, 5.0e-10);
 });
 
 QUnit.test("No data - do not generate ticks nor calculate tickInterval", function(assert) {
@@ -1013,26 +965,6 @@ QUnit.test("Minor ticks when there is only one major tick in the middle (big tic
     assert.deepEqual(this.axis._minorTickInterval, 2);
 });
 
-QUnit.test("Minor tick values adjusting on very small numbers", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "continuous",
-        tickInterval: 0.0001,
-        minorTick: {
-            visible: true
-        }
-    });
-
-    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 0.0001, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(200));
-
-    assert.deepEqual(this.axis._minorTicks.map(value), [0.00001, 0.00002, 0.00003, 0.00004, 0.00005, 0.00006, 0.00007, 0.00008, 0.00009]);
-    assert.deepEqual(this.axis._minorTickInterval, 0.00001);
-});
-
 QUnit.test("Custom minorAxisDivisionFactor", function(assert) {
     this.createAxis();
     this.updateOptions({
@@ -1167,8 +1099,8 @@ QUnit.test("Without endOnTicks - calculate ticks inside data bounds", function(a
     //act
     this.axis.createTicks(canvas(450));
 
-    assert.deepEqual(this.axis._majorTicks.map(value), [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]);
-    assert.deepEqual(this.axis._tickInterval, 1);
+    compareFloatNumbers(this.axis._majorTicks, [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000], assert);
+    assert.strictEqual(this.axis._tickInterval, 1);
 });
 
 QUnit.test("With endOnTicks - calculate ticks outside or on data bounds", function(assert) {
@@ -1186,8 +1118,8 @@ QUnit.test("With endOnTicks - calculate ticks outside or on data bounds", functi
     //act
     this.axis.createTicks(canvas(450));
 
-    assert.deepEqual(this.axis._majorTicks.map(value), [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]);
-    assert.deepEqual(this.axis._tickInterval, 1);
+    compareFloatNumbers(this.axis._majorTicks, [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000], assert);
+    assert.strictEqual(this.axis._tickInterval, 1);
 });
 
 QUnit.test("Force user tick interval if it is too small for given screenDelta and spacing factor", function(assert) {
@@ -1206,8 +1138,8 @@ QUnit.test("Force user tick interval if it is too small for given screenDelta an
     //act
     this.axis.createTicks(canvas(150));
 
-    assert.deepEqual(this.axis._majorTicks.map(value), [0.0001, 0.01, 1, 100, 10000]);
-    assert.deepEqual(this.axis._tickInterval, 2);
+    compareFloatNumbers(this.axis._majorTicks, [0.0001, 0.01, 1, 100, 10000], assert);
+    assert.strictEqual(this.axis._tickInterval, 2);
 });
 
 QUnit.test("logBase 2", function(assert) {
@@ -1260,23 +1192,6 @@ QUnit.test("customTicks", function(assert) {
 
     assert.deepEqual(this.axis._majorTicks.map(value), [1, 100, 10000]);
     assert.deepEqual(this.axis._tickInterval, 2);
-});
-
-QUnit.test("Tick values adjusting on very small numbers", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "logarithmic",
-        logarithmBase: 10
-    });
-
-    this.axis.setBusinessRange({ minVisible: 0.0000001, maxVisible: 1, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(500));
-
-    assert.deepEqual(this.axis._majorTicks.map(value), [0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1]);
-    assert.deepEqual(this.axis._tickInterval, 1);
 });
 
 QUnit.module("Logarithmic. Minor ticks", environment);
@@ -1405,28 +1320,6 @@ QUnit.test("Minor ticks when there is only one major tick in the middle (big tic
     this.axis.createTicks(canvas(75));
 
     assert.deepEqual(this.axis._minorTicks.map(value), [60, 80, 200]);
-    assert.deepEqual(this.axis._minorTickInterval, 0.2);
-});
-
-QUnit.test("Minor tick values adjusting on very small numbers", function(assert) {
-    this.createAxis();
-    this.updateOptions({
-        argumentType: "numeric",
-        type: "logarithmic",
-        logarithmBase: 10,
-        tickInterval: 1,
-        endOnTicks: true,
-        minorTick: {
-            visible: true
-        }
-    });
-
-    this.axis.setBusinessRange({ minVisible: 0.000001, maxVisible: 0.00001, addRange: function() { } });
-
-    //act
-    this.axis.createTicks(canvas(75));
-
-    assert.deepEqual(this.axis._minorTicks.map(value), [0.000002, 0.000004, 0.000006, 0.000008]);
     assert.deepEqual(this.axis._minorTickInterval, 0.2);
 });
 

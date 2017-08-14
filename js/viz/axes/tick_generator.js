@@ -5,7 +5,6 @@ var utils = require("../core/utils"),
     typeUtils = require("../../core/utils/type"),
     convertDateUnitToMilliseconds = dateUtils.convertDateUnitToMilliseconds,
     dateToMilliseconds = dateUtils.dateToMilliseconds,
-    adjustValue = utils.adjustValue,
     getLog = utils.getLog,
     math = Math,
     mathAbs = math.abs,
@@ -45,17 +44,13 @@ function discreteGenerator(options) {
     };
 }
 
-function adjustValueByPrecision(value, interval, min) {
-    return utils.applyPrecisionByMinDelta(min, interval, value);
-}
-
 function getValue(value) {
     return value;
 }
 
 function getLogValue(base) {
     return function(value) {
-        return adjustValue(getLog(value, base));
+        return getLog(value, base);
     };
 }
 
@@ -67,7 +62,7 @@ function raiseTo(base) {
 
 function correctValueByInterval(post, round, getValue) {
     return function(value, interval, min) {
-        return adjustValueByPrecision(post(round(getValue(value) / interval) * interval), interval, min);
+        return post(round(getValue(value) / interval) * interval);
     };
 }
 
@@ -89,13 +84,13 @@ function getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor) {
     return businessDelta / count;
 }
 
-function getMultiplierFactor(interval) {
-    return mathPow(10, mathFloor(getLog(interval, 10)));
+function getMultiplierFactor(interval, factorDelta) {
+    return mathPow(10, mathFloor(getLog(interval, 10)) + (factorDelta || 0));
 }
 
 function calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, axisDivisionFactor, multipliers, allowDecimals) {
     var interval = getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor),
-        factor = getMultiplierFactor(interval),
+        factor = getMultiplierFactor(interval, -1),
         result = 1,
         onlyIntegers = allowDecimals === false;
 
@@ -103,12 +98,14 @@ function calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTi
 
     if(!forceTickInterval || !tickInterval) {
         if(interval >= 1 || (!onlyIntegers && interval > 0)) {
-            result = multipliers.concat(multipliers[0] * 10).reduce(function(r, m) {
-                if(factor === 1 && onlyIntegers && m === 2.5) {
+            interval /= factor;
+            result = multipliers.concat(multipliers[0] * 10).map(function(m) { return 10 * m; }).reduce(function(r, m) {
+                if(factor === 0.1 && onlyIntegers && m === 25) {
                     return r;
                 }
-                return r < interval ? adjustValue(m * factor) : r;
+                return r < interval ? m : r;
             }, 0);
+            result = utils.roundValue(result * factor, utils.getPrecision(factor));
         }
 
         if(!tickInterval || (!forceTickInterval && tickInterval < result)) {
@@ -125,7 +122,7 @@ function calculateMinorTickInterval(businessDelta, screenDelta, tickInterval, ax
     return tickInterval || MINOR_DELIMITERS.reduce(function(r, d) {
         var cur = businessDelta / d;
         if(cur >= interval) {
-            r = adjustValue(cur);
+            r = cur;
         }
         return r;
     }, 0);
@@ -221,17 +218,17 @@ function getTickIntervalByCustomTicks(getValue, postProcess) {
     };
 }
 
-function addInterval(value, interval, min) {
-    return adjustValueByPrecision(value + interval, interval, min);
+function addInterval(value, interval) {
+    return value + interval;
 }
 
 function addIntervalLog(base) {
     return function(value, interval, min) {
-        return adjustValueByPrecision(raiseTo(base)(getLog(value, base) + interval), interval, min);
+        return raiseTo(base)(getLog(value, base) + interval);
     };
 }
 
-function addIntervalDate(value, interval, min) {
+function addIntervalDate(value, interval) {
     return dateUtils.addInterval(value, interval);
 }
 
@@ -245,7 +242,7 @@ function calculateTicks(addInterval, correctMinValue) {
         }
         while(cur < max) {
             ticks.push(cur);
-            cur = addInterval(cur, tickInterval, min);
+            cur = addInterval(cur, tickInterval);
         }
         if(endOnTicks || (cur - max === 0)) {
             ticks.push(cur);
@@ -268,7 +265,7 @@ function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, c
 
         while(cur < firstMajor) {
             ticks.push(cur);
-            cur = addInterval(cur, minorTickInterval, min);
+            cur = addInterval(cur, minorTickInterval);
         }
 
         //between ticks
@@ -282,7 +279,7 @@ function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, c
             var cur = correctTickValue(r.prevTick, minorTickInterval, min);
             while(cur < tick) {
                 r.minors.push(cur);
-                cur = addInterval(cur, minorTickInterval, min);
+                cur = addInterval(cur, minorTickInterval);
             }
 
             r.prevTick = tick;
@@ -296,7 +293,7 @@ function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, c
         cur = correctTickValue(lastMajor, minorTickInterval, min);
         while(cur < max) {
             ticks.push(cur);
-            cur = addInterval(cur, minorTickInterval, min);
+            cur = addInterval(cur, minorTickInterval);
         }
 
         if((lastMajor - max) !== 0 && (cur - max === 0)) {

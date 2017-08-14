@@ -1,6 +1,6 @@
 "use strict";
 
-var adjustValue = require("../core/utils").adjustValue,
+var utils = require("../core/utils"),
     typeUtils = require("../../core/utils/type"),
     isNumber = typeUtils.isNumeric,
     isDefined = typeUtils.isDefined,
@@ -22,9 +22,8 @@ module.exports = {
             }
             value = dateUtils.correctDateWithUnitBeginning(value, interval);
         } else {
-            value = adjustValue(floor(value / interval) * interval);
+            value = utils.roundValue(floor(value / interval) * interval, utils.getPrecision(interval));
         }
-
         return value;
     },
 
