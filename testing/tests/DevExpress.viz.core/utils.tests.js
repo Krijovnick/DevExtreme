@@ -184,6 +184,19 @@ QUnit.module('utils graphic', {
     }
 });
 
+QUnit.test('getCategoriesInfo (no start/end values)', function(assert) {
+    //arrange,act
+    var info = utils.getCategoriesInfo(this.categories);
+
+    //assert
+    assert.deepEqual(info, {
+        start: 'a1',
+        end: 'a7',
+        inverted: false,
+        categories: ['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7']
+    });
+});
+
 QUnit.test('getCategoriesInfo (no inverted)', function(assert) {
     //arrange,act
     var info = utils.getCategoriesInfo(this.categories, 'a3', 'a5');
