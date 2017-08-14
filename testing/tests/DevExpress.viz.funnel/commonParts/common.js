@@ -4,6 +4,8 @@ var $ = require("jquery"),
     vizMocks = require("../../../helpers/vizMocks.js"),
     rendererModule = require("viz/core/renderers/renderer"),
     legendModule = require("viz/components/legend"),
+    titleModule = require("viz/core/title"),
+    exportModule = require("viz/core/export"),
     tiling = require("viz/funnel/tiling");
 
 require("viz/themes");
@@ -13,6 +15,8 @@ tiling.addAlgorithm("stub", stubAlgorithm);
 
 var dxFunnel = require("viz/funnel/funnel");
 dxFunnel.addPlugin(legendModule.plugin);
+dxFunnel.addPlugin(titleModule.plugin);
+dxFunnel.addPlugin(exportModule.plugin);
 
 $("#qunit-fixture").append('<div id="test-container"></div>');
 
@@ -43,19 +47,16 @@ var environment = {
             return that.renderer;
         });
 
-        that.legend = new vizMocks.Legend();
-        that.legend.stub("coordsIn").returns(true);
-        that.legend.stub("getItemByCoord").withArgs(2, 3).returns({ id: 4 });
-        that.legend.stub("measure").returns([100, 100]);
-
-        sinon.stub(legendModule, "Legend", function() {
-            return that.legend;
-        });
+        this.stubLegend();
+        this.stubTitle();
+        this.stubExport();
     },
 
     afterEach: function() {
         rendererModule.Renderer.restore();
         legendModule.Legend.restore();
+        titleModule.Title.restore();
+        exportModule.ExportMenu.restore();
     },
 
     itemsGroup: function() {
@@ -68,6 +69,36 @@ var environment = {
 
     item: function(index) {
         return this.items[index];
+    },
+
+    stubLegend: function() {
+        var that = this;
+        that.legend = new vizMocks.Legend();
+        that.legend.stub("coordsIn").returns(true);
+        that.legend.stub("getItemByCoord").withArgs(2, 3).returns({ id: 4 });
+        that.legend.stub("measure").returns([100, 100]);
+
+        sinon.stub(legendModule, "Legend", function() {
+            return that.legend;
+        });
+    },
+
+    stubTitle: function() {
+        var that = this;
+        that.title = new vizMocks.Title();
+        that.title.stub("measure").returns([150, 120]);
+        sinon.stub(titleModule, "Title", function() {
+            return that.title;
+        });
+    },
+
+    stubExport: function() {
+        var that = this;
+        that.export = new vizMocks.ExportMenu();
+        that.export.stub("measure").returns([100, 150]);
+        sinon.stub(exportModule, "ExportMenu", function() {
+            return that.export;
+        });
     }
 };
 

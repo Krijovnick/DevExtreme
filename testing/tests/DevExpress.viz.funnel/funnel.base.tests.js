@@ -946,3 +946,63 @@ QUnit.test("hide legend. vertical alignment", function(assert) {
     assert.ok(this.legend.freeSpace.called);
 });
 
+QUnit.test("hide title", function(assert) {
+    this.title.stub("layoutOptions").returns({
+        horizontalAlignment: "right",
+        verticalAlignment: "top"
+    });
+
+    createFunnel({
+        algorithm: "stub",
+        adaptiveLayout: {
+            height: 500
+        },
+        dataSource: [{ value: 1 }]
+    });
+
+    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 0, 800, 600]);
+    assert.ok(this.title.freeSpace.called);
+});
+
+QUnit.test("hide export menu", function(assert) {
+    this.export.stub("layoutOptions").returns({
+        horizontalAlignment: "right",
+        verticalAlignment: "top"
+    });
+
+    createFunnel({
+        algorithm: "stub",
+        adaptiveLayout: {
+            height: 500
+        },
+        dataSource: [{ value: 1 }]
+    });
+
+    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 0, 800, 600]);
+    assert.ok(this.export.freeSpace.called);
+});
+
+QUnit.test("hide pair elements: title and export", function(assert) {
+    this.title.stub("layoutOptions").returns({
+        horizontalAlignment: "right",
+        verticalAlignment: "top"
+    });
+    this.export.stub("layoutOptions").returns({
+        horizontalAlignment: "right",
+        verticalAlignment: "top",
+        weak: true
+    });
+
+    createFunnel({
+        algorithm: "stub",
+        adaptiveLayout: {
+            height: 500
+        },
+        dataSource: [{ value: 1 }]
+    });
+
+    assert.deepEqual(this.items()[0].attr.firstCall.args[0].points, [0, 0, 800, 600]);
+    assert.ok(this.export.freeSpace.called);
+    assert.ok(this.title.freeSpace.called);
+});
+
