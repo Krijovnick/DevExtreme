@@ -1061,8 +1061,11 @@ Axis.prototype = {
         var that = this,
             options = that._options,
             //TODO looks like _majorTicks/_minorTicks are not accesible here
-            customTicks = options.customTicks || (that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
-            customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
+            //TODO we should not use previously generated ticks as custom ticks. It used to be before when ticks were set on axes synchronization, we should rework it
+            // customTicks = options.customTicks || (that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
+            // customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
+            customTicks = options.customTicks,
+            customMinorTicks = options.customMinorTicks;
 
         return getTickGenerator(options, that._incidentOccurred)(
             {
