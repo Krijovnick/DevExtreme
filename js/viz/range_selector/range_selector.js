@@ -295,7 +295,7 @@ function updateTickIntervals(scaleOptions, screenDelta, incidentOccurred, range)
             {
                 min: min,
                 max: max,
-                categories: _isDefined(categoriesInfo) && _isDefined(categoriesInfo.categories) ? categoriesInfo.categories : []
+                categories: _isDefined(categoriesInfo) ? categoriesInfo.categories : []
             },
             screenDelta,
             scaleOptions.tickInterval, //tickInterval,
@@ -348,7 +348,7 @@ function calculateTranslatorRange(seriesDataSource, scaleOptions) {
 
         categories = seriesDataSource ? seriesDataSource.argCategories : (scaleOptions.categories || (!seriesDataSource) && startValue && endValue && [startValue, endValue]);
         categories = categories || [];
-        scaleOptions._categoriesInfo = categoriesInfo = vizUtils.getCategoriesInfo(categories, startValue || categories[0], endValue || categories[categories.length - 1]);
+        scaleOptions._categoriesInfo = categoriesInfo = vizUtils.getCategoriesInfo(categories, startValue, endValue);
     }
 
     if(scaleOptions.type === SEMIDISCRETE) {

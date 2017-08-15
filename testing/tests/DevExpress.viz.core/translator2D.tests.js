@@ -1,7 +1,8 @@
 "use strict";
 
 var $ = require("jquery"),
-    translator2DModule = require("viz/translators/translator2d");
+    translator2DModule = require("viz/translators/translator2d"),
+    vizUtilsModule = require("viz/core/utils");
 
 var canvasTemplate = {
         width: 610,
@@ -2235,6 +2236,11 @@ QUnit.module('Zooming and scrolling. Discrete translator', {
                 $.extend({ width: 2000, height: 2000, left: 500, top: 500, right: 500, bottom: 500 }, canvas),
                 $.extend({ isHorizontal: true }, options || {}));
         };
+    },
+    afterEach: function() {
+        if(this.getCategoriesInfo !== undefined) {
+            this.getCategoriesInfo.restore();
+        }
     }
 });
 
@@ -2645,46 +2651,22 @@ QUnit.test('getMinScale', function(assert) {
 
 });
 
-QUnit.test('getVisibleCategories without min and maxVisible - return all categories', function(assert) {
-    var translator = this.createTranslator({ });
+QUnit.test('getVisibleCategories returns all visible categories', function(assert) {
+    var categories = ["cat1", "cat2", "cat3", "cat4", "cat5"];
+    this.getCategoriesInfo = sinon.stub(vizUtilsModule, "getCategoriesInfo");
+    this.getCategoriesInfo.withArgs(categories, "cat2", "cat4").returns({ categories: ["cat2", "cat3", "cat4"] });
 
-    assert.deepEqual(translator.getVisibleCategories(), ['a1', 'a2', 'a3', 'a4', 'a5']);
+    var translator = this.createTranslator({ categories: categories, minVisible: "cat2", maxVisible: "cat4" });
+
+    assert.deepEqual(translator.getVisibleCategories(), ["cat2", "cat3", "cat4"]);
 });
 
-QUnit.test('getVisibleCategories with min and maxVisible - return categories between minVisible and maxVisible', function(assert) {
-    var translator = this.createTranslator({ minVisible: 'a2', maxVisible: 'a4' });
+QUnit.test('getVisibleCategories returns nothing if no categories are visible', function(assert) {
+    this.getCategoriesInfo = sinon.stub(vizUtilsModule, "getCategoriesInfo").returns({ categories: [] });
 
-    assert.deepEqual(translator.getVisibleCategories(), ["a2", "a3", "a4"]);
-});
+    var translator = this.createTranslator();
 
-QUnit.test('getVisibleCategories with min and maxVisible in wrong order - return categories between minVisible and maxVisible', function(assert) {
-    var translator = this.createTranslator({ minVisible: 'a4', maxVisible: 'a2' });
-
-    assert.deepEqual(translator.getVisibleCategories(), ["a2", "a3", "a4"]);
-});
-
-QUnit.test('getVisibleCategories without minVisible - return categories from start to maxVisible', function(assert) {
-    var translator = this.createTranslator({ maxVisible: "a4" });
-
-    assert.deepEqual(translator.getVisibleCategories(), ['a1', 'a2', 'a3', 'a4']);
-});
-
-QUnit.test('getVisibleCategories without maxVisible - return categories from minVisible to the end', function(assert) {
-    var translator = this.createTranslator({ minVisible: "a2" });
-
-    assert.deepEqual(translator.getVisibleCategories(), ['a2', 'a3', 'a4', 'a5']);
-});
-
-QUnit.test('getVisibleCategories maxVisible is incorrect - return categories from minVisible to the end', function(assert) {
-    var translator = this.createTranslator({ minVisible: "a2", maxVisible: "b1" });
-
-    assert.deepEqual(translator.getVisibleCategories(), ['a2', 'a3', 'a4', 'a5']);
-});
-
-QUnit.test('getVisibleCategories minVisible is incorrect - return categories from start to maxVisible', function(assert) {
-    var translator = this.createTranslator({ minVisible: "b1", maxVisible: "a4" });
-
-    assert.deepEqual(translator.getVisibleCategories(), ['a1', 'a2', 'a3', 'a4']);
+    assert.deepEqual(translator.getVisibleCategories(), undefined);
 });
 
 QUnit.test('get scale. stick=true', function(assert) {

@@ -114,7 +114,7 @@ _Translator2d.prototype = {
             script = {},
             canvasOptions = that._prepareCanvasOptions(),
             visibleCategories = vizUtils.getCategoriesInfo(categories, range.minVisible, range.maxVisible).categories,
-            categoriesLength = (visibleCategories || categories).length;
+            categoriesLength = visibleCategories.length;
 
         switch(range.axisType) {
             case "logarithmic":
@@ -129,7 +129,7 @@ _Translator2d.prototype = {
                 that._categories = categories;
                 canvasOptions.interval = that._getDiscreteInterval(range.addSpiderCategory ? categoriesLength + 1 : categoriesLength, canvasOptions);
                 that._categoriesToPoints = makeCategoriesToPoints(categories, canvasOptions.invert);
-                if(visibleCategories && categoriesLength) {
+                if(categoriesLength) {
                     canvasOptions.startPointIndex = that._categoriesToPoints[visibleCategories[0].valueOf()];
                     that.visibleCategories = visibleCategories;
                 }
