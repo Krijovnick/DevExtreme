@@ -2662,9 +2662,7 @@ QUnit.test('getVisibleCategories returns all visible categories', function(asser
 });
 
 QUnit.test('getVisibleCategories returns nothing if no categories are visible', function(assert) {
-    this.getCategoriesInfo = sinon.stub(vizUtilsModule, "getCategoriesInfo").returns({ categories: [] });
-
-    var translator = this.createTranslator();
+    var translator = this.createTranslator({ categories: [] });
 
     assert.deepEqual(translator.getVisibleCategories(), undefined);
 });
