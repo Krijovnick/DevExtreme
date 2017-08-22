@@ -351,7 +351,8 @@ module.exports = {
             var that = this,
                 options = that._options,
                 translator = that._translator,
-                minBound = that._minBound,
+                viewport = that._getViewportRange(),
+                minBound = viewport.minVisible,
                 tickInterval,
                 markerInterval,
                 markerDates,
@@ -376,7 +377,7 @@ module.exports = {
             tickInterval = dateUtils.getDateUnitInterval(this._tickInterval);
             markerInterval = getMarkerInterval(tickInterval);
 
-            markerDates = getMarkerDates(minBound, that._maxBound, markerInterval);
+            markerDates = getMarkerDates(minBound, viewport.maxVisible, markerInterval);
 
             if(markerDates.length > 1
                 || (markerDates.length === 1 && minBound < markerDates[0])) {
@@ -643,7 +644,7 @@ module.exports = {
         },
 
         estimateMargins: function(canvas) {
-            this._createTicksAndLabelFormat(canvas);
+            this._createTicksAndLabelFormat(canvas, false);
 
             var that = this,
                 options = this._options,

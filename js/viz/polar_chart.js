@@ -63,14 +63,6 @@ var dxPolarChart = AdvancedChart.inherit({
     },
 
     _renderAxes: function(drawOptions) {
-        this._drawAxes(drawOptions);
-    },
-
-    _getValueAxis: function() {
-        return this._valueAxes[0];
-    },
-
-    _prepareAxesAndDraw: function(drawOptions, panesBorderOptions) {
         var that = this,
             valueAxis = that._getValueAxis(),
             argumentAxis = that._getArgumentAxis();
@@ -80,6 +72,10 @@ var dxPolarChart = AdvancedChart.inherit({
         argumentAxis.draw(canvas);
         valueAxis.setSpiderTicks(argumentAxis.getSpiderTicks());
         valueAxis.draw(canvas);
+    },
+
+    _getValueAxis: function() {
+        return this._valueAxes[0];
     },
 
     _shrinkAxes: function(drawOptions, sizeShortage) {

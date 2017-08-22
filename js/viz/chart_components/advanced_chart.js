@@ -173,13 +173,6 @@ var AdvancedChart = BaseChart.inherit({
         disposeObjectsInArray.call(that, "_valueAxes");
     },
 
-    _drawAxes: function(drawOptions, panesBorderOptions) {
-        this._restoreOriginalBusinessRange();
-        this._prepareAxesAndDraw(drawOptions, panesBorderOptions);
-    },
-
-    _restoreOriginalBusinessRange: _noop,
-
     _appendAdditionalSeriesGroups: function() {
         this._crosshairCursorGroup.linkAppend();
         //this._legendGroup.linkAppend();
@@ -426,7 +419,8 @@ var AdvancedChart = BaseChart.inherit({
                 labelAxesGroup: that._labelAxesGroup,
                 constantLinesGroup: that._constantLinesGroup,
                 axesContainerGroup: that._axesGroup,
-                gridGroup: that._gridGroup
+                gridGroup: that._gridGroup,
+                isArgumentAxis: typeSelector === "argumentAxis"
             }, that._getAxisRenderingOptions(typeSelector)),
             axis,
             preparedUserOptions = that._prepareStripsAndConstantLines(typeSelector, userOptions, rotated),

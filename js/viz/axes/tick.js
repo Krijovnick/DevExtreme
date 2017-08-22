@@ -71,8 +71,8 @@ function createTick(axis, renderer, tickOptions, gridOptions, skippedCategory, s
                     return;
                 }
 
-                var axisBounds = { min: axis._minBound, max: axis._maxBound },
-                    text = constants.formatLabel(value, labelOptions, axisBounds),
+                var range = axis._getViewportRange(),
+                    text = constants.formatLabel(value, labelOptions, { min: range.minVisible, max: range.maxVisible }),
                     labelHint;
 
                 if(isDefined(text) && text !== "" && !emptyStrRegExp.test(text)) {
@@ -85,7 +85,7 @@ function createTick(axis, renderer, tickOptions, gridOptions, skippedCategory, s
 
                     this.updateLabelPosition();
 
-                    labelHint = constants.formatHint(this.value, labelOptions, axisBounds);
+                    labelHint = constants.formatHint(this.value, labelOptions, { min: range.minVisible, max: range.maxVisible });
                     if(isDefined(labelHint) && labelHint !== "") {
                         this.label.setTitle(labelHint);
                     }
