@@ -572,8 +572,15 @@ exports.chart = _extend({}, baseScatterMethods, {
     },
 
     getMarginOptions: function() {
+        var pointOptions = this._getCreatingPointOptions(),
+            styles = pointOptions.styles,
+            maxBorderSize = [styles.normal, styles.hover, styles.selection]
+                .reduce(function(max, style) {
+                    return Math.max(max, style["stroke-width"]);
+                }, 0);
+
         return {
-            size: this._getCreatingPointOptions().size
+            size: pointOptions.size + maxBorderSize / 2
         };
     }
 });

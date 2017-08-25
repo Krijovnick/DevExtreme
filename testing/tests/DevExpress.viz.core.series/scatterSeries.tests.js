@@ -1735,11 +1735,37 @@ var checkTwoGroups = function(assert, series) {
             type: seriesType,
             point: {
                 size: 6
-
             }
         });
 
         assert.deepEqual(series.getMarginOptions(), { size: 6 });
+    });
+
+    QUnit.test("getMarginOptioins. add max border width", function(assert) {
+        var series = createSeries({
+            type: seriesType,
+            point: {
+                size: 6,
+                border: {
+                    visible: true,
+                    width: 10
+                },
+                hoverStyle: {
+                    border: {
+                        visible: true,
+                        width: 10
+                    }
+                },
+                selectionStyle: {
+                    border: {
+                        visible: true,
+                        width: 12
+                    }
+                }
+            }
+        });
+
+        assert.deepEqual(series.getMarginOptions(), { size: 12 });
     });
 
     QUnit.module("Scatter. Label styles", {
