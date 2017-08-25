@@ -1765,7 +1765,7 @@ var checkTwoGroups = function(assert, series) {
             }
         });
 
-        assert.deepEqual(series.getMarginOptions(), { size: 12 });
+        assert.deepEqual(series.getMarginOptions(), { size: 18 });
     });
 
     QUnit.module("Scatter. Label styles", {

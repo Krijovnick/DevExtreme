@@ -574,13 +574,13 @@ exports.chart = _extend({}, baseScatterMethods, {
     getMarginOptions: function() {
         var pointOptions = this._getCreatingPointOptions(),
             styles = pointOptions.styles,
-            maxBorderSize = [styles.normal, styles.hover, styles.selection]
+            maxSize = [styles.normal, styles.hover, styles.selection]
                 .reduce(function(max, style) {
-                    return Math.max(max, style["stroke-width"]);
+                    return Math.max(max, style.r * 2);
                 }, 0);
 
         return {
-            size: pointOptions.size + maxBorderSize / 2
+            size: maxSize
         };
     }
 });
