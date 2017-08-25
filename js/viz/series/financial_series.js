@@ -266,6 +266,12 @@ exports.stock = _extend({}, scatterSeries, {
 
     _processRange: function(range) {
         rangeCalculator.addRangeSeriesLabelPaddings(this, range.val);
+    },
+
+    getMarginOptions: function() {
+        return {
+            size: DEFAULT_FINANCIAL_POINT_SIZE
+        };
     }
 });
 

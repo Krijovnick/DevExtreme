@@ -113,7 +113,13 @@ var baseBarSeriesMethods = {
         return DEFAULT_BAR_POINT_SIZE;
     },
 
-    getValueRangeInitialValue: areaSeries.getValueRangeInitialValue
+    getValueRangeInitialValue: areaSeries.getValueRangeInitialValue,
+
+    getMarginOption: function() {
+        return {
+            checkInterval: true
+        };
+    }
 };
 
 exports.chart.bar = _extend({}, chartSeries, baseBarSeriesMethods, {

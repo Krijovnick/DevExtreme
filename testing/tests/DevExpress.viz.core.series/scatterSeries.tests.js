@@ -1730,6 +1730,18 @@ var checkTwoGroups = function(assert, series) {
         });
     });
 
+    QUnit.test("getMarginOptioins", function(assert) {
+        var series = createSeries({
+            type: seriesType,
+            point: {
+                size: 6
+
+            }
+        });
+
+        assert.deepEqual(series.getMarginOptions(), { size: 6 });
+    });
+
     QUnit.module("Scatter. Label styles", {
         beforeEach: function() {
             environment.beforeEach.call(this);

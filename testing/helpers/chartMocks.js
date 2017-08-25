@@ -668,7 +668,8 @@
             correctPosition: sinon.spy(),
             correctRadius: sinon.spy(),
             updateDataType: sinon.spy(),
-            getViewport: sinon.stub().returns({})
+            getViewport: sinon.stub().returns({}),
+            getMarginOptions: sinon.stub().returns(options.marginOptions || {})
         };
     };
 
@@ -1026,7 +1027,8 @@
             resetZoom: function() {
 
             },
-            resetTypes: sinon.spy()
+            resetTypes: sinon.spy(),
+            setMarginOptions: sinon.spy()
         };
     };
 

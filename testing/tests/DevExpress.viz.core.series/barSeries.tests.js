@@ -1297,4 +1297,10 @@ var checkTwoGroups = function(assert, series) {
             }
         });
     });
+
+    QUnit.test("getMarginOptions", function(assert) {
+        var series = createSeries(this.options);
+
+        assert.deepEqual(series.getMarginOptions(), { checkInterval: true });
+    });
 })();

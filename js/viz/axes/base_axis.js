@@ -1181,6 +1181,10 @@ Axis.prototype = {
         return range;
     },
 
+    setMarginOptions: function(options) {
+        this._marginOptions = options;
+    },
+
     _applyMargins: function(range) {
         var interval = range.interval,
             options = this._options,

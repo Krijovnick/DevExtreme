@@ -569,6 +569,12 @@ exports.chart = _extend({}, baseScatterMethods, {
             minY: visibleY.min,
             maxY: visibleY.max
         };
+    },
+
+    getMarginOptions: function() {
+        return {
+            size: this._getCreatingPointOptions().size
+        };
     }
 });
 

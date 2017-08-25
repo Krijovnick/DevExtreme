@@ -899,3 +899,90 @@ QUnit.test("Canvas lenght for not rotated chart", function(assert) {
     assert.ok(chart.getAllSeries()[0].resamplePoints.called);
     assert.equal(chart.getAllSeries()[0].resamplePoints.args[0][0], 270);
 });
+
+QUnit.module("Merge marginOptions", commons.environment);
+
+QUnit.test("Pass merged marginOptions to axes", function(assert) {
+    seriesMockData.series.push(new MockSeries({
+        marginOptions: {
+            checkInterval: false,
+            size: 8
+        }
+    }));
+
+    seriesMockData.series.push(new MockSeries({
+        marginOptions: {
+            checkInterval: true,
+            size: 5
+        }
+    }));
+
+    var chart = this.createChart({
+        series: [{}, {}]
+    });
+
+    assert.deepEqual(chart._valueAxes[0].setMarginOptions.lastCall.args[0], {
+        size: 8,
+        checkInterval: true
+    });
+
+    assert.deepEqual(chart._argumentAxes[0].setMarginOptions.lastCall.args[0], {
+        size: 8,
+        checkInterval: true
+    });
+});
+
+QUnit.test("Merge options witout size", function(assert) {
+    seriesMockData.series.push(new MockSeries({}));
+
+    var chart = this.createChart({
+        series: [{}]
+    });
+
+    assert.deepEqual(chart._valueAxes[0].setMarginOptions.lastCall.args[0].size, 0);
+});
+
+QUnit.test("Pass merged marginOptions to axes when two value axis", function(assert) {
+    seriesMockData.series.push(new MockSeries({
+        marginOptions: {
+            checkInterval: false,
+            size: 8
+        }
+    }));
+
+    seriesMockData.series.push(new MockSeries({
+        marginOptions: {
+            checkInterval: true,
+            size: 5
+        }
+    }));
+
+    var chart = this.createChart({
+        series: [{
+            axis: "axis1"
+        }, {
+            axis: "axis2"
+        }],
+        valueAxis: [{
+            name: "axis1"
+        }, {
+            name: "axis2"
+        }]
+    });
+
+    assert.deepEqual(chart._valueAxes[0].setMarginOptions.lastCall.args[0], {
+        checkInterval: false,
+        size: 8
+    });
+
+    assert.deepEqual(chart._valueAxes[1].setMarginOptions.lastCall.args[0], {
+        checkInterval: true,
+        size: 5
+    });
+
+    assert.deepEqual(chart._argumentAxes[0].setMarginOptions.lastCall.args[0], {
+        size: 8,
+        checkInterval: true
+    });
+});
+

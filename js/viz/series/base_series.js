@@ -1130,6 +1130,8 @@ Series.prototype = {
 
     areErrorBarsVisible: _noop,
 
+    getMarginOptions: _noop,
+
     getColor: function() {
         return this.getLegendStyles().normal.fill;
     },

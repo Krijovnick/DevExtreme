@@ -33,6 +33,13 @@ function prepareAxis(axisOptions) {
     return _isArray(axisOptions) ? axisOptions.length === 0 ? [{}] : axisOptions : [axisOptions];
 }
 
+function mergeMarginOptions(opt1, opt2) {
+    return {
+        checkInterval: opt1.checkInterval || opt2.checkInterval,
+        size: Math.max(opt1.size || 0, opt2.size || 0)
+    };
+}
+
 var AdvancedChart = BaseChart.inherit({
     _dispose: function() {
         var that = this,
@@ -295,6 +302,7 @@ var AdvancedChart = BaseChart.inherit({
             rotated = that._isRotated(),
             argAxes = that._argumentAxes,
             argRange = new rangeModule.Range({ rotated: !!rotated }),
+            argumentMarginOptions = {},
             groupsData = that._groupsData;
 
         that.businessRanges = null;
@@ -312,15 +320,19 @@ var AdvancedChart = BaseChart.inherit({
                 groupAxisRange = valueAxis.getRangeData(),
                 groupSeries = that.series.filter(function(series) {
                     return series.getValueAxis() === valueAxis;
-                });
+                }),
+                marginOptions = {};
 
             groupRange.addRange(groupAxisRange);
 
             groupSeries.forEach(function(series) {
-                var seriesRange = series.getRangeData();
+                var seriesRange = series.getRangeData(),
+                    seriesMarginOptions = series.getMarginOptions();
 
                 groupRange.addRange(seriesRange.val);
                 argRange.addRange(seriesRange.arg);
+                marginOptions = mergeMarginOptions(marginOptions, seriesMarginOptions);
+                argumentMarginOptions = mergeMarginOptions(argumentMarginOptions, seriesMarginOptions)
             });
 
             if(!groupRange.isDefined()) {
@@ -333,6 +345,7 @@ var AdvancedChart = BaseChart.inherit({
             //groupRange.checkZeroStick();
 
             valueAxis.setBusinessRange(groupRange);
+            valueAxis.setMarginOptions(marginOptions);
 
             businessRanges.push({ val: groupRange, arg: argRange });
         });
@@ -346,6 +359,7 @@ var AdvancedChart = BaseChart.inherit({
 
         that._argumentAxes.forEach(function(a) {
             a.setBusinessRange(argRange);
+            a.setMarginOptions(argumentMarginOptions);
         });
 
         that.businessRanges = businessRanges;
