@@ -106,5 +106,11 @@ exports.chart.bubble = _extend({}, scatterSeries, {
         _each(that._drawnPoints || [], function(i, p) {
             p.animate(i === lastPointIndex ? labelAnimFunc : undefined, { r: p.bubbleSize, translateX: p.x, translateY: p.y });
         });
+    },
+
+    getMarginOption: function() {
+        return {
+            processBubbleSize: true
+        };
     }
 });

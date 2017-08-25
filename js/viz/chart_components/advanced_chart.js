@@ -40,6 +40,20 @@ function mergeMarginOptions(opt1, opt2) {
     };
 }
 
+function processBubbleMargin(opt, bubbleSize) {
+    if(opt.processBubbleSize) {
+        opt.size = bubbleSize;
+    }
+    return opt;
+}
+
+function estimateBubbleSize(size, paneCount, maxSize, rotated) {
+    var width = rotated ? size.width / paneCount : size.width,
+        height = rotated ? size.height : size.height / paneCount;
+
+    return Math.min(width, height) * maxSize;
+}
+
 var AdvancedChart = BaseChart.inherit({
     _dispose: function() {
         var that = this,
@@ -303,6 +317,7 @@ var AdvancedChart = BaseChart.inherit({
             argAxes = that._argumentAxes,
             argRange = new rangeModule.Range({ rotated: !!rotated }),
             argumentMarginOptions = {},
+            bubbleSize = estimateBubbleSize(that.getSize(), that.panes.length, that._themeManager.getOptions("maxBubbleSize"), that._isRotated()),
             groupsData = that._groupsData;
 
         that.businessRanges = null;
@@ -327,12 +342,12 @@ var AdvancedChart = BaseChart.inherit({
 
             groupSeries.forEach(function(series) {
                 var seriesRange = series.getRangeData(),
-                    seriesMarginOptions = series.getMarginOptions();
+                    seriesMarginOptions = processBubbleMargin(series.getMarginOptions(), bubbleSize);
 
                 groupRange.addRange(seriesRange.val);
                 argRange.addRange(seriesRange.arg);
                 marginOptions = mergeMarginOptions(marginOptions, seriesMarginOptions);
-                argumentMarginOptions = mergeMarginOptions(argumentMarginOptions, seriesMarginOptions)
+                argumentMarginOptions = mergeMarginOptions(argumentMarginOptions, seriesMarginOptions);
             });
 
             if(!groupRange.isDefined()) {

@@ -986,3 +986,54 @@ QUnit.test("Pass merged marginOptions to axes when two value axis", function(ass
     });
 });
 
+QUnit.test("Process margin for bubble", function(assert) {
+    seriesMockData.series.push(new MockSeries({
+        marginOptions: {
+            processBubbleSize: true
+        }
+    }));
+
+    var chart = this.createChart({
+        series: [{}],
+        panes: [{
+            name: "pane1"
+        },
+        {
+            name: "pane2"
+        }],
+        maxBubbleSize: 0.2,
+        size: {
+            width: 1000,
+            height: 800
+        }
+    });
+
+    assert.deepEqual(chart._valueAxes[0].setMarginOptions.lastCall.args[0].size, 80);
+});
+
+QUnit.test("Process margin for bubble. Rotated chart", function(assert) {
+    seriesMockData.series.push(new MockSeries({
+        marginOptions: {
+            processBubbleSize: true
+        }
+    }));
+
+    var chart = this.createChart({
+        series: [{}],
+        rotated: true,
+        panes: [{
+            name: "pane1"
+        },
+        {
+            name: "pane2"
+        }],
+        maxBubbleSize: 0.2,
+        size: {
+            width: 1000,
+            height: 800
+        }
+    });
+
+    assert.deepEqual(chart._valueAxes[0].setMarginOptions.lastCall.args[0].size, 100);
+});
+
