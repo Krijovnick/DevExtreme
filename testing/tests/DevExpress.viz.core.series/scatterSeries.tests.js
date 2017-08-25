@@ -1730,10 +1730,11 @@ var checkTwoGroups = function(assert, series) {
         });
     });
 
-    QUnit.test("getMarginOptioins", function(assert) {
+    QUnit.test("getMarginOptions - return point size", function(assert) {
         var series = createSeries({
             type: seriesType,
             point: {
+                visible: true,
                 size: 6
             }
         });
@@ -1741,10 +1742,23 @@ var checkTwoGroups = function(assert, series) {
         assert.deepEqual(series.getMarginOptions(), { size: 6 });
     });
 
-    QUnit.test("getMarginOptioins. add max border width", function(assert) {
+    QUnit.test("getMarginOptions, point is invisible - return 0", function(assert) {
         var series = createSeries({
             type: seriesType,
             point: {
+                visible: false,
+                size: 6
+            }
+        });
+
+        assert.deepEqual(series.getMarginOptions(), { size: 0 });
+    });
+
+    QUnit.test("getMarginOptions. add max border width", function(assert) {
+        var series = createSeries({
+            type: seriesType,
+            point: {
+                visible: true,
                 size: 6,
                 border: {
                     visible: true,
@@ -1765,7 +1779,7 @@ var checkTwoGroups = function(assert, series) {
             }
         });
 
-        assert.deepEqual(series.getMarginOptions(), { size: 18 });
+        assert.deepEqual(series.getMarginOptions(), { size: 30 });
     });
 
     QUnit.module("Scatter. Label styles", {

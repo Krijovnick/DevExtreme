@@ -1007,6 +1007,7 @@
             _constantLinesGroup: renderOptions.constantLinesGroup,
             axesContainerGroup: renderOptions.axesContainerGroup,
             gridGroup: renderOptions.gridGroup,
+            isArgumentAxis: renderOptions.isArgumentAxis,
             _renderer: renderer,
             applyClipRects: function(clipRect) {
                 this.clipRectsApplied = true;

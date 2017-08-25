@@ -108,7 +108,7 @@ exports.chart.bubble = _extend({}, scatterSeries, {
         });
     },
 
-    getMarginOption: function() {
+    getMarginOptions: function() {
         return {
             processBubbleSize: true
         };

@@ -41,6 +41,10 @@ function getPolarQuarter(angle) {
 polarAxes = exports;
 
 circularAxes = polarAxes.circular = {
+    _applyMargins: function(range) {
+        return range;
+    },
+
     _updateTranslator: function() {
         this._translator.update({}, {}, {
             isHorizontal: true,

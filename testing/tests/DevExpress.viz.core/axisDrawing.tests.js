@@ -280,7 +280,7 @@ QUnit.test("Horizontal top", function(assert) {
         color: "#123456",
         opacity: 0.3
     });
-    this.translator.stub("getBusinessRange").returns({ invert: true, addRange: sinon.stub() });
+    this.axis.setBusinessRange({ invert: true });
 
     //act
     this.axis.draw(this.canvas);
@@ -301,7 +301,7 @@ QUnit.test("Horizontal bottom", function(assert) {
         color: "#123456",
         opacity: 0.3
     });
-    this.translator.stub("getBusinessRange").returns({ invert: true, addRange: sinon.stub() });
+    this.axis.setBusinessRange({ invert: true });
 
     //act
     this.axis.draw(this.canvas);
@@ -322,7 +322,7 @@ QUnit.test("Vertical left", function(assert) {
         color: "#123456",
         opacity: 0.3
     });
-    this.translator.stub("getBusinessRange").returns({ invert: true, addRange: sinon.stub() });
+    this.axis.setBusinessRange({ invert: true });
 
     //act
     this.axis.draw(this.canvas);
@@ -344,7 +344,7 @@ QUnit.test("Vertical right", function(assert) {
         color: "#123456",
         opacity: 0.3
     });
-    this.translator.stub("getBusinessRange").returns({ invert: true, addRange: sinon.stub() });
+    this.axis.setBusinessRange({ invert: true });
 
     //act
     this.axis.draw(this.canvas);
@@ -687,10 +687,7 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw la
         }
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
-        categories: categories
-    });
+    this.axis.setBusinessRange({ categories: categories });
 
     this.generatedTicks = categories;
 
@@ -727,10 +724,7 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - crossLabels. Draw all grid li
         }
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
-        categories: categories
-    });
+    this.axis.setBusinessRange({ categories: categories });
 
     this.generatedTicks = categories;
 
@@ -993,6 +987,7 @@ QUnit.test("Boundary ticks, visible categories - render boundary visible ticks",
     //arrange
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "bottom",
         showCustomBoundaryTicks: true,
@@ -1006,7 +1001,7 @@ QUnit.test("Boundary ticks, visible categories - render boundary visible ticks",
         }
     });
 
-    this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e", addRange: function() { } });
+    this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e" });
     this.translator.stub("getVisibleCategories").returns(["b", "c", "d"]);
 
     this.translator.stub("translate").withArgs("a").returns(10);
@@ -1028,6 +1023,7 @@ QUnit.test("Boundary ticks, no visible categories - render boundary ticks", func
     //arrange
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "bottom",
         showCustomBoundaryTicks: true,
@@ -1059,10 +1055,11 @@ QUnit.test("Boundary ticks, no visible categories - render boundary ticks", func
     assert.deepEqual(path.getCall(1).returnValue.attr.getCall(1).args[0], { points: [90, 70 - 5, 90, 70 + 5] }); //e
 });
 
-QUnit.test("Boundary ticks, visible categories, crossLabels - render boundary ticks", function(assert) {
+QUnit.test("Boundary ticks, visible categories, crossLabels - do not render boundary ticks", function(assert) {
     //arrange
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "bottom",
         showCustomBoundaryTicks: true,
@@ -1077,7 +1074,7 @@ QUnit.test("Boundary ticks, visible categories, crossLabels - render boundary ti
         }
     });
 
-    this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e", addRange: function() { } });
+    this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e" });
     this.translator.stub("getVisibleCategories").returns(["b", "c", "d"]);
 
     this.translator.stub("translate").withArgs("a").returns(10);
@@ -1089,10 +1086,7 @@ QUnit.test("Boundary ticks, visible categories, crossLabels - render boundary ti
     //act
     this.axis.draw(this.canvas);
 
-    var path = this.renderer.path;
-    assert.equal(path.callCount, 2);
-    assert.deepEqual(path.getCall(0).returnValue.attr.getCall(1).args[0], { points: [10, 70 - 5, 10, 70 + 5] }); //a
-    assert.deepEqual(path.getCall(1).returnValue.attr.getCall(1).args[0], { points: [90, 70 - 5, 90, 70 + 5] }); //e
+    assert.equal(this.renderer.stub("path").callCount, 0);
 });
 
 QUnit.test("Check calls to translator. Boundary ticks", function(assert) {
@@ -1932,11 +1926,7 @@ QUnit.test("Stub data. Do not draw labels", function(assert) {
     this.generatedTicks = [1];
 
     this.translator.stub("translate").withArgs(1).returns(40);
-
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
-        stubData: true
-    });
+    this.axis.setBusinessRange({ stubData: true });
 
     //act
     this.axis.draw(this.canvas);
@@ -2478,8 +2468,7 @@ QUnit.test("With stub data", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         stubData: true
     });
     this.translator.stub("translate").withArgs(1).returns(40);
@@ -6151,10 +6140,7 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw la
         }
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
-        categories: categories
-    });
+    this.axis.setBusinessRange({ categories: categories });
 
     this.generatedTicks = categories;
 
@@ -6189,10 +6175,7 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - crossLabels. Draw all grid li
         }
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
-        categories: categories
-    });
+    this.axis.setBusinessRange({ categories: categories });
 
     this.generatedTicks = categories;
 
@@ -6230,8 +6213,7 @@ QUnit.test("Horizontal axis. Full strips", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6274,8 +6256,7 @@ QUnit.test("Vertical axis. Full strips", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6313,8 +6294,7 @@ QUnit.test("Horizontal axis. Strips without start/end value", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6350,8 +6330,7 @@ QUnit.test("Vertical axis. Strips without start/end value", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6387,8 +6366,7 @@ QUnit.test("Horizontal axis. Without color", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6431,8 +6409,7 @@ QUnit.test("Horizontal axis. Some strips out of bounds, some strips partially ou
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6481,8 +6458,7 @@ QUnit.test("Vertical axis. Some strips out of bounds, some strips partially out 
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6519,8 +6495,7 @@ QUnit.test("Horizontal axis. End value > start value", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6550,8 +6525,7 @@ QUnit.test("Vertical axis. End value > start value", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6583,8 +6557,7 @@ QUnit.test("Stub data - do not create strips", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         stubData: true,
         minVisible: 0,
         maxVisible: 10
@@ -6646,8 +6619,7 @@ QUnit.test("Styles and attributes", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6716,8 +6688,7 @@ QUnit.test("Horizontal axis. Horizontal alignment - center, Vertical alignment -
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6783,8 +6754,7 @@ QUnit.test("Horizontal axis. Horizontal alignment - center, Vertical alignment -
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6850,8 +6820,7 @@ QUnit.test("Horizontal axis. Horizontal alignment - center, Vertical alignment -
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6917,8 +6886,7 @@ QUnit.test("Horizontal axis. Horizontal alignment - left", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -6984,8 +6952,7 @@ QUnit.test("Horizontal axis. Horizontal alignment - right", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -7051,8 +7018,7 @@ QUnit.test("Vertical axis. Vertical alignment - center, Horizontal alignment - l
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -7118,8 +7084,7 @@ QUnit.test("Vertical axis. Vertical alignment - center, Horizontal alignment - c
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -7185,8 +7150,7 @@ QUnit.test("Vertical axis. Vertical alignment - center, Horizontal alignment - r
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -7252,8 +7216,7 @@ QUnit.test("Vertical axis. Vertical alignment - top", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -7319,8 +7282,7 @@ QUnit.test("Vertical axis. Vertical alignment - bottom", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -7383,8 +7345,7 @@ QUnit.test("T441890. First strip is small and without label, second without labe
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 100
     });
@@ -7859,10 +7820,6 @@ QUnit.test("Axis has stubData - hideOuterElements does nothing", function(assert
     var spy = sinon.spy();
 
     this.createAxis({ incidentOccurred: spy });
-    var range = {
-        addRange: sinon.stub(),
-        stubData: true
-    };
 
     this.updateOptions({
         title: {
@@ -7872,12 +7829,11 @@ QUnit.test("Axis has stubData - hideOuterElements does nothing", function(assert
             visible: true, overlappingBehavior: {}
         }
     });
-    this.translator.getBusinessRange.returns(range);
+    this.axis.setBusinessRange({ stubData: true });
     this.axis.draw(this.canvas);
     this.renderer.g.getCall(3).returnValue.clear.reset();
 
     this.axis.hideOuterElements();
-    this.axis.setBusinessRange(range);
 
     assert.ok(!this.renderer.g.getCall(3).returnValue.clear.called, "labels not cleared");
     assert.ok(!spy.called, "incidentOccurred is called");
@@ -8405,8 +8361,7 @@ QUnit.test("Update strip coords", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });
@@ -8462,8 +8417,7 @@ QUnit.test("Update strip labels coords", function(assert) {
         }]
     });
 
-    this.translator.stub("getBusinessRange").returns({
-        addRange: sinon.stub(),
+    this.axis.setBusinessRange({
         minVisible: 0,
         maxVisible: 10
     });

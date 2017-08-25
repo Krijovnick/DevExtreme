@@ -3,6 +3,7 @@
 var utils = require("../core/utils"),
     dateUtils = require("../../core/utils/date"),
     typeUtils = require("../../core/utils/type"),
+    vizUtils = require("../core/utils"),
     convertDateUnitToMilliseconds = dateUtils.convertDateUnitToMilliseconds,
     dateToMilliseconds = dateUtils.dateToMilliseconds,
     getLog = utils.getLog,
@@ -35,10 +36,11 @@ var NUMBER_MULTIPLIERS = [1, 2, 2.5, 5],
 
 function discreteGenerator(options) {
     return function(data, screenDelta, tickInterval, forceTickInterval) {
-        var interval = data.categories.length * options.axisDivisionFactor / screenDelta;
+        var categories = vizUtils.getCategoriesInfo(data.categories, data.min, data.max).categories,
+            interval = categories.length * options.axisDivisionFactor / screenDelta;
 
         return {
-            ticks: data.categories,
+            ticks: categories,
             tickInterval: interval > 4 ? mathCeil(interval) : 1
         };
     };

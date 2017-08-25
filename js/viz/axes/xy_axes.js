@@ -875,6 +875,7 @@ module.exports = {
 
         _getSkippedCategory: function() {
             var skippedCategory,
+                //TODO we can not use getVisibleCategories as translator is not updated yet
                 categories = this._translator.getVisibleCategories() || this._translator.getBusinessRange().categories;
 
             if(categories && categories.length && !!this._tickOffset) {

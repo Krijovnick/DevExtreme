@@ -281,22 +281,26 @@ QUnit.test("dxChart reinitialization - dataSource - correct axes min max", funct
         }],
         title: "original"
     });
+
+    var argAxis = chart._argumentAxes[0],
+        argFunction = argAxis.setBusinessRange,
+        valAxis = chart._valueAxes[0],
+        valFunction = valAxis.setBusinessRange;
+
+    argAxis.setBusinessRange = sinon.spy(function() { return argFunction.apply(argAxis, arguments); });
+    valAxis.setBusinessRange = sinon.spy(function() { return valFunction.apply(valAxis, arguments); });
+
     //act
-    assert.equal(chart._argumentAxes[0]._minBound, 0);
-    assert.equal(chart._argumentAxes[0]._maxBound, 10);
-    assert.equal(chart._valueAxes[0]._minBound, 0);
-    assert.equal(chart._valueAxes[0]._maxBound, 10);
     this.$container.dxChart({
         dataSource: [{ arg: 223, val1: 1 },
             { arg: 445, val1: 4 }]
     });
 
     //assert
-    assert.ok(chart);
-    assert.equal(chart._argumentAxes[0]._minBound, 223);
-    assert.equal(chart._argumentAxes[0]._maxBound, 445);
-    assert.equal(chart._valueAxes[0]._minBound, 1);
-    assert.equal(chart._valueAxes[0]._maxBound, 4);
+    assert.equal(argAxis.setBusinessRange.lastCall.args[0].min, 223);
+    assert.equal(argAxis.setBusinessRange.lastCall.args[0].max, 445);
+    assert.equal(valAxis.setBusinessRange.lastCall.args[0].min, 1);
+    assert.equal(valAxis.setBusinessRange.lastCall.args[0].max, 4);
 });
 
 QUnit.test("dxChart with vertical axis with title", function(assert) {
@@ -908,7 +912,7 @@ QUnit.test("Legend and title should have original place", function(assert) {
     assert.deepEqual(this.titleShiftSpy.getCall(0).args, this.titleShiftSpy.getCall(1).args, "title shift");
 });
 
-QUnit.test('T295685. dxChart with adaptive layout', function(assert) {
+QUnit.test('T295685. Do not expand range on adaptive layout', function(assert) {
     //arrange
     var chart = createChartInstance({
         dataSource: [],
@@ -916,6 +920,9 @@ QUnit.test('T295685. dxChart with adaptive layout', function(assert) {
             name: 'First',
             valueField: 'val1'
         }],
+        commonAxisSettings: {
+            valueMarginsEnabled: false
+        },
         title: 'original'
     }, $("#chartContainer"));
     //act
@@ -996,6 +1003,9 @@ QUnit.test("Numeric", function(assert) {
         dataSource: [{ arg: 20, val: 10 }, { arg: 40, val: 11 }],
         series: {
             type: "line"
+        },
+        argumentAxis: {
+            valueMarginsEnabled: false
         }
     }, this.$container);
 

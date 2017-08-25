@@ -957,6 +957,31 @@ QUnit.test("shift", function(assert) {
     assert.equal(args.translateY, 30, "translateY");
 });
 
+QUnit.test("Value margins are not applied for circular axis", function(assert) {
+    this.options.min = 100;
+    this.options.max = 200;
+    this.generatedTicks = [100, 200];
+    var axis = this.createSimpleAxis({
+        period: 20,
+        argumentType: "numeric",
+        valueMarginsEnabled: true,
+        minValueMargin: 0.5,
+        maxValueMargin: 0.5
+    });
+    axis.setBusinessRange({
+        min: 100,
+        max: 200
+    });
+    axis.createTicks(this.canvas);
+
+    var range = this.translator.updateBusinessRange.lastCall.args[0];
+
+    assert.equal(range.min, 100);
+    assert.equal(range.max, 200);
+    assert.equal(range.minVisible, 100);
+    assert.equal(range.maxVisible, 200);
+});
+
 QUnit.module("Linear Axis", $.extend({}, environment, {
     beforeEach: function() {
         environment.beforeEach.apply(this, arguments);

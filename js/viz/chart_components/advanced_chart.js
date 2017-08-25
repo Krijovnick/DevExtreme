@@ -371,7 +371,6 @@ var AdvancedChart = BaseChart.inherit({
             argRange.setStubData(argAxes[0].getOptions().argumentType);
         }
 
-
         that._argumentAxes.forEach(function(a) {
             a.setBusinessRange(argRange);
             a.setMarginOptions(argumentMarginOptions);

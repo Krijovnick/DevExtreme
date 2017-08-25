@@ -2,6 +2,7 @@
 
 var $ = require("jquery"),
     translator2DModule = require("viz/translators/translator2d"),
+    vizUtilsModule = require("viz/core/utils"),
     Axis = require("viz/axes/base_axis").Axis,
     vizMocks = require("../../helpers/vizMocks.js"),
     StubTranslator = vizMocks.stubClass(translator2DModule.Translator2D, {
@@ -47,6 +48,9 @@ var environment = {
         }, options));
     },
     afterEach: function() {
+        if(this.getCategoriesInfo !== undefined) {
+            this.getCategoriesInfo.restore();
+        }
         translator2DModule.Translator2D.restore();
         this.axis.dispose();
         this.axis = null;
@@ -72,7 +76,7 @@ var environment = {
             marker: {}
         }, options));
 
-        this.axis.validate(true);
+        this.axis.validate();
     }
 };
 
@@ -127,7 +131,7 @@ QUnit.test("Do not calculate tickInterval if ratio of (categories count) to (cou
         type: "discrete"
     });
 
-    this.axis.setBusinessRange({ categories: new Array(79).fill(1), addRange: function() { } });
+    this.axis.setBusinessRange({ categories: new Array(79).fill(1).map(function(_, i) { return i; }), addRange: function() { } });
 
     //act
     this.axis.createTicks(canvas(1000));
@@ -143,12 +147,34 @@ QUnit.test("Calculate tickInterval if ratio of (categories count) to (count by s
         axisDivisionFactor: 110
     });
 
-    this.axis.setBusinessRange({ categories: new Array(82).fill(1), addRange: function() { } });
+    this.axis.setBusinessRange({ categories: new Array(82).fill(1).map(function(_, i) { return i; }), addRange: function() { } });
 
     //act
     this.axis.createTicks(canvas(1000));
 
     assert.deepEqual(this.axis._tickInterval, 10);
+});
+
+QUnit.test("Return categories between min and max", function(assert) {
+    var categories = ["cat1", "cat2", "cat3", "cat4", "cat5"];
+
+    this.getCategoriesInfo = sinon.stub(vizUtilsModule, "getCategoriesInfo");
+    this.getCategoriesInfo.withArgs(categories, "cat2", "cat4").returns({ categories: ["cat2", "cat3", "cat4"] });
+
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "string",
+        type: "discrete",
+        min: "cat2",
+        max: "cat4"
+    });
+
+    this.axis.setBusinessRange({ categories: ["cat1", "cat2", "cat3", "cat4", "cat5"], addRange: function() { } });
+
+    //act
+    this.axis.createTicks(canvas(1000));
+
+    assert.deepEqual(this.axis._majorTicks.map(value), ["cat2", "cat3", "cat4"]);
 });
 
 QUnit.module("Numeric. Calculate tickInterval. allowDecimals false", environment);
@@ -1328,11 +1354,11 @@ QUnit.module("DateTime. Calculate tickInterval and ticks", environment);
 QUnit.test("Milliseconds tickInterval (5ms)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
-    this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 1, 12, 3, 5, 123), maxVisible: new Date(2012, 3, 1, 12, 3, 5, 149), addRange: function() { } });
+    this.axis.setBusinessRange({ minVisible: new Date(2012, 3, 1, 12, 3, 5, 123), maxVisible: new Date(2012, 3, 1, 12, 3, 5, 149) });
 
     //act
     this.axis.createTicks(canvas(300));
@@ -1348,7 +1374,7 @@ QUnit.test("Milliseconds tickInterval (5ms)", function(assert) {
 QUnit.test("Seconds tickInterval (5s)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1368,7 +1394,7 @@ QUnit.test("Seconds tickInterval (5s)", function(assert) {
 QUnit.test("Minutes tickInterval (3)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1388,7 +1414,7 @@ QUnit.test("Minutes tickInterval (3)", function(assert) {
 QUnit.test("Hours tickInterval (4)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1408,7 +1434,7 @@ QUnit.test("Hours tickInterval (4)", function(assert) {
 QUnit.test("Days tickInterval (2)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1427,7 +1453,7 @@ QUnit.test("Days tickInterval (2)", function(assert) {
 QUnit.test("Weeks tickInterval (2)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1446,7 +1472,7 @@ QUnit.test("Weeks tickInterval (2)", function(assert) {
 QUnit.test("Months tickInterval (3)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1466,7 +1492,7 @@ QUnit.test("Months tickInterval (3)", function(assert) {
 QUnit.test("Years tickInterval (2)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1485,7 +1511,7 @@ QUnit.test("Years tickInterval (2)", function(assert) {
 QUnit.test("Years tickInterval can not be 2.5 (5)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1505,7 +1531,7 @@ QUnit.test("Years tickInterval can not be 2.5 (5)", function(assert) {
 QUnit.test("Years tickInterval (25)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous"
     });
 
@@ -1527,7 +1553,7 @@ QUnit.module("DateTime. Misc", environment);
 QUnit.test("Without endOnTicks - calculate ticks inside data bounds", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { "days": 2 }
     });
@@ -1547,7 +1573,7 @@ QUnit.test("Without endOnTicks - calculate ticks inside data bounds", function(a
 QUnit.test("With endOnTicks - calculate ticks outside or on data bounds", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { "days": 2 },
         endOnTicks: true
@@ -1570,7 +1596,7 @@ QUnit.test("With endOnTicks - calculate ticks outside or on data bounds", functi
 QUnit.test("Force user tick interval if it is too small for given screenDelta and spacing factor", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { "days": 1 },
         forceUserTickInterval: true
@@ -1588,7 +1614,7 @@ QUnit.test("Force user tick interval if it is too small for given screenDelta an
 QUnit.test("Quarters custom interval", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { "quarters": 1 }
     });
@@ -1607,7 +1633,7 @@ QUnit.test("Quarters custom interval", function(assert) {
 QUnit.test("Custom tickInterval with several keys - use bigger key as multiplier", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { hours: 2, seconds: 30 }
     });
@@ -1628,7 +1654,7 @@ QUnit.test("Custom tickInterval with several keys - use bigger key as multiplier
 QUnit.test("endOnTicks true, custom tickInterval with several keys - use bigger key as multiplier", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { hours: 2, seconds: 30 },
         endOnTicks: true
@@ -1652,7 +1678,7 @@ QUnit.test("endOnTicks true, custom tickInterval with several keys - use bigger 
 QUnit.test("customTicks", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { hours: 2, seconds: 30 },
         endOnTicks: true,
@@ -1674,7 +1700,7 @@ QUnit.test("customTicks", function(assert) {
 QUnit.test("Custom tickInterval is very small - ignore tickInterval and raise W2003 warning", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { hours: 1 }
     });
@@ -1691,7 +1717,7 @@ QUnit.test("Custom tickInterval is very small - ignore tickInterval and raise W2
 QUnit.test("Tick interval can be set as string value", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: "day"
     });
@@ -1713,7 +1739,7 @@ QUnit.module("DateTime. Minor ticks", environment);
 QUnit.test("tickInterval month - minorTickInterval can not be in weeks", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { months: 1 },
         minorTick: { visible: true }
@@ -1731,7 +1757,7 @@ QUnit.test("tickInterval month - minorTickInterval can not be in weeks", functio
 QUnit.test("Custom minorTicks", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { months: 1 },
         minorTick: { visible: true },
@@ -1750,7 +1776,7 @@ QUnit.test("Custom minorTicks", function(assert) {
 QUnit.test("Minor ticks when there is only one major tick on min (big tickInterval)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { months: 1 },
         minorTick: { visible: true }
@@ -1768,7 +1794,7 @@ QUnit.test("Minor ticks when there is only one major tick on min (big tickInterv
 QUnit.test("Minor ticks when there is only one major tick in the middle (big tickInterval)", function(assert) {
     this.createAxis();
     this.updateOptions({
-        argumentType: "datetime",
+        valueType: "datetime",
         type: "continuous",
         tickInterval: { months: 1 },
         minorTick: { visible: true }

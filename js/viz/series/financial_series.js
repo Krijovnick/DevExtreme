@@ -269,8 +269,15 @@ exports.stock = _extend({}, scatterSeries, {
     },
 
     getMarginOptions: function() {
+        var pointOptions = this._getCreatingPointOptions(),
+            styles = pointOptions.styles,
+            border = [styles.normal, styles.hover, styles.selection]
+                .reduce(function(max, style) {
+                    return Math.max(max, style["stroke-width"]);
+                }, 0);
+
         return {
-            size: DEFAULT_FINANCIAL_POINT_SIZE
+            size: DEFAULT_FINANCIAL_POINT_SIZE + border
         };
     }
 });

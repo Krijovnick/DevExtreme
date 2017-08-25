@@ -37,9 +37,15 @@ stick - used in translator, in tick manager it prevents from bounds generating a
 checkBoundedTicksOverlapping - ??
 getMaxLabelParams - ??
 
-minStickValue, maxStickValue - ограничивает расширение рейнжа в tickManager за 0. В tickGenerator уже тики не должны за 0 генерится
+minStickValue, maxStickValue - restricts range expansion in tickManager below/above 0. tickGenerator generates ticks based on 0 level, so there is no problem with that
 
 
 valueType, argumentType, dataType - in RangeSelector and gauges
 
 boundCoef ???
+
+
+getCategoriesInfo - can not work with non-unique categories
+
+Problems:
+endOnTicks + zooming - viewPort and bounds implementation should fix this problem

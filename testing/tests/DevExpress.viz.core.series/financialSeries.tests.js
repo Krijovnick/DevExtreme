@@ -176,10 +176,17 @@ var checkGroups = function(assert, series) {
         var series = createSeries({
             type: "stock",
             reduction: { level: "open" },
-            label: { visible: false }
+            label: { visible: false },
+            width: 2,
+            hoverStyle: {
+                width: 3
+            },
+            selectionStyle: {
+                width: 4
+            }
         });
 
-        assert.deepEqual(series.getMarginOptions(), { size: 10 });
+        assert.deepEqual(series.getMarginOptions(), { size: 14 });
     });
 
     QUnit.module("StockSeries series. Draw", {

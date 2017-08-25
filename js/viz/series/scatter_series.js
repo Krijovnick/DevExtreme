@@ -576,11 +576,11 @@ exports.chart = _extend({}, baseScatterMethods, {
             styles = pointOptions.styles,
             maxSize = [styles.normal, styles.hover, styles.selection]
                 .reduce(function(max, style) {
-                    return Math.max(max, style.r * 2);
+                    return Math.max(max, style.r * 2 + style["stroke-width"]);
                 }, 0);
 
         return {
-            size: maxSize
+            size: pointOptions.visible ? maxSize : 0
         };
     }
 });

@@ -115,7 +115,7 @@ var baseBarSeriesMethods = {
 
     getValueRangeInitialValue: areaSeries.getValueRangeInitialValue,
 
-    getMarginOption: function() {
+    getMarginOptions: function() {
         return {
             checkInterval: true
         };

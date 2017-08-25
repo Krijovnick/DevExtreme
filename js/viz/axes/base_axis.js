@@ -131,26 +131,14 @@ function measureLabels(items) {
     });
 }
 
-function arrayLength(categories) {
-    return categories && categories.length;
-}
-
-function getMaxMinDistance(range) {
-    var min = isDefined(range.minVisible) ? range.minVisible : range.min,
-        max = isDefined(range.maxVisible) ? range.maxVisible : range.max;
-
-    return _abs(max - min);
-}
-
-function getAddFunction(range) {
-    //TODO test for T170398
+function getAddFunction(range, correctZeroLevel) {
     //T170398
     if(range.dataType === "datetime") {
         return function(rangeValue, marginValue) {
             return new Date(rangeValue.getTime() + marginValue);
         };
     }
-    return function(rangeValue, marginValue, correctZeroLevel) {
+    return function(rangeValue, marginValue) {
         var newValue = rangeValue + marginValue;
         return correctZeroLevel && newValue * rangeValue <= 0 ? 0 : newValue;
     };
@@ -888,33 +876,23 @@ Axis.prototype = {
     },
 
     setBusinessRange: function(range) {
-        //TODO
-        //set initial viewPort
-        //we do not need _saveBusinessRange (or need to pass it to translator later)
-
-        ////this._applyMargins(range);
-        //this._updateBusinessRange(range);
-        //this._saveBusinessRange(range);
-
-
-
-        //TODO it is from translator
-        //TODO check if it is needed
-        var validateBusinessRange = function(businessRange) {
-            function validate(valueSelector, baseValueSelector) {
-                if(!isDefined(businessRange[valueSelector]) && isDefined(businessRange[baseValueSelector])) {
-                    businessRange[valueSelector] = businessRange[baseValueSelector];
-                }
+        var validateBusinessRange = function(range, min, max) {
+            function validate(valueSelector, baseValueSelector, optionValue) {
+                range[valueSelector] = isDefined(optionValue) ? optionValue :
+                    (isDefined(range[valueSelector]) ? range[valueSelector] : range[baseValueSelector]);
             }
-            validate("minVisible", "min");
-            validate("maxVisible", "max");
-            return businessRange;
+
+            validate("minVisible", "min", min);
+            validate("maxVisible", "max", max);
+            return range;
         };
 
-        this._seriesData = new rangeModule.Range(validateBusinessRange(range));
+        this._seriesData = new rangeModule.Range(validateBusinessRange(range, this._options.min, this._options.max));
 
-
-        //TODO we can calculate data bounds here (data from range + min/max options)
+        //TODO we should remove it
+        //for aggregation
+        //and to ask for stubData
+        this._translator.updateBusinessRange(this._seriesData);
     },
 
     getLabelsPosition: function() {
@@ -935,6 +913,7 @@ Axis.prototype = {
 
     _getBoundaryTicks: function(majors) {
         var that = this,
+            //TODO we can not use getVisibleCategories here as translator is not updated yet
             categories = that._translator.getVisibleCategories(),
             tickValues = majors.map(valueOf),
             options = that._options,
@@ -945,8 +924,10 @@ Axis.prototype = {
             addMinMax = options.showCustomBoundaryTicks ? that._boundaryTicksVisibility : {},
             boundaryTicks = [];
 
-        if(arrayLength(categories) && that._tickOffset) {
-            boundaryTicks = [categories[0], categories[categories.length - 1]];
+        if(options.type === constants.discrete && categories !== undefined && categories.length !== 0) {
+            if(that._tickOffset) {
+                boundaryTicks = [categories[0], categories[categories.length - 1]];
+            }
         } else {
             if(customBounds) {
                 if(addMinMax.min && isDefined(customBounds[0])) {
@@ -1019,7 +1000,9 @@ Axis.prototype = {
             {
                 min: viewPort.minVisible,
                 max: viewPort.maxVisible,
-                categories: that._translator.getVisibleCategories()
+                //TODO we can not use getVisibleCategories as translator is not updated yet
+                //categories: that._translator.getVisibleCategories()
+                categories: viewPort.categories
             }, //TODO can we use rangedata?
             that._getScreenDelta(), //screenDelta,
             that._translator.getBusinessRange().stubData ? null : options.tickInterval, //tickInterval,
@@ -1035,7 +1018,7 @@ Axis.prototype = {
 
     _createTicksAndLabelFormat: function(canvas) {
         var options = this._options,
-            isMarkersVisible = options.type === "discrete" ? false : options.marker.visible,
+            isMarkersVisible = options.type === constants.discrete ? false : options.marker.visible,
             ticks;
 
         this.updateCanvas(canvas);
@@ -1093,86 +1076,48 @@ Axis.prototype = {
 
     _updateIntervalAndBounds: function(ticks) {
         var that = this,
-            i,
             length,
-            minInterval,
-            newRange = {},
-            range = that._getViewportRange();
+            range = that._getViewportRange(),
+            minVisible = range.minVisible,
+            maxVisible = range.maxVisible,
+            interval = range.interval;
 
-        if(!arrayLength(range.categories)) {
+        if(that._options.type !== constants.discrete) {
             length = ticks.length;
 
             //TODO what can we do with isSynchronized
-            if(!range.isSynchronized && length) {
+            if(!range.isSynchronized && length && !isDefined(that._zoomArgs)) {
                 //TODO see same code in RS
                 if(ticks[0] < range.minVisible) {
-                    newRange.minVisible = ticks[0];
+                    minVisible = ticks[0];
                 }
                 if(length > 1 && ticks[length - 1] > range.maxVisible) {
-                    newRange.maxVisible = ticks[length - 1];
+                    maxVisible = ticks[length - 1];
                 }
             }
 
-            //TODO we should remove interval, it should be processed on margins applying
-            if(length > 1) {
-                minInterval = _abs(ticks[0] - ticks[1]);
-                for(i = 1; i < length - 1; i++) {
-                    minInterval = _min(_abs(ticks[i] - ticks[i + 1]), minInterval);
-                }
-                newRange.interval = Math.min(minInterval, range.interval);
-            }
+            interval = this._calculateRangeInterval(_abs(maxVisible - minVisible), interval);
 
-            range.addRange(newRange);
-            that._translator.updateBusinessRange(range);
+            range.addRange({
+                minVisible: minVisible,
+                maxVisible: maxVisible,
+                interval: interval
+            });
+            //that._translator.updateBusinessRange(range);
         }
-    },
-
-    //for internal use only
-    _getViewport: function() {
-        var seriesData = this._seriesData,
-            zoom = this._zoomArgs,
-            min = this._options.min,
-            max = this._options.max;
-
-        if(isDefined(zoom)) {
-            min = zoom.min;
-            max = zoom.max;
-        } else {
-            if(!isDefined(min)) {
-                min = seriesData.minVisible;
-            }
-            if(!isDefined(max)) {
-                max = seriesData.maxVisible;
-            }
-
-            return this._applyMargins(min, max);
-        }
-
-        return {
-            min: min,
-            max: max
-        };
+        that._translator.updateBusinessRange(range);
     },
 
     //for internal use only
     _getViewportRange: function() {
         var range = new rangeModule.Range(this._seriesData),
-            zoom = this._zoomArgs,
-            min = this._options.min,
-            max = this._options.max;
-
-        if(isDefined(min)) {
-            range.minVisible = min;
-        }
-        if(isDefined(max)) {
-            range.maxVisible = max;
-        }
+            zoom = this._zoomArgs;
 
         range = this._applyMargins(range);
 
-        if(isDefined(zoom)) {
-            range.minVisible = zoom.min;
-            range.maxVisible = zoom.max;
+        if(isDefined(zoom) && (isDefined(zoom.min) || isDefined(zoom.max))) {
+            isDefined(zoom.min) && (range.minVisible = zoom.min);
+            isDefined(zoom.max) && (range.maxVisible = zoom.max);
             if(!this.isArgumentAxis) {
                 range = this._applyMargins(range);
             }
@@ -1185,40 +1130,63 @@ Axis.prototype = {
         this._marginOptions = options;
     },
 
+
+    _calculateRangeInterval: function(dataLength, interval) {
+        return _min(interval, (this._options.axisDivisionFactor || DEFAULT_AXIS_DIVISION_FACTOR) * dataLength / this._getScreenDelta());
+    },
+
     _applyMargins: function(range) {
-        var interval = range.interval,
-            options = this._options,
-            maxMinDistance = _abs(range.minVisible - range.maxVisible),
-            minMarginValue,
-            maxMarginValue,
+        var options = this._options,
+            //TODO set marginOptions in rangeSelector
+            //margins = this._marginOptions,
+            margins = isDefined(this._marginOptions) ? this._marginOptions : {},
+            marginValue,
             type = options.type,
-            valueMarginsEnabled = options.valueMarginsEnabled && type !== "logarithmic" && type !== "discrete",
+            valueMarginsEnabled = options.valueMarginsEnabled && type !== constants.logarithmic && type !== constants.discrete,
             minValueMargin = options.minValueMargin,
             maxValueMargin = options.maxValueMargin,
-            add = getAddFunction(range),
-            correctZeroLevel = !this.isArgumentAxis,
-            newRange = {};
+            add = getAddFunction(range, !this.isArgumentAxis),
+            canvasLength = this._getScreenDelta(),
+            minVisible = range.minVisible,
+            maxVisible = range.maxVisible,
+            interval = range.interval,
+            maxMinDistance = _abs(maxVisible - minVisible);
 
-        if(valueMarginsEnabled && (isDefined(minValueMargin) || isDefined(maxValueMargin))) {
-            minMarginValue = maxMinDistance * minValueMargin;
-            maxMarginValue = maxMinDistance * maxValueMargin;
+        if(valueMarginsEnabled) {
+            if(isDefined(minValueMargin)) {
+                minVisible = add(minVisible, -maxMinDistance * minValueMargin);
+            }
+            if(isDefined(maxValueMargin)) {
+                maxVisible = add(maxVisible, maxMinDistance * maxValueMargin);
+            }
 
-            newRange.minVisible = add(range.minVisible, -minMarginValue, correctZeroLevel);
-            newRange.maxVisible = add(range.maxVisible, maxMarginValue, correctZeroLevel);
-        } else if(valueMarginsEnabled) {
-            // if(this.isArgumentAxis && interval !== undefined) {
-            //     newRange = {
-            //         min: add(range.min, -interval / 2),
-            //         max: add(range.max, interval / 2),
-            //         minVisible: isDefined(range.minVisible) ? add(range.minVisible, -interval / 2) : undefined,
-            //         maxVisible: isDefined(range.maxVisible) ? add(range.maxVisible, interval / 2) : undefined,
-            //     };
-            // }
+            if(!isDefined(minValueMargin) || !isDefined(maxValueMargin)) {
+                marginValue = 0;
+
+                if(this.isArgumentAxis && margins.checkInterval) {
+                    interval = this._calculateRangeInterval(maxMinDistance, range.interval);
+                    marginValue = interval / 2;
+                }
+                if(margins.size) {
+                    marginValue = _max(marginValue, maxMinDistance / ((canvasLength / margins.size) - 1) / 2);
+                }
+
+                if(!isDefined(minValueMargin)) {
+                    minVisible = add(minVisible, -marginValue);
+                }
+                if(!isDefined(maxValueMargin)) {
+                    maxVisible = add(maxVisible, marginValue);
+                }
+            }
+
+            range.addRange({
+                minVisible: minVisible,
+                maxVisible: maxVisible,
+                interval: interval
+            });
         }
 
-        //TODO calculate interval
-
-        return range.addRange(newRange);
+        return range;
     },
 
     //DEPRECATED IN 15_2
@@ -1341,10 +1309,10 @@ Axis.prototype = {
         this._axisStripGroup.attr({ "clip-path": elementsClipID });
     },
 
-    validate: function(isArgumentAxis) {
+    validate: function() {
         var that = this,
             options = that._options,
-            dataType = isArgumentAxis ? options.argumentType : options.valueType,
+            dataType = that.isArgumentAxis ? options.argumentType : options.valueType,
             parser = dataType ? parseUtils.getParser(dataType) : function(unit) { return unit; };
 
         that.parser = parser;
@@ -1356,15 +1324,6 @@ Axis.prototype = {
         if(options.max !== undefined) {
             options.max = that._validateUnit(options.max, "E2106");
         }
-
-        //TODO do we need it?
-        // if(that._minBound !== undefined) {
-        //     that._minBound = that._validateUnit(that._minBound);
-        // }
-
-        // if(that._maxBound !== undefined) {
-        //     that._maxBound = that._validateUnit(that._maxBound);
-        // }
     },
 
     zoom: function(min, max, skipAdjusting) {
@@ -1372,8 +1331,6 @@ Axis.prototype = {
             minOpt = that._options.min,
             maxOpt = that._options.max,
             stick = skipAdjusting,
-            //businessRange = new rangeModule.Range(this._storedBusinessRange),
-            //translatorRange = this._translator.getBusinessRange(),
             isDiscrete = that._options.type === constants.discrete;
 
         skipAdjusting = skipAdjusting || isDiscrete;
@@ -1396,19 +1353,8 @@ Axis.prototype = {
             }
         }
 
+        //TODO what to do with stick?
         that._zoomArgs = { min: min, max: max, stick: stick };
-
-        // businessRange.minVisible = min;
-        // businessRange.maxVisible = max;
-
-        // if(stick && !isDiscrete) {
-        //     businessRange.min = translatorRange.min;
-        //     businessRange.max = translatorRange.max;
-        //     businessRange.stick = stick;
-        // }
-
-        //this._updateBusinessRange(businessRange);
-
         return that._zoomArgs;
     },
 
