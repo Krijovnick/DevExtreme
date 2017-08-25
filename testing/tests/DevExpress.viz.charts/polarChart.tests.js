@@ -71,6 +71,7 @@ function createSeries() {
     series.getLegendStyles.returns({ normal: { opacity: 0.5 } });
     series.getRangeData.returns({});
     series.getStackName.returns(null);
+    series.getMarginOptions.returns({});
     series.type = "line";
     return series;
 }
