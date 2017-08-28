@@ -1869,3 +1869,81 @@ QUnit.test("Linear", function(assert) {
 
     assert.deepEqual(this.axis._tickInterval, 10);
 });
+
+QUnit.module("Scale Breaks", environment);
+
+QUnit.test("Generate ticks when scale breaks are set", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        allowDecimals: false,
+        calculateMinors: true,
+        breaks: [{
+            from: 20,
+            to: 40
+        }, {
+            from: 70,
+            to: 90
+        }]
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 100, addRange: function() { return this; } });
+
+    //act
+    this.axis.createTicks(canvas(200));
+
+    assert.equal(this.axis._tickInterval, 20, "interval");
+    assert.deepEqual(this.axis._majorTicks.map(value), [0, 40, 60, 100], "major ticks");
+
+    assert.deepEqual(this.axis._minorTicks.map(value), [5, 10, 15, 45, 50, 55, 65, 90, 95], "monir ticks");
+});
+
+QUnit.test("Generate minor ticks when scale breaks at the begin and at the end", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        allowDecimals: false,
+        calculateMinors: true,
+        breaks: [{
+            from: 0,
+            to: 10,
+        },
+        {
+            from: 20,
+            to: 40
+        }, {
+            from: 90,
+            to: 106
+        }]
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0, maxVisible: 105, addRange: function() { return this; } });
+
+    //act
+    this.axis.createTicks(canvas(350));
+
+    assert.deepEqual(this.axis._minorTicks.map(value), [15, 45, 55, 65, 75, 85], "monir ticks");
+});
+
+QUnit.test("With endOnTicks and breaks - calculate ticks outside or on data bounds", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "continuous",
+        endOnTicks: true,
+        tickInterval: 3,
+        breaks: [{
+            from: 11,
+            to: 13
+        }]
+    });
+
+    this.axis.setBusinessRange({ minVisible: 2, maxVisible: 12, addRange: function() { return this; } });
+
+    //act
+    this.axis.createTicks(canvas(1000));
+
+    assert.deepEqual(this.axis._majorTicks.map(value), [0, 3, 6, 9, 15]);
+});

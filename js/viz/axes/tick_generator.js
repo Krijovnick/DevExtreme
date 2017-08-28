@@ -68,13 +68,19 @@ function correctValueByInterval(post, round, getValue) {
     };
 }
 
-function getBusinessDelta(data) {
-    return mathAbs(data.max - data.min);
+function getBusinessDelta(data, breaks) {
+    var spacing = 0;
+    if(breaks) {
+        spacing = breaks.reduce(function(prev, item) {
+            return prev + (item.to - item.from);
+        }, 0);
+    }
+    return mathAbs(data.max - data.min - spacing);
 }
 
 function getBusinessDeltaLog(base) {
     var getLog = getLogValue(base);
-    return function(data) {
+    return function(data, breaks) {
         return mathCeil(mathAbs(getLog(data.max / data.min)));
     };
 }
@@ -234,30 +240,49 @@ function addIntervalDate(value, interval) {
     return dateUtils.addInterval(value, interval);
 }
 
+function pushTick(breaks) {
+    if(!breaks) {
+        return function(ticks, value) {
+            return ticks.push(value);
+        };
+    }
+
+    return function(ticks, value) {
+        return breaks.every(function(item) {
+            return !(value >= item.from && value < item.to);
+        }) && ticks.push(value);
+    };
+}
+
+
 function calculateTicks(addInterval, correctMinValue) {
-    return function(min, max, tickInterval, endOnTicks) {
+    return function(min, max, tickInterval, endOnTicks, breaks) {
         var cur = correctMinValue(min, tickInterval, min),
-            ticks = [];
+            ticks = [],
+            push = pushTick(breaks);
 
         if(cur > max) {
             cur = min;
         }
         while(cur < max) {
-            ticks.push(cur);
+            push(ticks, cur);
             cur = addInterval(cur, tickInterval);
         }
         if(endOnTicks || (cur - max === 0)) {
-            ticks.push(cur);
+            while(!push(ticks, cur)) {
+                cur = addInterval(cur, tickInterval);
+            }
         }
         return ticks;
     };
 }
 
 function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, correctTickValue, ceil) {
-    return function(min, max, majorTicks, minorTickInterval, tickInterval) {
+    return function(min, max, majorTicks, minorTickInterval, tickInterval, breaks) {
         var factor = tickInterval / minorTickInterval,
             lastMajor = majorTicks[majorTicks.length - 1],
-            firstMajor = majorTicks[0];
+            firstMajor = majorTicks[0],
+            push = pushTick(breaks);
 
         minorTickInterval = updateTickInterval(minorTickInterval, firstMajor, factor);
 
@@ -266,7 +291,7 @@ function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, c
             ticks = [];
 
         while(cur < firstMajor) {
-            ticks.push(cur);
+            push(ticks, cur);
             cur = addInterval(cur, minorTickInterval);
         }
 
@@ -280,7 +305,7 @@ function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, c
             minorTickInterval = updateTickInterval(minorTickInterval, tick, factor);
             var cur = correctTickValue(r.prevTick, minorTickInterval, min);
             while(cur < tick) {
-                r.minors.push(cur);
+                push(r.minors, cur);
                 cur = addInterval(cur, minorTickInterval);
             }
 
@@ -294,12 +319,12 @@ function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, c
         minorTickInterval = updateTickInterval(minorTickInterval, ceil(max, tickInterval, min), factor);
         cur = correctTickValue(lastMajor, minorTickInterval, min);
         while(cur < max) {
-            ticks.push(cur);
+            push(ticks, cur);
             cur = addInterval(cur, minorTickInterval);
         }
 
         if((lastMajor - max) !== 0 && (cur - max === 0)) {
-            ticks.push(cur);
+            push(ticks, cur);
         }
 
         return ticks;
@@ -324,7 +349,7 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
         return tickInterval;
     }
 
-    function generateMajorTicks(ticks, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks) {
+    function generateMajorTicks(ticks, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks, breaks) {
         if(customTicks.majors && !options.showCalculatedTicks) { //DEPRECATED IN 15_2
             return ticks;
         }
@@ -332,12 +357,12 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
         tickInterval = correctUserTickInterval(tickInterval, businessDelta, screenDelta);
 
         tickInterval = calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, options.axisDivisionFactor, options.numberMultipliers, options.allowDecimals);
-        ticks.ticks = ticks.ticks.concat(calculateTicks(data.min, data.max, tickInterval, options.endOnTicks));
+        ticks.ticks = ticks.ticks.concat(calculateTicks(data.min, data.max, tickInterval, options.endOnTicks, breaks));
         ticks.tickInterval = tickInterval;
         return ticks;
     }
 
-    function generateMinorTicks(ticks, data, businessDelta, screenDelta, tickInterval, minorTickInterval, minorTickCount, customTicks) {
+    function generateMinorTicks(ticks, data, businessDelta, screenDelta, tickInterval, minorTickInterval, minorTickCount, customTicks, breaks) {
         if(!options.calculateMinors) {
             return ticks;
         }
@@ -356,22 +381,22 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
         minorTickInterval = correctUserTickInterval(minorTickInterval, minorBusinessDelta, minorScreenDelta);
 
         minorTickInterval = calculateMinorTickInterval(minorBusinessDelta, minorScreenDelta, minorTickInterval, options.minorAxisDivisionFactor);
-        ticks.minorTicks = ticks.minorTicks.concat(calculateMinorTicks(data.min, data.max, majorTicks, minorTickInterval, tickInterval));
+        ticks.minorTicks = ticks.minorTicks.concat(calculateMinorTicks(data.min, data.max, majorTicks, minorTickInterval, tickInterval, breaks));
         ticks.minorTickInterval = minorTickInterval;
 
         return ticks;
     }
 
-    return function(data, screenDelta, tickInterval, forceTickInterval, customTicks, minorTickInterval, minorTickCount) {
+    return function(data, screenDelta, tickInterval, forceTickInterval, customTicks, minorTickInterval, minorTickCount, breaks) {
         customTicks = customTicks || {};
 
-        var businessDelta = getBusinessDelta(data),
+        var businessDelta = getBusinessDelta(data, breaks),
             result = processCustomTicks(customTicks);
 
         if(!isNaN(businessDelta)) {
-            result = generateMajorTicks(result, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks);
+            result = generateMajorTicks(result, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks, breaks);
 
-            result = generateMinorTicks(result, data, businessDelta, screenDelta, result.tickInterval, minorTickInterval, minorTickCount, customTicks);
+            result = generateMinorTicks(result, data, businessDelta, screenDelta, result.tickInterval, minorTickInterval, minorTickCount, customTicks, breaks);
         }
 
         return result;

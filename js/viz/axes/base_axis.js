@@ -1017,7 +1017,8 @@ Axis.prototype = {
                 minors: customMinorTicks
             },
             options.minorTickInterval,
-            options.minorTickCount
+            options.minorTickCount,
+            options.breaks
         );
     },
 
