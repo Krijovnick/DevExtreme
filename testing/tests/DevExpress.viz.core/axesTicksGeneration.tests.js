@@ -1947,3 +1947,23 @@ QUnit.test("With endOnTicks and breaks - calculate ticks outside or on data boun
 
     assert.deepEqual(this.axis._majorTicks.map(value), [0, 3, 6, 9, 15]);
 });
+
+QUnit.test("Logarithmick with scale breaks", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        argumentType: "numeric",
+        type: "logarithmic",
+        logarithmBase: 10,
+        breaks: [{
+            from: 0.1,
+            to: 100
+        }]
+    });
+
+    this.axis.setBusinessRange({ minVisible: 0.0001, maxVisible: 10000, addRange: function() { return this; } });
+
+    //act
+    this.axis.createTicks(canvas(150));
+
+    assert.equal(this.axis._tickInterval, 2, "interval");
+});

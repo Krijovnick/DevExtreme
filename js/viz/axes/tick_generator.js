@@ -81,7 +81,13 @@ function getBusinessDelta(data, breaks) {
 function getBusinessDeltaLog(base) {
     var getLog = getLogValue(base);
     return function(data, breaks) {
-        return mathCeil(mathAbs(getLog(data.max / data.min)));
+        var spacing = 0;
+        if(breaks) {
+            spacing = breaks.reduce(function(prev, item) {
+                return prev + mathAbs(getLog(item.to / item.from));
+            }, 0);
+        }
+        return mathCeil(mathAbs(getLog(data.max / data.min)) - spacing);
     };
 }
 
