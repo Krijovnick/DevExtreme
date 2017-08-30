@@ -265,6 +265,51 @@ QUnit.test("Linear axis updates translator, valueMarginsEnabled = true - stick f
     assert.strictEqual(translator.update.lastCall.args[2].stick, false);
 });
 
+QUnit.test("Linear axis with scale breaks", function(assert) {
+    var axis = new Axis({
+            renderer: this.renderer,
+            axisType: "xyAxes",
+            drawingType: "linear"
+        }),
+        translator = translator2DModule.Translator2D.lastCall.returnValue;
+
+    sinon.spy(translator, "update");
+
+    axis.updateOptions({
+        isHorizontal: true,
+        semiDiscreteInterval: 0.2,
+        breaks: [{ from: 0, to: 10 }],
+        breaksSize: 20,
+        label: {}
+    });
+
+    assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
+    assert.deepEqual(translator.update.lastCall.args[2].breaks, [{ from: 0, to: 10 }]);
+    assert.equal(translator.update.lastCall.args[2].breaksSize, 20);
+});
+
+QUnit.test("Linear axis with scale breaks, breaksSize is not set", function(assert) {
+    var axis = new Axis({
+            renderer: this.renderer,
+            axisType: "xyAxes",
+            drawingType: "linear"
+        }),
+        translator = translator2DModule.Translator2D.lastCall.returnValue;
+
+    sinon.spy(translator, "update");
+
+    axis.updateOptions({
+        isHorizontal: true,
+        semiDiscreteInterval: 0.2,
+        breaks: [{ from: 0, to: 10 }],
+        label: {}
+    });
+
+    assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
+    assert.deepEqual(translator.update.lastCall.args[2].breaks, [{ from: 0, to: 10 }]);
+    assert.equal(translator.update.lastCall.args[2].breaksSize, 0);
+});
+
 QUnit.test("Update canvas", function(assert) {
     var axis = new Axis({
         renderer: this.renderer,

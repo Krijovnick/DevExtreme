@@ -1614,7 +1614,8 @@ Axis.prototype = {
             isHorizontal: this._isHorizontal,
             interval: this._options.semiDiscreteInterval,
             stick: this._getStick()
-        };
+            breaks: this._options.breaks,
+            breaksSize: this._options.breaksSize || 0
     },
 
     _adjustTitle: _noop,

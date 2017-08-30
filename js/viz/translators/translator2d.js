@@ -50,6 +50,37 @@ function valuesIsDefinedAndEqual(val1, val2) {
     return isDefined(val1) && isDefined(val2) && val1.valueOf() === val2.valueOf();
 }
 
+function prepareBreaks(breaks, range) {
+    var transform = range.axisType === 'logarithmic' ? function(value) {
+            return getLog(value, range.base);
+        } : function(value) {
+            return value;
+        },
+        array = [],
+        br,
+        transformFrom,
+        transformTo,
+        i,
+        length = breaks.length,
+        sum = 0;
+
+    for(i = 0; i < length; i++) {
+        br = breaks[i];
+        transformFrom = transform(br.from);
+        transformTo = transform(br.to);
+        sum += transformTo - transformFrom;
+        array.push({
+            trFrom: transformFrom,
+            trTo: transformTo,
+            from: br.from,
+            to: br.to,
+            length: sum
+        });
+    }
+
+    return array;
+}
+
 function getCanvasBounds(range) {
     var min = range.min,
         max = range.max,
@@ -147,6 +178,43 @@ _Translator2d.prototype = {
         that._conversionValue = options.conversionValue ? function(value) { return value; } : function(value) { return Math.round(value); };
 
         that._calculateSpecialValues();
+        that._translateBreaks();
+    },
+
+    _translateBreaks: function() {
+        var breaks = this._breaks,
+            size = this._options.breaksSize,
+            i,
+            b,
+            end,
+            length;
+        if(breaks === undefined) {
+            return;
+        }
+        for(i = 0, length = breaks.length; i < length; i++) {
+            b = breaks[i];
+            end = this.translate(b.to);
+            b.end = end;
+            b.start = end - size;
+        }
+    },
+
+    _getIndexFollowBreak: function(breaks, pos, start) {
+        var i,
+            length = breaks.length,
+            br;
+
+        for(i = 0; i < length; i++) {
+            br = breaks[i];
+            if(pos < br[start]) {
+                break;
+            }
+        }
+        return i;
+    },
+
+    _isValueInBreak: function(br, pos, start, end) {
+        return pos >= br[start] && pos < br[end];
     },
 
     _getDiscreteInterval: function(categoriesLength, canvasOptions) {
@@ -159,7 +227,8 @@ _Translator2d.prototype = {
             businessRange = that._businessRange,
             canvasOptions = that._canvasOptions = getCanvasBounds(businessRange),
             length,
-            canvas = that._canvas;
+            canvas = that._canvas,
+            breaks = that._breaks;
 
         if(that._options.isHorizontal) {
             canvasOptions.startPoint = canvas.left;
@@ -176,6 +245,11 @@ _Translator2d.prototype = {
         that.canvasLength = canvasOptions.canvasLength = canvasOptions.endPoint - canvasOptions.startPoint;
         canvasOptions.rangeDoubleError = Math.pow(10, getPower(canvasOptions.rangeMax - canvasOptions.rangeMin) - getPower(length) - 2); //B253861
         canvasOptions.ratioOfCanvasRange = canvasOptions.canvasLength / (canvasOptions.rangeMaxVisible - canvasOptions.rangeMinVisible);
+
+        if(breaks !== undefined) {
+            canvasOptions.ratioOfCanvasRange = (canvasOptions.canvasLength - that._options.breaksSize * breaks.length) /
+                (canvasOptions.rangeMaxVisible - canvasOptions.rangeMinVisible - breaks[breaks.length - 1].length);
+        }
 
         return canvasOptions;
     },
@@ -194,6 +268,8 @@ _Translator2d.prototype = {
         var that = this;
         that._options = extend(that._options || {}, options);
         that._canvas = validateCanvas(canvas);
+
+        that._breaks = options.breaks && prepareBreaks(options.breaks, businessRange);
         that.updateBusinessRange(businessRange);
     },
 

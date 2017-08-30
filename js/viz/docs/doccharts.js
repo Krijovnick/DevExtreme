@@ -999,6 +999,13 @@ var dxChart = {
         */
         placeholderSize: null,
         /**
+        * @name dxchartoptions_commonaxissettings_breaks
+        * @publicName breaks
+        * @type array
+        * @default undefined
+        */
+        breaks: undefined,
+        /**
         * @name dxchartoptions_commonaxissettings_label
         * @publicName label
         * @type object
@@ -1877,6 +1884,13 @@ var dxChart = {
         * @default undefined
         */
         minorTickCount: undefined,
+        /**
+        * @name dxchartoptions_valueaxis_breakssize
+        * @publicName breaksSize
+        * @type number
+        * @default 10
+        */
+        breaksSize: 10,
         /**
         * @name dxchartoptions_valueaxis_title
         * @publicName title

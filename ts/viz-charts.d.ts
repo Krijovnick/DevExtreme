@@ -1563,6 +1563,9 @@ declare module DevExpress.viz.charts {
         /** @docid dxchartoptions_commonaxissettings_placeholdersize */
         placeholderSize?: number;
 
+        /** @docid dxchartoptions_commonaxissettings_breaks */
+        breaks?: Array<any>;
+
         /** @docid dxchartoptions_commonaxissettings_stripstyle */
         stripStyle?: {
 
@@ -1785,6 +1788,9 @@ declare module DevExpress.viz.charts {
           * @docid dxchartoptions_valueaxis_pane
           */
         pane?: string;
+
+        /** @docid dxchartoptions_valueaxis_breakssize */
+        breaksSize?: number;
 
         /**
         * @docid dxchartoptions_argumentaxis_strips
