@@ -284,7 +284,6 @@ QUnit.test("Linear axis with scale breaks", function(assert) {
     });
 
     assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
-    assert.deepEqual(translator.update.lastCall.args[2].breaks, [{ from: 0, to: 10 }]);
     assert.equal(translator.update.lastCall.args[2].breaksSize, 20);
 });
 
@@ -306,7 +305,6 @@ QUnit.test("Linear axis with scale breaks, breaksSize is not set", function(asse
     });
 
     assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
-    assert.deepEqual(translator.update.lastCall.args[2].breaks, [{ from: 0, to: 10 }]);
     assert.equal(translator.update.lastCall.args[2].breaksSize, 0);
 });
 

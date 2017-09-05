@@ -2177,3 +2177,399 @@ QUnit.test("Value axis, endOnTicks = true - extend range to boundary ticks", fun
         isArgumentAxis: false
     });
 });
+
+QUnit.module("Scale breaks", $.extend({}, environment, {
+    beforeEach: function() {
+
+        var that = this;
+        environment.beforeEach.call(this);
+
+        sinon.stub(translator2DModule, "Translator2D", function() {
+            return that.translator;
+        });
+
+        this.axis = new Axis({
+            renderer: this.renderer,
+        });
+
+        this.axis.parser = function(value) {
+            return value;
+        };
+    },
+    afterEach: function() {
+        environment.afterEach.call(this);
+        translator2DModule.Translator2D.restore();
+    }
+}));
+
+QUnit.test("Pass scale breaks to translator", function(assert) {
+    this.updateOptions({
+        dataType: "number",
+        breaks: [{
+            from: 10,
+            to: 100
+        }]
+    });
+
+    sinon.spy(this.translator, "updateBusinessRange");
+
+    this.axis.setBusinessRange({ min: 0, max: 1000, addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.translator.updateBusinessRange.lastCall.args[0].breaks;
+
+    assert.deepEqual(breaks, [{ from: 10, to: 100 }]);
+});
+
+QUnit.module("Datetime scale breaks. Weekends and holidays", $.extend({}, environment, {
+    beforeEach: function() {
+        environment.beforeEach.call(this);
+
+        this.axis = new Axis({
+            renderer: this.renderer
+        });
+
+        this.axis.parser = function(value) {
+            return value;
+        };
+    }
+}));
+
+QUnit.test("Generate weekend breaks", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 11), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }]);
+});
+
+QUnit.test("Do not generate weekend breaks if dataType is not datetime", function(assert) {
+    this.updateOptions({
+        workdaysOnly: false,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "number"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 11), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, undefined);
+});
+
+QUnit.test("Do not generate weekend breaks if workdaysOnly is set to false", function(assert) {
+    this.updateOptions({
+        workdaysOnly: false,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 11), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, undefined);
+});
+
+QUnit.test("Do not generate weekend breaks if axis type is discrete", function(assert) {
+    this.updateOptions({
+        workdaysOnly: false,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime",
+        axisType: "discrete"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 11), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, undefined);
+});
+
+QUnit.test("Generate two breaks when two days off on week", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "thursday", "friday"],
+        dataType: "datetime"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 11), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [
+        { from: new Date(2017, 8, 6), to: new Date(2017, 8, 7) },
+        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }
+    ]);
+});
+
+QUnit.test("The break starts with min if the range starts on a weekend", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 3, 8, 20), max: new Date(2017, 8, 11), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [
+        { from: new Date(2017, 8, 3, 8, 20), to: new Date(2017, 8, 4) },
+        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }
+    ]);
+});
+
+QUnit.test("End of the scale break is max of the range if range ends on a weekend", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4), max: new Date(2017, 8, 10, 8, 20), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [
+        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 10, 8, 20) }
+    ]);
+});
+
+QUnit.test("All range is in weekend", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 10), max: new Date(2017, 8, 10, 8, 20), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [
+        { from: new Date(2017, 8, 10), to: new Date(2017, 8, 10, 8, 20) }
+    ]);
+});
+
+QUnit.test("Exclude exactWorkDays from weekend when it at the end of the weekend", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime",
+        exactWorkdays: [new Date(2017, 8, 10, 8, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 9), to: new Date(2017, 8, 10) }]);
+});
+
+QUnit.test("Exclude exactWorkDays from weekend when it at the begin of the weekend", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime",
+        exactWorkdays: [new Date(2017, 8, 9, 8, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 10), to: new Date(2017, 8, 11) }]);
+});
+
+QUnit.test("Separate a weekend if exactWorkDays in the middle of the break", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime",
+        exactWorkdays: [new Date(2017, 8, 10, 8, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 6, 8, 0, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [
+        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 10) },
+        { from: new Date(2017, 8, 11), to: new Date(2017, 8, 12) }
+    ]);
+});
+
+QUnit.test("Axis has not breaks if exactWorkDays in the weekend", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime",
+        exactWorkdays: [new Date(2017, 8, 9, 8, 20), new Date(2017, 8, 10, 8, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 6, 8, 0, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, []);
+});
+
+QUnit.test("Generate breaks for holidays", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+        dataType: "datetime",
+        holidays: [new Date(2017, 8, 10, 8, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 6, 8, 0, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 10),
+        to: new Date(2017, 8, 11)
+    }]);
+});
+
+QUnit.test("The break starts with min range if holiday starts early then min", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+        dataType: "datetime",
+        holidays: [new Date(2017, 8, 6, 6, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 6, 8, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 6, 8, 0, 0),
+        to: new Date(2017, 8, 7)
+    }]);
+});
+
+QUnit.test("The break ends with max range if holiday ends later then max", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+        dataType: "datetime",
+        holidays: [new Date(2017, 8, 13, 6, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 6, 8, 0, 0), max: new Date(2017, 8, 13, 19, 0), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 13),
+        to: new Date(2017, 8, 13, 19, 0)
+    }]);
+});
+
+QUnit.test("Do not generate the breaks for holiday if it in the weekend", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime",
+        holidays: [new Date(2017, 8, 10, 8, 20)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 6, 8, 0, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 9),
+        to: new Date(2017, 8, 11)
+    }]);
+});
+
+QUnit.test("sort generated breaks", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        dataType: "datetime",
+        holidays: [new Date(2017, 8, 6)]
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 13), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [
+        {
+            from: new Date(2017, 8, 6),
+            to: new Date(2017, 8, 7)
+        },
+        {
+            from: new Date(2017, 8, 9),
+            to: new Date(2017, 8, 11)
+        }
+    ]);
+});
+
+QUnit.test("Recalculate the breaks on zoom", function(assert) {
+    this.updateOptions({
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "thursday", "friday"],
+        dataType: "datetime"
+    });
+
+    this.axis.setBusinessRange({ min: new Date(2017, 8, 4, 8, 0, 0), max: new Date(2017, 8, 11), addRange: function() { return this; } });
+
+    this.axis.createTicks(this.canvas);
+
+    //act
+    this.axis.zoom(new Date(2017, 8, 8, 8, 0, 0), new Date(2017, 8, 11));
+    this.axis.createTicks(this.canvas);
+
+    //assert
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+    assert.deepEqual(breaks, [
+        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }
+    ]);
+});

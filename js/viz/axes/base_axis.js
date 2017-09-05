@@ -16,6 +16,8 @@ var vizUtils = require("../core/utils"),
     formatLabel = constants.formatLabel,
     convertTicksToValues = constants.convertTicksToValues,
 
+    generateDateBreaks = require("./datetime_breaks").generateDateBreaks,
+
     isDefined = typeUtils.isDefined,
     patchFontOptions = vizUtils.patchFontOptions,
 
@@ -61,6 +63,18 @@ function getTickGenerator(options, incidentOccurred) {
         showCalculatedTicks: options.tick.showCalculatedTicks, //DEPRECATED IN 15_2
         showMinorCalculatedTicks: options.minorTick.showCalculatedTicks //DEPRECATED IN 15_2
     });
+}
+
+function createMajorTick(axis, renderer, skippedCategory) {
+    if(axisOptions.axisType !== "discrete" && axisOptions.dataType === "datetime" && axisOptions.workdaysOnly) {
+        return generateDateBreaks(viewport.minVisible,
+            viewport.maxVisible,
+            axisOptions.workdays,
+            axisOptions.exactWorkdays,
+            axisOptions.holidays);
+    }
+
+    return axisOptions.breaks;
 }
 
 function createMajorTick(axis, renderer, skippedCategory) {
@@ -902,6 +916,8 @@ Axis.prototype = {
 
         this._seriesData = new rangeModule.Range(validateBusinessRange(range, this._options.min, this._options.max));
 
+        this._breaks = getScaleBreaks(this._options, this._seriesData);
+
         //TODO we should remove it
         //for aggregation
         //and to ask for stubData
@@ -1018,7 +1034,7 @@ Axis.prototype = {
             },
             options.minorTickInterval,
             options.minorTickCount,
-            options.breaks
+            that._breaks
         );
     },
 
@@ -1109,6 +1125,8 @@ Axis.prototype = {
                 interval: interval
             });
         }
+
+        range.breaks = that._breaks;
         that._translator.updateBusinessRange(range);
     },
 
@@ -1356,6 +1374,11 @@ Axis.prototype = {
         }
 
         that._zoomArgs = { min: min, max: max };
+
+        this._breaks = getScaleBreaks(this._options, {
+            minVisible: min,
+            maxVisible: max
+        });
         return that._zoomArgs;
     },
 
@@ -1614,7 +1637,6 @@ Axis.prototype = {
             isHorizontal: this._isHorizontal,
             interval: this._options.semiDiscreteInterval,
             stick: this._getStick()
-            breaks: this._options.breaks,
             breaksSize: this._options.breaksSize || 0
     },
 
