@@ -745,9 +745,25 @@ QUnit.test('Untranslate. T176895. Range min/max are undefined', function(assert)
     assert.equal(translator.untranslate(1000), null);
 });
 
+QUnit.test('Translate. Scale breaks is empty array', function(assert) {
+    var translator = this.createTranslator({ min: 200, max: 700, breaks: [] }, null, { breaksSize: 10 });
+
+    assert.equal(translator.translate(300), 700, 'BP inside range');
+    assert.equal(translator.translate(200), 500, 'BP on the min');
+    assert.equal(translator.translate(700), 1500, 'BP on the max');
+});
+
+QUnit.test('Translate. Update translator with business range with empty scale breaks', function(assert) {
+    var translator = this.createTranslator({ min: 200, max: 700, breaks: [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }] }, null, { breaksSize: 10 });
+
+    translator.updateBusinessRange({ min: 200, max: 700, breaks: [] });
+
+    assert.strictEqual(translator.translate(450), 1000);
+});
+
 QUnit.test("Translate. Scale breaks. Values out of the breaks and should be traslated", function(assert) {
     var breaks = [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }],
-        translator = this.createTranslator({ min: 100, max: 700 }, null, { breaks: breaks, breaksSize: 20 });
+        translator = this.createTranslator({ min: 100, max: 700, breaks: breaks }, null, { breaksSize: 20 });
 
     assert.strictEqual(translator.translate(100), 500);
     assert.strictEqual(translator.translate(149), 598);
@@ -759,7 +775,7 @@ QUnit.test("Translate. Scale breaks. Values out of the breaks and should be tras
 
 QUnit.test("Translate. Scale breaks. Values inside the breaks and shouldn't be translated", function(assert) {
     var breaks = [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }],
-        translator = this.createTranslator({ min: 100, max: 700 }, null, { breaks: breaks, breaksSize: 20 });
+        translator = this.createTranslator({ min: 100, max: 700, breaks: breaks }, null, { breaksSize: 20 });
 
     assert.strictEqual(translator.translate(150), null);
     assert.strictEqual(translator.translate(160), null);
@@ -769,7 +785,7 @@ QUnit.test("Translate. Scale breaks. Values inside the breaks and shouldn't be t
 
 QUnit.test("Translate. Scale breaks. Inverted axis", function(assert) {
     var breaks = [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }],
-        translator = this.createTranslator({ min: 100, max: 700, invert: true }, null, { breaks: breaks, breaksSize: 20 });
+        translator = this.createTranslator({ min: 100, max: 700, breaks: breaks, invert: true }, null, { breaksSize: 20 });
 
     assert.strictEqual(translator.translate(100), 1500);
     assert.strictEqual(translator.translate(450), 900);
@@ -778,7 +794,7 @@ QUnit.test("Translate. Scale breaks. Inverted axis", function(assert) {
 
 QUnit.test("Untranslate. Scale breaks. Values not on the breaks and should be untranslated", function(assert) {
     var breaks = [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }],
-        translator = this.createTranslator({ min: 100, max: 700 }, null, { breaks: breaks, breaksSize: 20 });
+        translator = this.createTranslator({ min: 100, max: 700, breaks: breaks }, null, { breaksSize: 20 });
 
     assert.strictEqual(translator.untranslate(500), 100);
     assert.strictEqual(translator.untranslate(820), 300);
@@ -788,7 +804,7 @@ QUnit.test("Untranslate. Scale breaks. Values not on the breaks and should be un
 
 QUnit.test("Untranslate. Scale breaks. Values on the breaks and should not be untranslated", function(assert) {
     var breaks = [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }],
-        translator = this.createTranslator({ min: 100, max: 700 }, null, { breaks: breaks, breaksSize: 20 });
+        translator = this.createTranslator({ min: 100, max: 700, breaks: breaks }, null, { breaksSize: 20 });
 
     assert.strictEqual(translator.untranslate(610), null);
     assert.strictEqual(translator.untranslate(1390), null);
@@ -796,7 +812,7 @@ QUnit.test("Untranslate. Scale breaks. Values on the breaks and should not be un
 
 QUnit.test("Untranslate. Scale breaks. Inverted axis", function(assert) {
     var breaks = [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }],
-        translator = this.createTranslator({ min: 100, max: 700, invert: true }, null, { breaks: breaks, breaksSize: 20 });
+        translator = this.createTranslator({ min: 100, max: 700, breaks: breaks, invert: true }, null, { breaksSize: 20 });
 
     assert.strictEqual(translator.untranslate(500), 700);
     assert.strictEqual(translator.untranslate(820), 540);
@@ -1015,7 +1031,7 @@ QUnit.test('Untranslate. Small numbers. Invert = true', function(assert) {
 
 QUnit.test("Translate. Scale breaks. Values inside of the breaks and should be translated", function(assert) {
     var breaks = [{ from: 0.001, to: 0.1 }, { from: 100, to: 10000 }],
-        translator = this.createTranslator({ min: 0.0001, max: 1000000 }, { breaks: breaks, breaksSize: 50 });
+        translator = this.createTranslator({ min: 0.0001, max: 1000000, breaks: breaks }, { breaksSize: 50 });
 
     assert.strictEqual(translator.translate(0.0001), 500);
     assert.strictEqual(translator.translate(1), 850);
@@ -1026,7 +1042,7 @@ QUnit.test("Translate. Scale breaks. Values inside of the breaks and should be t
 
 QUnit.test("Translate. Scale breaks. Values out of the breaks and shouldn't be translated", function(assert) {
     var breaks = [{ from: 0.001, to: 0.1 }, { from: 100, to: 10000 }],
-        translator = this.createTranslator({ min: 0.0001, max: 1000000 }, { breaks: breaks, breaksSize: 50 });
+        translator = this.createTranslator({ min: 0.0001, max: 1000000, breaks: breaks }, { breaksSize: 50 });
 
     assert.strictEqual(translator.translate(0.01), null);
     assert.strictEqual(translator.translate(1000), null);
@@ -1034,7 +1050,7 @@ QUnit.test("Translate. Scale breaks. Values out of the breaks and shouldn't be t
 
 QUnit.test("Untranslate. Scale breaks. Values not on the breaks and should be untranslated", function(assert) {
     var breaks = [{ from: 0.001, to: 0.1 }, { from: 100, to: 10000 }],
-        translator = this.createTranslator({ min: 0.0001, max: 1000000 }, { breaks: breaks, breaksSize: 50 }),
+        translator = this.createTranslator({ min: 0.0001, max: 1000000, breaks: breaks }, { breaksSize: 50 }),
         doubleDelta = 0.00001;
 
     assert.roughEqual(translator.untranslate(500), 0.0001, doubleDelta);
@@ -1046,7 +1062,7 @@ QUnit.test("Untranslate. Scale breaks. Values not on the breaks and should be un
 
 QUnit.test("Untranslate. Scale breaks. Values on the breaks and should not be untranslated", function(assert) {
     var breaks = [{ from: 0.001, to: 0.1 }, { from: 100, to: 10000 }],
-        translator = this.createTranslator({ min: 0.0001, max: 1000000 }, { breaks: breaks, breaksSize: 50 });
+        translator = this.createTranslator({ min: 0.0001, max: 1000000, breaks: breaks }, { breaksSize: 50 });
 
     assert.strictEqual(translator.untranslate(670), null);
     assert.strictEqual(translator.untranslate(1170), null);

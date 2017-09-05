@@ -260,7 +260,12 @@ _Translator2d.prototype = {
     },
 
     updateBusinessRange: function(businessRange) {
+        var breaks = businessRange.breaks || [];
+
         this._businessRange = validateBusinessRange(businessRange);
+
+        this._breaks = breaks.length ? prepareBreaks(breaks, this._businessRange) : undefined;
+
         this.reinit();
     },
 
@@ -269,7 +274,6 @@ _Translator2d.prototype = {
         that._options = extend(that._options || {}, options);
         that._canvas = validateCanvas(canvas);
 
-        that._breaks = options.breaks && prepareBreaks(options.breaks, businessRange);
         that.updateBusinessRange(businessRange);
     },
 
