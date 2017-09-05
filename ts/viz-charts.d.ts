@@ -1566,6 +1566,18 @@ declare module DevExpress.viz.charts {
         /** @docid dxchartoptions_commonaxissettings_breaks */
         breaks?: Array<any>;
 
+        /** @docid dxchartoptions_commonaxissettings_workdaysonly */
+        workdaysOnly?: boolean;
+
+        /** @docid dxchartoptions_commonaxissettings_workdays */
+        workdays?: Array<string>;
+
+        /** @docid dxchartoptions_commonaxissettings_holidays */
+        holidays?: Array<any>;
+
+        /** @docid dxchartoptions_commonaxissettings_exactworkdays */
+        exactWorkdays?: Array<any>
+
         /** @docid dxchartoptions_commonaxissettings_stripstyle */
         stripStyle?: {
 

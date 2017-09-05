@@ -1006,6 +1006,34 @@ var dxChart = {
         */
         breaks: undefined,
         /**
+        * @name dxchartoptions_commonaxissettings_workdaysonly
+        * @publicName workdaysOnly
+        * @type boolean
+        * @default false
+        */
+        workdaysOnly: false,
+        /**
+        * @name dxchartoptions_commonaxissettings_workdays
+        * @publicName workdays
+        * @type array
+        * @default undefined
+        */
+        workdays: undefined,
+        /**
+        * @name dxchartoptions_commonaxissettings_holidays
+        * @publicName holidays
+        * @type array
+        * @default undefined
+        */
+        holidays: undefined,
+        /**
+        * @name dxchartoptions_commonaxissettings_exactworkdays
+        * @publicName exactWorkdays
+        * @type array
+        * @default undefined
+        */
+        exactWorkdays: undefined,
+        /**
         * @name dxchartoptions_commonaxissettings_label
         * @publicName label
         * @type object
