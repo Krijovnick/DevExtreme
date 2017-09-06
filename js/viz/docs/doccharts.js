@@ -1016,9 +1016,9 @@ var dxChart = {
         * @name dxchartoptions_commonaxissettings_workdays
         * @publicName workdays
         * @type array
-        * @default undefined
+        * @default [ "monday", "tuesday", "wednesday", "thursday", "friday"]
         */
-        workdays: undefined,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
         /**
         * @name dxchartoptions_commonaxissettings_holidays
         * @publicName holidays
