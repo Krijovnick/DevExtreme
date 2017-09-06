@@ -76,7 +76,9 @@ Axis.prototype = $.extend({}, originalAxis.prototype, {
 
     _getCanvasStartEnd: sinon.stub().returns({ }),
 
-    _boundaryTicksVisibility: { min: true, max: true }
+    _boundaryTicksVisibility: { min: true, max: true },
+
+    _updateAxisElementPosition: function() {}
 });
 
 QUnit.module("Creation", environment);
@@ -1718,9 +1720,38 @@ QUnit.test("minValueMargin and maxValueMargin not defined - do not apply margins
     });
 });
 
+QUnit.test("updateSize - margins and interval are recalculated", function(assert) {
+    var axis = this.createAxis(true, {
+        valueMarginsEnabled: true
+    });
 
+    this.generatedTicks = [100, 200];
+    axis.setBusinessRange({
+        min: 90,
+        max: 210,
+        interval: 30
+    });
+    axis.setMarginOptions({
+        checkInterval: true,
+        size: 100
+    });
 
+    axis.draw(this.canvas);
+    axis._getScreenDelta = sinon.stub().returns(500);
+    this.translator.stub("updateBusinessRange").reset();
 
+    axis.updateSize(this.canvas);
+
+    assert.strictEqual(this.translator.stub("updateBusinessRange").callCount, 1);
+
+    var range = this.translator.stub("updateBusinessRange").lastCall.args[0];
+
+    assert.equal(range.min, 75);
+    assert.equal(range.max, 225);
+    assert.equal(range.minVisible, 75);
+    assert.equal(range.maxVisible, 225);
+    assert.equal(range.interval, 12);
+});
 
 QUnit.module("Data margins calculations after zooming", {
     beforeEach: function() {

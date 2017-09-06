@@ -892,6 +892,7 @@ Axis.prototype = {
         //TODO we should remove it
         //for aggregation
         //and to ask for stubData
+        //and in rangeView
         this._translator.updateBusinessRange(this._seriesData);
     },
 
@@ -1043,7 +1044,7 @@ Axis.prototype = {
 
         if(!canvas) {
             //TODO extend viewport after synchronization on setTicks
-            //that._updateIntervalAndBounds();
+            //that.reinitTranslator();
             return;
         }
         that._majorTicks = that._minorTicks = null;
@@ -1071,28 +1072,27 @@ Axis.prototype = {
 
         that.correctTicksOnDeprecated();
 
-        that._updateIntervalAndBounds(ticks.ticks);
+        that.reinitTranslator();
     },
 
-    _updateIntervalAndBounds: function(ticks) {
+    reinitTranslator: function() {
         var that = this,
-            length,
             range = that._getViewportRange(),
             minVisible = range.minVisible,
             maxVisible = range.maxVisible,
-            interval = range.interval;
-
-        if(that._options.type !== constants.discrete) {
+            interval = range.interval,
+            ticks = that._majorTicks,
             length = ticks.length;
 
+        if(that._options.type !== constants.discrete) {
             //TODO what can we do with isSynchronized
             if(!range.isSynchronized && length && !isDefined(that._zoomArgs)) {
                 //TODO see same code in RS
-                if(ticks[0] < range.minVisible) {
-                    minVisible = ticks[0];
+                if(ticks[0].value < range.minVisible) {
+                    minVisible = ticks[0].value;
                 }
-                if(length > 1 && ticks[length - 1] > range.maxVisible) {
-                    maxVisible = ticks[length - 1];
+                if(length > 1 && ticks[length - 1].value > range.maxVisible) {
+                    maxVisible = ticks[length - 1].value;
                 }
             }
 
@@ -1103,7 +1103,6 @@ Axis.prototype = {
                 maxVisible: maxVisible,
                 interval: interval
             });
-            //that._translator.updateBusinessRange(range);
         }
         that._translator.updateBusinessRange(range);
     },
@@ -1265,6 +1264,7 @@ Axis.prototype = {
         var that = this;
 
         that.updateCanvas(canvas);
+        that.reinitTranslator();
 
         var canvasStartEnd = that._getCanvasStartEnd();
 

@@ -49,3 +49,8 @@ getCategoriesInfo - can not work with non-unique categories
 
 Problems:
 endOnTicks + zooming - viewPort and bounds implementation should fix this problem
+check axes synchronization
+
+RangeSelector and chart with the same series (especially of bubble type) have different margins (This is correct for 17.1 too)
+
+There is valueMarginsEnabled in rangeSelector's scale. Do we want to document it?

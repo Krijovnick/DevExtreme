@@ -7,7 +7,8 @@ var $ = require("jquery"),
     seriesDataSourceModule = require("viz/range_selector/series_data_source"),
     _SeriesDataSource = seriesDataSourceModule.SeriesDataSource,
     dataSourceModule = require("data/data_source/data_source"),
-    dateLocalization = require("localization/date");
+    dateLocalization = require("localization/date"),
+    axisModule = require("viz/axes/base_axis");
 
 var formatsAreEqual = function(format1, format2) {
     var testDate = new Date(0, 1, 2, 3, 4, 5, 6);
@@ -1035,6 +1036,18 @@ QUnit.test("If not set - sliderMarker format depends on minorTickInterval", func
 
 QUnit.module("Initialization", commons.environment);
 
+QUnit.test("Axis creation - check axis parameters", function(assert) {
+    this.createWidget();
+
+    assert.equal(axisModule.Axis.getCall(0).args[0].renderer, this.renderer);
+    assert.equal(axisModule.Axis.getCall(0).args[0].axisType, "xyAxes");
+    assert.equal(axisModule.Axis.getCall(0).args[0].drawingType, "linear");
+    assert.equal(axisModule.Axis.getCall(0).args[0].widgetClass, "dxrs");
+    assert.equal(axisModule.Axis.getCall(0).args[0].axisClass, "range-selector");
+    assert.equal(axisModule.Axis.getCall(0).args[0].axesContainerGroup.attr.firstCall.args[0].class, "dxrs-scale");
+    assert.equal(axisModule.Axis.getCall(0).args[0].isArgumentAxis, true);
+});
+
 QUnit.test("Update axis canvas", function(assert) {
     this.createWidget({
         margin: {
@@ -1167,7 +1180,6 @@ QUnit.test("rangeContainer canvas for invisible sliderMarker if placeholderSize 
 
     assert.deepEqual(this.rangeView.update.lastCall.args[2], { left: 10, top: 10, width: 290, height: 24, right: 0, bottom: 0 });
 });
-
 
 QUnit.test("rangeContainer canvas if sliderMarker placeholderSize.width as number is defined", function(assert) {
     this.createWidget({
@@ -1432,6 +1444,64 @@ QUnit.test("custom backgroundColor", function(assert) {
     this.createWidget({ containerBackgroundColor: "red" });
 
     assert.strictEqual(this.slidersController.update.lastCall.args[5].color, "red");
+});
+
+QUnit.test("With chart - pass marginOptions to axis", function(assert) {
+    this.seriesDataSource.stub("isShowChart").returns(true);
+    this.seriesDataSource.stub("getBoundRange").returns({
+        arg: new commons.StubRange(),
+        val: new commons.StubRange()
+    });
+    this.seriesDataSource.stub("getMarginOptions").returns({
+        margin: "options"
+    });
+    this.createWidget({
+        dataSource: [{ x: 1, y1: 4 }, { x: 5, y1: 6 }],
+        chart: {
+            series: [
+                { argumentField: "x", valueField: "y1", type: "bar" },
+                { argumentField: "x", valueField: "y2" }
+            ]
+        }
+    });
+
+    assert.deepEqual(this.seriesDataSource.stub("getMarginOptions").lastCall.args, [{
+        bottom: 0,
+        height: 150,
+        left: 0,
+        right: 0,
+        top: 0,
+        width: 299
+    }]);
+    assert.deepEqual(this.axis.setMarginOptions.lastCall.args, [{
+        margin: "options"
+    }]);
+});
+
+QUnit.test("Without chart - do not pass marginOptions to axis", function(assert) {
+    this.seriesDataSource.stub("isShowChart").returns(false);
+    this.seriesDataSource.stub("getBoundRange").returns({
+        arg: new commons.StubRange(),
+        val: new commons.StubRange()
+    });
+    this.createWidget({
+        dataSource: [{ x: 1, y1: 4 }, { x: 5, y1: 6 }],
+        dataSourceField: "x"
+    });
+
+    assert.strictEqual(this.seriesDataSource.stub("getMarginOptions").callCount, 0);
+    assert.strictEqual(this.axis.stub("setMarginOptions").callCount, 0);
+});
+
+QUnit.test("Without dataSource - do not pass marginOptions to axis", function(assert) {
+    this.createWidget({
+        scale: {
+            startValue: 0,
+            endValue: 100
+        }
+    });
+
+    assert.strictEqual(this.axis.stub("setMarginOptions").callCount, 0);
 });
 
 QUnit.module("API", commons.environment);

@@ -77,13 +77,16 @@ exports.environment = {
         rangeViewModule.RangeView = returnValue(this.rangeView);
         slidersControllerModule.SlidersController = returnValue(this.slidersController);
         trackerModule.Tracker = returnValue(this.tracker);
-        axisModule.Axis = returnValue(this.axis);
         seriesDataSourceModule.SeriesDataSource = returnValue(this.seriesDataSource);
         translator2DModule.Translator2D = returnValue(this.translator);
+
+        sinon.stub(axisModule, "Axis");
+        axisModule.Axis.returns(this.axis);
     },
 
     afterEach: function() {
         this.$container.remove();
+        axisModule.Axis.restore();
     },
 
     createWidget: function(options) {

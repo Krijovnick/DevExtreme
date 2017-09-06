@@ -258,6 +258,23 @@ SeriesDataSource.prototype = {
         return { arg: argRange, val: valRange };
     },
 
+    getMarginOptions: function(canvas) {
+        var bubbleSize = Math.min(canvas.width, canvas.height) * this._themeManager.getOptions("maxBubbleSize");
+
+        return this._series.reduce(function(marginOptions, series) {
+            var seriesOptions = series.getMarginOptions();
+
+            if(seriesOptions.processBubbleSize === true) {
+                seriesOptions.size = bubbleSize;
+            }
+
+            return {
+                checkInterval: marginOptions.checkInterval || seriesOptions.checkInterval,
+                size: Math.max(marginOptions.size || 0, seriesOptions.size || 0)
+            };
+        }, {});
+    },
+
     getSeries: function() {
         return this._series;
     },

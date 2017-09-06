@@ -1001,6 +1001,7 @@ registerTheme({
     },
     rangeSelector: {
         scale: {
+            valueMarginsEnabled: true,
             width: 1,
             color: BLACK,
             opacity: 0.1,

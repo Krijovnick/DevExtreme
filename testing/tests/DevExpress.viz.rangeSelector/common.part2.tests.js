@@ -66,9 +66,6 @@ QUnit.module("Initialization from dataSource", $.extend({}, environmentWithDataS
 }));
 
 QUnit.test("Pass axes to seriesDataSource", function(assert) {
-    sinon.stub(axisModule, "Axis");
-    axisModule.Axis.returns(this.axis);
-
     axisModule.Axis.onSecondCall().returns(new this.StubAxis());
     var rangeSelector = this.createWidget({
         dataSource: [

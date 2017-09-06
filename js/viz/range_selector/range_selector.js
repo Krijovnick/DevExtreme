@@ -895,8 +895,7 @@ var dxRangeSelector = require("../core/base_widget").inherit({
         };
 
          // TODO: There should be one call to some axis method (not 4 methods)
-
-        that._axis.update(scaleOptions, isCompactMode, rangeContainerCanvas, argTranslatorRange);
+        that._axis.update(scaleOptions, isCompactMode, rangeContainerCanvas, argTranslatorRange, seriesDataSource);
 
         scaleOptions.minorTickInterval = scaleOptions.isEmpty ? 0 : scaleOptions.minorTickInterval;
 
@@ -1106,7 +1105,8 @@ function AxisWrapper(params) {
         axisType: "xyAxes",
         drawingType: "linear",
         widgetClass: "dxrs",
-        axisClass: "range-selector"
+        axisClass: "range-selector",
+        isArgumentAxis: true
     });
     this._updateSelectedRangeCallback = params.updateSelectedRange;
 }
@@ -1118,10 +1118,13 @@ AxisWrapper.prototype = {
         this._axis.dispose();
     },
 
-    update: function(options, isCompactMode, canvas, businessRange) {
+    update: function(options, isCompactMode, canvas, businessRange, seriesDataSource) {
         var axis = this._axis;
         axis.updateOptions(prepareAxisOptions(options, isCompactMode, canvas.height, canvas.height / 2 - Math.ceil(options.width / 2)));
         axis.setBusinessRange(businessRange);
+        if(seriesDataSource !== undefined && seriesDataSource.isShowChart()) {
+            axis.setMarginOptions(seriesDataSource.getMarginOptions(canvas));
+        }
 
         axis.draw(canvas);
         axis.shift({ left: 0, bottom: -canvas.height / 2 + canvas.top });
