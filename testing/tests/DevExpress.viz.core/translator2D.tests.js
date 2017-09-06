@@ -773,6 +773,13 @@ QUnit.test("Translate. Scale breaks. Values out of the breaks and should be tras
     assert.strictEqual(translator.translate(700), 1500);
 });
 
+QUnit.test("Translate. Scale breaks. exclude from translation end of the break value if the break is cut off", function(assert) {
+    var breaks = [{ from: 350, to: 370, isEndCutOff: true }],
+        translator = this.createTranslator({ min: 100, max: 700, breaks: breaks }, null, { breaksSize: 20 });
+
+    assert.strictEqual(translator.translate(370), null);
+});
+
 QUnit.test("Translate. Scale breaks. Values inside the breaks and shouldn't be translated", function(assert) {
     var breaks = [{ from: 150, to: 200 }, { from: 350, to: 370 }, { from: 590, to: 650 }],
         translator = this.createTranslator({ min: 100, max: 700, breaks: breaks }, null, { breaksSize: 20 });

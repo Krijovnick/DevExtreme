@@ -65,16 +65,43 @@ function getTickGenerator(options, incidentOccurred) {
     });
 }
 
-function createMajorTick(axis, renderer, skippedCategory) {
+function filterBreaks(breaks, viewport) {
+    return (breaks || []).reduce(function(result, currentBreak) {
+        if(currentBreak.from >= viewport.minVisible && currentBreak.to <= viewport.maxVisible) {
+            result.push(currentBreak);
+        }
+        if(currentBreak.from < viewport.minVisible && currentBreak.to > viewport.minVisible && currentBreak.to <= viewport.maxVisible) {
+            result.push({
+                from: viewport.minVisible,
+                to: currentBreak.to
+            });
+        }
+
+        if(currentBreak.from > viewport.minVisible && currentBreak.from < viewport.maxVisible && currentBreak.to > viewport.maxVisible) {
+            result.push({
+                from: currentBreak.from,
+                to: viewport.maxVisible,
+                isEndCutOff: true
+            });
+        }
+
+        return result;
+    }, []);
+
+}
+
+function getScaleBreaks(axisOptions, viewport) {
+    var breaks = axisOptions.breaks;
+
     if(axisOptions.axisType !== "discrete" && axisOptions.dataType === "datetime" && axisOptions.workdaysOnly) {
-        return generateDateBreaks(viewport.minVisible,
+        breaks = generateDateBreaks(viewport.minVisible,
             viewport.maxVisible,
             axisOptions.workdays,
             axisOptions.exactWorkdays,
             axisOptions.holidays);
     }
 
-    return axisOptions.breaks;
+    return filterBreaks(breaks, viewport);
 }
 
 function createMajorTick(axis, renderer, skippedCategory) {

@@ -2222,6 +2222,64 @@ QUnit.test("Pass scale breaks to translator", function(assert) {
     assert.deepEqual(breaks, [{ from: 10, to: 100 }]);
 });
 
+
+QUnit.test("Get scale breaks in the viewport", function(assert) {
+    this.updateOptions({
+        dataType: "number",
+        breaks: [{
+            from: 10,
+            to: 100
+        }, {
+            from: 200,
+            to: 300
+        }, {
+            from: 310,
+            to: 360
+        }, {
+            from: 500,
+            to: 600
+        }]
+    });
+
+    sinon.spy(this.translator, "updateBusinessRange");
+
+    this.axis.setBusinessRange({ min: 0, max: 1000, addRange: function() { return this; } });
+
+    this.axis.zoom(250, 540);
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, [
+        { from: 250, to: 300 },
+        { from: 310, to: 360 },
+        { from: 500, to: 540, isEndCutOff: true }
+    ]);
+});
+
+QUnit.test("Do not get scale break if viewport inside it", function(assert) {
+    this.updateOptions({
+        dataType: "number",
+        breaks: [ {
+            from: 200,
+            to: 500
+        }]
+    });
+
+    sinon.spy(this.translator, "updateBusinessRange");
+
+    this.axis.setBusinessRange({ min: 0, max: 1000, addRange: function() { return this; } });
+
+    this.axis.zoom(250, 340);
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, []);
+});
+
 QUnit.module("Datetime scale breaks. Weekends and holidays", $.extend({}, environment, {
     beforeEach: function() {
         environment.beforeEach.call(this);
@@ -2265,7 +2323,7 @@ QUnit.test("Do not generate weekend breaks if dataType is not datetime", functio
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, undefined);
+    assert.deepEqual(breaks, []);
 });
 
 QUnit.test("Do not generate weekend breaks if workdaysOnly is set to false", function(assert) {
@@ -2281,7 +2339,7 @@ QUnit.test("Do not generate weekend breaks if workdaysOnly is set to false", fun
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, undefined);
+    assert.deepEqual(breaks, []);
 });
 
 QUnit.test("Do not generate weekend breaks if axis type is discrete", function(assert) {
@@ -2298,7 +2356,7 @@ QUnit.test("Do not generate weekend breaks if axis type is discrete", function(a
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, undefined);
+    assert.deepEqual(breaks, []);
 });
 
 QUnit.test("Generate two breaks when two days off on week", function(assert) {
@@ -2353,7 +2411,7 @@ QUnit.test("End of the scale break is max of the range if range ends on a weeken
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
     assert.deepEqual(breaks, [
-        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 10, 8, 20) }
+        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 10, 8, 20), isEndCutOff: true }
     ]);
 });
 
@@ -2370,9 +2428,7 @@ QUnit.test("All range is in weekend", function(assert) {
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, [
-        { from: new Date(2017, 8, 10), to: new Date(2017, 8, 10, 8, 20) }
-    ]);
+    assert.deepEqual(breaks, []);
 });
 
 QUnit.test("Exclude exactWorkDays from weekend when it at the end of the weekend", function(assert) {
@@ -2502,7 +2558,8 @@ QUnit.test("The break ends with max range if holiday ends later then max", funct
 
     assert.deepEqual(breaks, [{
         from: new Date(2017, 8, 13),
-        to: new Date(2017, 8, 13, 19, 0)
+        to: new Date(2017, 8, 13, 19, 0),
+        isEndCutOff: true
     }]);
 });
 

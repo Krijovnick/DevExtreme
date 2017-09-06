@@ -74,6 +74,7 @@ function prepareBreaks(breaks, range) {
             trTo: transformTo,
             from: br.from,
             to: br.to,
+            isEndCutOff: br.isEndCutOff,
             length: sum
         });
     }
@@ -214,7 +215,7 @@ _Translator2d.prototype = {
     },
 
     _isValueInBreak: function(br, pos, start, end) {
-        return pos >= br[start] && pos < br[end];
+        return pos >= br[start] && (pos < br[end] || br.isEndCutOff && pos <= br[end]);
     },
 
     _getDiscreteInterval: function(categoriesLength, canvasOptions) {

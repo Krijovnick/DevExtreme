@@ -255,7 +255,7 @@ function pushTick(breaks) {
 
     return function(ticks, value) {
         return breaks.every(function(item) {
-            return !(value >= item.from && value < item.to);
+            return !(value >= item.from && (value < item.to || item.isEndCutOff && value <= item.to));
         }) && ticks.push(value);
     };
 }

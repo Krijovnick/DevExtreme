@@ -113,14 +113,6 @@ function generateDateBreaksForWeekend(min, max, weekendDayIndices) {
 
                 to = new Date(currentDate);
 
-                if(to > max) {
-                    to = new Date(max);
-                }
-
-                if(from < min) {
-                    from = new Date(min);
-                }
-
                 breaks.push({
                     from: from,
                     to: to
@@ -180,8 +172,8 @@ function generateBreaksForHolidays(min, max, holidays, weekendDayIndices) {
             holidayEnd.setDate(holidayStart.getDate() + 1);
 
             breaks.push({
-                from: holidayStart > min ? holidayStart : min,
-                to: holidayEnd < max ? holidayEnd : max
+                from: holidayStart,
+                to: holidayEnd
             });
         }
         return breaks;
