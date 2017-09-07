@@ -246,7 +246,7 @@ function addIntervalDate(value, interval) {
     return dateUtils.addInterval(value, interval);
 }
 
-function pushTick(breaks) {
+function pushTick(breaks, addInterval, tickInterval) {
     if(!breaks) {
         return function(ticks, value) {
             return ticks.push(value);
@@ -254,18 +254,29 @@ function pushTick(breaks) {
     }
 
     return function(ticks, value) {
-        return breaks.every(function(item) {
-            return !(value >= item.from && (value < item.to || item.isEndCutOff && value <= item.to));
-        }) && ticks.push(value);
+        var tickBreak;
+        if(breaks.every(function(item) {
+            var tickInBreak = (value >= item.from && (value < item.to || item.isEndCutOff && value <= item.to));
+            if(tickInBreak) {
+                tickBreak = item;
+            }
+            return !tickBreak;
+        })) {
+            return ticks.push(value);
+        } else if(addInterval) {
+            var nextValue = addInterval(value, tickInterval);
+            if(mathAbs(tickBreak.to - value) < mathAbs(nextValue - tickBreak.to) && !tickBreak.isEndCutOff) {
+                return ticks.push(tickBreak.to);
+            }
+        }
     };
 }
-
 
 function calculateTicks(addInterval, correctMinValue) {
     return function(min, max, tickInterval, endOnTicks, breaks) {
         var cur = correctMinValue(min, tickInterval, min),
             ticks = [],
-            push = pushTick(breaks);
+            push = pushTick(breaks, addInterval, tickInterval);
 
         if(cur > max) {
             cur = min;

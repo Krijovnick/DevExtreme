@@ -1948,6 +1948,42 @@ QUnit.test("With endOnTicks and breaks - calculate ticks outside or on data boun
     assert.deepEqual(this.axis._majorTicks.map(value), [0, 3, 6, 9, 15]);
 });
 
+QUnit.test("Move datetime ticks to work day", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        valueType: "datetime",
+        type: "continuous",
+        tickInterval: { weeks: 1 },
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    });
+
+    this.axis.setBusinessRange({ minVisible: new Date(2017, 8, 16), maxVisible: new Date(2017, 9, 3), addRange: function() { return this; } });
+
+    //act
+    this.axis.createTicks(canvas(1000));
+
+    assert.deepEqual(this.axis._majorTicks.map(value), [new Date(2017, 8, 18).getTime(), new Date(2017, 8, 25).getTime(), new Date(2017, 9, 2).getTime()]);
+});
+
+QUnit.test("Do not move datetime ticks to work day if work day has tick", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        valueType: "datetime",
+        type: "continuous",
+        tickInterval: { days: 2 },
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    });
+
+    this.axis.setBusinessRange({ minVisible: new Date(2017, 8, 16), maxVisible: new Date(2017, 8, 22), addRange: function() { return this; } });
+
+    //act
+    this.axis.createTicks(canvas(1000));
+
+    assert.deepEqual(this.axis._majorTicks.map(value), [new Date(2017, 8, 18).getTime(), new Date(2017, 8, 20).getTime(), new Date(2017, 8, 22).getTime()]);
+});
+
 QUnit.test("Logarithmick with scale breaks", function(assert) {
     this.createAxis();
     this.updateOptions({
