@@ -2760,7 +2760,7 @@ QUnit.test("Datetime. Without breaks", function(assert) {
     this.axis.setBusinessRange({ min: 2, max: 100, addRange: function() { return this; } });
     this.axis.createTicks(this.canvas);
 
-    assert.ok(!this.tickGeneratorSpy.lastCall.args[7]);
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], []);
 });
 
 QUnit.test("Without breaks, autoScaleBreaks option is false", function(assert) {
