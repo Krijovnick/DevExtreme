@@ -104,17 +104,21 @@ function getScaleBreaks(axisOptions, viewport, series, isArgumentAxis) {
     }
     if(!isArgumentAxis && axisOptions.type !== "discrete" && axisOptions.dataType !== "datetime"
         && axisOptions.autoScaleBreaks && axisOptions.maxCountOfBreaks !== 0) {
-        return generateAutoBreaks(axisOptions, series, viewport.maxVisible - viewport.minVisible);
+        return generateAutoBreaks(axisOptions, series, viewport);
     }
 
     return filterBreaks(breaks, viewport);
 }
 
-function generateAutoBreaks(options, series, visibleRange) {
+function generateAutoBreaks(options, series, viewport) {
     var ranges = [],
         length,
         breaks = [],
         i,
+        getRange = options.type === "logarithmic" ?
+            function(min, max) { return vizUtils.getLog(max / min, options.logarithmBase); } :
+            function(min, max) { return max - min; },
+        visibleRange = getRange(viewport.minVisible, viewport.maxVisible),
         maxCountOfBreaks,
         ratio,
         points = series.reduce(function(points, s) {
@@ -126,7 +130,7 @@ function generateAutoBreaks(options, series, visibleRange) {
         minDiff = RANGE_RATIO * visibleRange;
 
     for(i = 1, length = points.length; i < length; i++) {
-        ranges.push({ start: points[i], end: points[i - 1], length: points[i - 1] - points[i] });
+        ranges.push({ start: points[i], end: points[i - 1], length: getRange(points[i], points[i - 1]) });
     }
 
     ranges.sort(function(a, b) {

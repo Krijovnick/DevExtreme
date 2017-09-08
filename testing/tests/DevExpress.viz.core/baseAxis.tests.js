@@ -2828,3 +2828,20 @@ QUnit.test("Option maxCountOfBreaks is undefined", function(assert) {
         { from: 100.4, to: 119.6 }
     ]);
 });
+
+QUnit.test("Logarithmic axis", function(assert) {
+    this.series = [
+        this.stubSeries([1, 10, 100, 1000, 10000000])
+    ];
+    this.updateOptions({
+        autoScaleBreaks: true,
+        type: "logarithmic",
+        logarithmBase: 10
+    });
+
+    this.axis.setGroupSeries(this.series);
+    this.axis.setBusinessRange({ min: 1, max: 100000, addRange: function() { return this; } });
+    this.axis.createTicks(this.canvas);
+
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 1000.05, to: 9999999.95 }]);
+});
