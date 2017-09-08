@@ -2749,6 +2749,20 @@ QUnit.test("Discrete. Without breaks", function(assert) {
     assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], []);
 });
 
+QUnit.test("Datetime. Without breaks", function(assert) {
+    this.updateOptions({
+        autoScaleBreaks: true,
+        maxCountOfBreaks: 2,
+        dataType: "datetime"
+    });
+
+    this.axis.setGroupSeries(this.series);
+    this.axis.setBusinessRange({ min: 2, max: 100, addRange: function() { return this; } });
+    this.axis.createTicks(this.canvas);
+
+    assert.ok(!this.tickGeneratorSpy.lastCall.args[7]);
+});
+
 QUnit.test("Without breaks, autoScaleBreaks option is false", function(assert) {
     this.updateOptions({
         autoScaleBreaks: false,
@@ -2792,4 +2806,25 @@ QUnit.test("Option maxCountOfBreaks is more than generated breaks", function(ass
     this.axis.createTicks(this.canvas);
 
     assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 3.15, to: 99.85 }]);
+});
+
+QUnit.test("Option maxCountOfBreaks is undefined", function(assert) {
+    this.series = [
+        this.stubSeries([3, 10, 100, 40]),
+        this.stubSeries([80, 120, 40])
+    ];
+    this.updateOptions({
+        autoScaleBreaks: true,
+        maxCountOfBreaks: undefined
+    });
+
+    this.axis.setGroupSeries(this.series);
+    this.axis.setBusinessRange({ min: 2, max: 100, addRange: function() { return this; } });
+    this.axis.createTicks(this.canvas);
+
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [
+        { from: 10.4, to: 39.6 },
+        { from: 40.4, to: 79.6 },
+        { from: 100.4, to: 119.6 }
+    ]);
 });

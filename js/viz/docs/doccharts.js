@@ -1930,9 +1930,9 @@ var dxChart = {
         * @name dxchartoptions_valueaxis_maxcountofbreaks
         * @publicName maxCountOfBreaks
         * @type numeric
-        * @default 1
+        * @default undefined
         */
-        maxCountOfBreaks: 1,
+        maxCountOfBreaks: undefined,
         /**
         * @name dxchartoptions_valueaxis_title
         * @publicName title

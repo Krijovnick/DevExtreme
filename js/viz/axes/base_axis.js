@@ -102,7 +102,8 @@ function getScaleBreaks(axisOptions, viewport, series, isArgumentAxis) {
             axisOptions.exactWorkdays,
             axisOptions.holidays);
     }
-    if(!isArgumentAxis && axisOptions.type !== "discrete" && axisOptions.autoScaleBreaks && axisOptions.maxCountOfBreaks) {
+    if(!isArgumentAxis && axisOptions.type !== "discrete" && axisOptions.dataType !== "datetime"
+        && axisOptions.autoScaleBreaks && axisOptions.maxCountOfBreaks !== 0) {
         return generateAutoBreaks(axisOptions, series, viewport.maxVisible - viewport.minVisible);
     }
 
@@ -132,7 +133,7 @@ function generateAutoBreaks(options, series, visibleRange) {
         return b.length - a.length;
     });
 
-    maxCountOfBreaks = Math.min(options.maxCountOfBreaks, ranges.length);
+    maxCountOfBreaks = isDefined(options.maxCountOfBreaks) ? Math.min(options.maxCountOfBreaks, ranges.length) : ranges.length;
 
     for(i = 0; i < maxCountOfBreaks; i++) {
         if(ranges[i].length >= minDiff) {

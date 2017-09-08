@@ -682,7 +682,7 @@ registerTheme({
                 visible: true
             },
             autoScaleBreaks: false,
-            maxCountOfBreaks: 1,
+            maxCountOfBreaks: undefined,
             breaksSize: 10
         },
         commonPaneSettings: {
