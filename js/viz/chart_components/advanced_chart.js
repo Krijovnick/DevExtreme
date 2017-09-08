@@ -359,6 +359,7 @@ var AdvancedChart = BaseChart.inherit({
                 groupRange.correctValueZeroLevel();
             }
 
+            valueAxis.setGroupSeries(groupSeries);
             valueAxis.setBusinessRange(groupRange);
             valueAxis.setMarginOptions(marginOptions);
 

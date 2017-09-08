@@ -680,7 +680,10 @@ registerTheme({
             endOnTicks: true,
             grid: {
                 visible: true
-            }
+            },
+            autoScaleBreaks: false,
+            maxCountOfBreaks: 1,
+            breaksSize: 10
         },
         commonPaneSettings: {
             backgroundColor: NONE,

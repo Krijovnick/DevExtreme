@@ -41,6 +41,8 @@ var vizUtils = require("../core/utils"),
     DEFAULT_AXIS_DIVISION_FACTOR = 50,
     DEFAULT_MINOR_AXIS_DIVISION_FACTOR = 15,
 
+    RANGE_RATIO = 0.3,
+
     Axis;
 
 function getTickGenerator(options, incidentOccurred) {
@@ -90,21 +92,74 @@ function filterBreaks(breaks, viewport) {
 
 }
 
-function getScaleBreaks(axisOptions, viewport) {
+function getScaleBreaks(axisOptions, viewport, series, isArgumentAxis) {
     var breaks = axisOptions.breaks;
 
-    if(axisOptions.axisType !== "discrete" && axisOptions.dataType === "datetime" && axisOptions.workdaysOnly) {
+    if(axisOptions.type !== "discrete" && axisOptions.dataType === "datetime" && axisOptions.workdaysOnly) {
         breaks = generateDateBreaks(viewport.minVisible,
             viewport.maxVisible,
             axisOptions.workdays,
             axisOptions.exactWorkdays,
             axisOptions.holidays);
     }
+    if(!isArgumentAxis && axisOptions.type !== "discrete" && axisOptions.autoScaleBreaks && axisOptions.maxCountOfBreaks) {
+        return generateAutoBreaks(axisOptions, series, viewport.maxVisible - viewport.minVisible);
+    }
 
     return filterBreaks(breaks, viewport);
 }
 
-function createMajorTick(axis, renderer, skippedCategory) {
+function generateAutoBreaks(options, series, visibleRange) {
+    var ranges = [],
+        length,
+        breaks = [],
+        i,
+        maxCountOfBreaks,
+        ratio,
+        points = series.reduce(function(points, s) {
+            points = points.concat(s.getPointsInViewPort());
+            return points;
+        }, []).sort(function(a, b) {
+            return b - a;
+        }),
+        minDiff = RANGE_RATIO * visibleRange;
+
+    for(i = 1, length = points.length; i < length; i++) {
+        ranges.push({ start: points[i], end: points[i - 1], length: points[i - 1] - points[i] });
+    }
+
+    ranges.sort(function(a, b) {
+        return b.length - a.length;
+    });
+
+    maxCountOfBreaks = Math.min(options.maxCountOfBreaks, ranges.length);
+
+    for(i = 0; i < maxCountOfBreaks; i++) {
+        if(ranges[i].length >= minDiff) {
+            if(visibleRange <= ranges[i].length) {
+                break;
+            }
+            visibleRange -= ranges[i].length;
+            breaks.push({ from: ranges[i].start, to: ranges[i].end });
+            minDiff = RANGE_RATIO * visibleRange;
+        } else {
+            break;
+        }
+    }
+
+    breaks.sort(function(a, b) {
+        return a.from - b.from;
+    });
+
+    ratio = visibleRange * 0.05;
+
+    breaks = breaks.map(function(br) {
+        return { from: br.from + ratio, to: br.to - ratio };
+    });
+    return breaks;
+}
+
+function createMajorTick(axis, renderer) {
     var options = axis.getOptions();
 
     return tick(
@@ -943,7 +998,7 @@ Axis.prototype = {
 
         this._seriesData = new rangeModule.Range(validateBusinessRange(range, this._options.min, this._options.max));
 
-        this._breaks = getScaleBreaks(this._options, this._seriesData);
+        this._breaks = getScaleBreaks(this._options, this._seriesData, this._series, this.isArgumentAxis);
 
         //TODO we should remove it
         //for aggregation
@@ -951,6 +1006,10 @@ Axis.prototype = {
         //and for estimateMargins
         //and in rangeView
         this._translator.updateBusinessRange(this._seriesData);
+    },
+
+    setGroupSeries: function(series) {
+        this._series = series;
     },
 
     getLabelsPosition: function() {

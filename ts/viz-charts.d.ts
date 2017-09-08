@@ -1804,6 +1804,12 @@ declare module DevExpress.viz.charts {
         /** @docid dxchartoptions_valueaxis_breakssize */
         breaksSize?: number;
 
+        /** @docid dxchartoptions_valueaxis_autoscalebreaks */
+        autoScaleBreaks?: boolean;
+
+        /** @docid dxchartoptions_valueaxis_maxcountofbreaks */
+        maxCountOfBreaks?: number;
+
         /**
         * @docid dxchartoptions_argumentaxis_strips
         * @docid dxchartoptions_valueaxis_strips

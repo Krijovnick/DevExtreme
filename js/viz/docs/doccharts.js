@@ -1920,6 +1920,20 @@ var dxChart = {
         */
         breaksSize: 10,
         /**
+        * @name dxchartoptions_valueaxis_autoscalebreaks
+        * @publicName autoScaleBreaks
+        * @type boolean
+        * @default false
+        */
+        autoScaleBreaks: false,
+        /**
+        * @name dxchartoptions_valueaxis_maxcountofbreaks
+        * @publicName maxCountOfBreaks
+        * @type numeric
+        * @default 1
+        */
+        maxCountOfBreaks: 1,
+        /**
         * @name dxchartoptions_valueaxis_title
         * @publicName title
         * @type string|object

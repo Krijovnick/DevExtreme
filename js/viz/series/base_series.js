@@ -227,6 +227,10 @@ Series.prototype = {
         return this._points;
     },
 
+    getPointsInViewPort: function() {
+        return rangeCalculator.getPointsInViewPort(this);
+    },
+
     _createPoint: function(data, pointsArray, index) {
         data.index = index;
         var that = this,

@@ -164,4 +164,25 @@ module.exports = {
         }
         return range;
     }
+
+    getPointsInViewPort: function(series) {
+        var argumentViewPortFilter = getViewPortFilter(series.getArgumentAxis().getViewport() || {}),
+            valueViewPortFilter = getViewPortFilter(series.getValueAxis().getViewport() || {}),
+            checkPointInViewport = function(prev, point) {
+                if(argumentViewPortFilter(point.argument)) {
+                    var minValue = point.getMinValue(),
+                        maxValue = point.getMaxValue();
+                    if(valueViewPortFilter(minValue)) {
+                        prev.push(minValue);
+                    }
+                    if(maxValue !== minValue && valueViewPortFilter(maxValue)) {
+                        prev.push(maxValue);
+                    }
+                }
+                return prev;
+            };
+
+        return series.getPoints().reduce(checkPointInViewport, []);
+    },
+
 };
