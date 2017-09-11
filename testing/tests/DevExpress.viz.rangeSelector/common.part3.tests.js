@@ -1504,6 +1504,19 @@ QUnit.test("Without dataSource - do not pass marginOptions to axis", function(as
     assert.strictEqual(this.axis.stub("setMarginOptions").callCount, 0);
 });
 
+QUnit.test("Generate minor ticks even if minorTicks are not visible", function(assert) {
+    this.createWidget({
+        scale: {
+            valueType: "datetime",
+            minorTick: {
+                visible: false
+            }
+        }
+    });
+
+    assert.strictEqual(this.axis.updateOptions.lastCall.args[0].calculateMinors, true);
+});
+
 QUnit.module("API", commons.environment);
 
 QUnit.test("Render. Container size is changed - redraw widget", function(assert) {

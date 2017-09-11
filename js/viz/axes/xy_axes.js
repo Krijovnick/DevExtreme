@@ -654,7 +654,7 @@ module.exports = {
                 }),
                 rootElement = that._renderer.root,
                 businessRange = that._translator.getBusinessRange(),
-                labelIsVisible = options.label.visible && !that._translator.getBusinessRange().stubData,
+                labelIsVisible = options.label.visible && !businessRange.stubData,
                 labelValue = labelIsVisible && constants.formatLabel(businessRange.axisType === "discrete" ? businessRange.categories[0] : businessRange.max, options.label),
                 labelElement = labelIsVisible && that._renderer.text(labelValue, 0, 0)
                     .css(that._textFontStyles)
@@ -873,13 +873,11 @@ module.exports = {
             };
         },
 
-        _getSkippedCategory: function() {
-            var skippedCategory,
-                //TODO we can not use getVisibleCategories as translator is not updated yet
-                categories = this._translator.getVisibleCategories() || this._translator.getBusinessRange().categories;
+        _getSkippedCategory: function(ticks) {
+            var skippedCategory;
 
-            if(categories && categories.length && !!this._tickOffset) {
-                skippedCategory = categories[categories.length - 1];
+            if(this._options.type === constants.discrete && this._tickOffset && ticks.length !== 0) {
+                skippedCategory = ticks[ticks.length - 1];
             }
 
             return skippedCategory;

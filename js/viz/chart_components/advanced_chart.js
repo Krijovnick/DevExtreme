@@ -357,7 +357,6 @@ var AdvancedChart = BaseChart.inherit({
             if(valueAxis.getOptions().showZero) {
                 groupRange.correctValueZeroLevel();
             }
-            //groupRange.checkZeroStick();
 
             valueAxis.setBusinessRange(groupRange);
             valueAxis.setMarginOptions(marginOptions);

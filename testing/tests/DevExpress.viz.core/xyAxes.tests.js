@@ -16,7 +16,6 @@ function create2DTranslator(options) {
     translator.stub("translateSpecialCase");
 
     translator.stub("getBusinessRange").returns({});
-    translator.stub("getVisibleCategories").returns();
 
     return translator;
 }
@@ -2622,6 +2621,81 @@ QUnit.test("DateTime axis, but no ticks - format is not calculated", function(as
     axis.validate();
 
     axis.createTicks(this.canvas);
+
+    assert.equal(axis.getOptions().label.format, "");
+});
+
+QUnit.test("SetTicks. DateTime axis, no user format - format is calculated by ticks", function(assert) {
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "datetime",
+        label: { visible: true }
+    });
+    axis.validate();
+
+    axis.setTicks({
+        majorTicks: [
+            new Date(2009, 11, 1),
+            new Date(2010, 0, 1),
+            new Date(2010, 1, 1)
+        ]
+    });
+
+    assert.equal(axis.getOptions().label.format, "monthandyear");
+});
+
+QUnit.test("SetTicks. DateTime axis, user format - format is not calculated", function(assert) {
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "datetime",
+        label: {
+            visible: true,
+            format: "day"
+        }
+    });
+    axis.validate();
+
+    axis.setTicks({
+        majorTicks: [
+            new Date(2009, 11, 1),
+            new Date(2010, 0, 1),
+            new Date(2010, 1, 1)
+        ]
+    });
+
+    assert.equal(axis.getOptions().label.format, "day");
+});
+
+QUnit.test("SetTicks. Not DateTime axis - format is not calculated", function(assert) {
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "numeric",
+        label: {
+            visible: true
+        }
+    });
+    axis.validate();
+
+    axis.setTicks({
+        majorTicks: [100000, 200000, 300000]
+    });
+
+    assert.equal(axis.getOptions().label.format, "");
+});
+
+QUnit.test("SetTicks. DateTime axis, but no ticks - format is not calculated", function(assert) {
+    var axis = this.createSimpleAxis({
+        type: "continuous",
+        valueType: "datetime",
+        label: {
+            visible: true
+        }
+    });
+    axis.validate();
+
+    axis.setTicks({
+        majorTicks: []
+    });
 
     assert.equal(axis.getOptions().label.format, "");
 });

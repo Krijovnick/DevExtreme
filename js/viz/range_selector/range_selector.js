@@ -298,14 +298,13 @@ function updateTickIntervals(scaleOptions, screenDelta, incidentOccurred, range)
                 categories: _isDefined(categoriesInfo) ? categoriesInfo.categories : []
             },
             screenDelta,
-            scaleOptions.tickInterval, //tickInterval,
-            scaleOptions.forceUserTickInterval, //forceUserTickInterval,
-            undefined, //customTicks
-            scaleOptions.minorTickInterval, //minorTickInterval,
-            scaleOptions.minorTickCount //minorTickCount
+            scaleOptions.tickInterval,
+            scaleOptions.forceUserTickInterval,
+            undefined,
+            scaleOptions.minorTickInterval,
+            scaleOptions.minorTickCount
         );
 
-        //TODO see same code in base axis
         length = ticksInfo.ticks.length;
         if(length > 1) {
             bounds.minVisible = ticksInfo.ticks[0].value < min ? ticksInfo.ticks[0].value : min;
@@ -1069,7 +1068,6 @@ function prepareAxisOptions(scaleOptions, isCompactMode, height, axisPosition) {
     scaleOptions.argumentType = scaleOptions.valueType;
     scaleOptions.visible = isCompactMode;
     scaleOptions.minorTick.showCalculatedTicks = scaleOptions.isHorizontal = scaleOptions.stick = true;
-    //TODO test
     scaleOptions.calculateMinors = true;
 
     scaleOptions.semiDiscreteInterval = scaleOptions.minRange;

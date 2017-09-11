@@ -11,7 +11,6 @@ var $ = require("jquery"),
     StubTranslator = vizMocks.stubClass(translator2DModule.Translator2D, {
         updateBusinessRange: function(range) {
             this.getBusinessRange.returns(range);
-            range.categories && this.getVisibleCategories.returns(range.categories);
         }
     });
 
@@ -35,7 +34,6 @@ var environment = {
         this.translator.stub("getBusinessRange").returns({
             addRange: sinon.stub()
         });
-        this.translator.stub("getVisibleCategories");
 
         this.canvas = {
             top: 200,
@@ -232,6 +230,7 @@ QUnit.test("Get full ticks for discrete axis - return categories", function(asse
     });
 
     this.axis.setBusinessRange({ categories: ["a", "b", "c"] });
+    this.generatedTicks = ["a", "b", "c"];
     this.axis.createTicks(this.canvas);
 
     var fullTicks = this.axis.getFullTicks();

@@ -63,7 +63,7 @@ function getTickGenerator(options, incidentOccurred) {
     });
 }
 
-function createMajorTick(axis, renderer) {
+function createMajorTick(axis, renderer, skippedCategory) {
     var options = axis.getOptions();
 
     return tick(
@@ -71,7 +71,7 @@ function createMajorTick(axis, renderer) {
         renderer,
         options.tick,
         options.grid,
-        axis._getSkippedCategory(),
+        skippedCategory,
         axis._translator.getBusinessRange().stubData
     );
 }
@@ -892,6 +892,7 @@ Axis.prototype = {
         //TODO we should remove it
         //for aggregation
         //and to ask for stubData
+        //and for estimateMargins
         //and in rangeView
         this._translator.updateBusinessRange(this._seriesData);
     },
@@ -914,8 +915,6 @@ Axis.prototype = {
 
     _getBoundaryTicks: function(majors) {
         var that = this,
-            //TODO we can not use getVisibleCategories here as translator is not updated yet
-            categories = that._translator.getVisibleCategories(),
             tickValues = majors.map(valueOf),
             options = that._options,
             customBounds = options.customBoundTicks,
@@ -925,9 +924,9 @@ Axis.prototype = {
             addMinMax = options.showCustomBoundaryTicks ? that._boundaryTicksVisibility : {},
             boundaryTicks = [];
 
-        if(options.type === constants.discrete && categories !== undefined && categories.length !== 0) {
-            if(that._tickOffset) {
-                boundaryTicks = [categories[0], categories[categories.length - 1]];
+        if(options.type === constants.discrete) {
+            if(that._tickOffset && majors.length !== 0) {
+                boundaryTicks = [majors[0], majors[majors.length - 1]];
             }
         } else {
             if(customBounds) {
@@ -975,24 +974,18 @@ Axis.prototype = {
     },
 
     setTicks: function(ticks) {
-        //TODO it is used only for axes synchronization
-        //we don't need to update tickGenerator
-        this._majorTicks = (ticks.majorTicks || []).map(createMajorTick(this, this._renderer));
+        var majors = ticks.majorTicks || [];
+        this._majorTicks = majors.map(createMajorTick(this, this._renderer, this._getSkippedCategory(majors)));
         this._minorTicks = (ticks.minorTicks || []).map(createMinorTick(this, this._renderer));
 
-        //TODO calculate label format
-
-        //TODO
-        //extend viewPort
+        if(this._options.dataType === "datetime" && !this._hasLabelFormat && majors.length) {
+            this._options.label.format = formatHelper.getDateFormatByTicks(majors);
+        }
     },
 
     _getTicks: function() {
         var that = this,
             options = that._options,
-            //TODO looks like _majorTicks/_minorTicks are not accesible here
-            //TODO we should not use previously generated ticks as custom ticks. It used to be before when ticks were set on axes synchronization, we should rework it
-            // customTicks = options.customTicks || (that._majorTicks && that._majorTicks.length && convertTicksToValues(that._majorTicks)),
-            // customMinorTicks = options.customMinorTicks || (that._minorTicks && that._minorTicks.length && convertTicksToValues(that._minorTicks));
             customTicks = options.customTicks,
             customMinorTicks = options.customMinorTicks,
             viewPort = that._getViewportRange();
@@ -1001,19 +994,17 @@ Axis.prototype = {
             {
                 min: viewPort.minVisible,
                 max: viewPort.maxVisible,
-                //TODO we can not use getVisibleCategories as translator is not updated yet
-                //categories: that._translator.getVisibleCategories()
                 categories: viewPort.categories
-            }, //TODO can we use rangedata?
-            that._getScreenDelta(), //screenDelta,
-            that._translator.getBusinessRange().stubData ? null : options.tickInterval, //tickInterval,
-            options.label.overlappingBehavior.mode === "ignore" ? true : options.forceUserTickInterval, //forceUserTickInterval,
+            },
+            that._getScreenDelta(),
+            that._translator.getBusinessRange().stubData ? null : options.tickInterval,
+            options.label.overlappingBehavior.mode === "ignore" ? true : options.forceUserTickInterval,
             {
                 majors: customTicks,
                 minors: customMinorTicks
-            }, //customTicks
-            options.minorTickInterval, //minorTickInterval,
-            options.minorTickCount //minorTickCount
+            },
+            options.minorTickInterval,
+            options.minorTickCount
         );
     },
 
@@ -1043,8 +1034,6 @@ Axis.prototype = {
             boundaryTicks;
 
         if(!canvas) {
-            //TODO extend viewport after synchronization on setTicks
-            //that.reinitTranslator();
             return;
         }
         that._majorTicks = that._minorTicks = null;
@@ -1067,7 +1056,8 @@ Axis.prototype = {
 
         that._tickInterval = ticks.tickInterval;
         that._minorTickInterval = ticks.minorTickInterval;
-        that._majorTicks = ticks.ticks.map(createMajorTick(that, renderer));
+
+        that._majorTicks = ticks.ticks.map(createMajorTick(that, renderer, that._getSkippedCategory(ticks.ticks)));
         that._minorTicks = minors.map(createMinorTick(that, renderer));
 
         that.correctTicksOnDeprecated();
@@ -1085,9 +1075,7 @@ Axis.prototype = {
             length = ticks.length;
 
         if(that._options.type !== constants.discrete) {
-            //TODO what can we do with isSynchronized
             if(!range.isSynchronized && length && !isDefined(that._zoomArgs)) {
-                //TODO see same code in RS
                 if(ticks[0].value < range.minVisible) {
                     minVisible = ticks[0].value;
                 }
@@ -1129,15 +1117,12 @@ Axis.prototype = {
         this._marginOptions = options;
     },
 
-
     _calculateRangeInterval: function(dataLength, interval) {
         return _min(interval, (this._options.axisDivisionFactor || DEFAULT_AXIS_DIVISION_FACTOR) * dataLength / this._getScreenDelta());
     },
 
     _applyMargins: function(range) {
         var options = this._options,
-            //TODO set marginOptions in rangeSelector
-            //margins = this._marginOptions,
             margins = isDefined(this._marginOptions) ? this._marginOptions : {},
             marginValue,
             type = options.type,
@@ -1427,12 +1412,11 @@ Axis.prototype = {
     },
 
     getFullTicks: function() {
-        var categories = this._translator.getVisibleCategories();
-
-        if(categories) {
-            return categories;
+        var majors = this._majorTicks || [];
+        if(this._options.type === constants.discrete) {
+            return convertTicksToValues(majors);
         } else {
-            return convertTicksToValues((this._majorTicks || []).concat(this._minorTicks, this._boundaryTicks || []))
+            return convertTicksToValues(majors.concat(this._minorTicks, this._boundaryTicks || []))
                 .sort(function(a, b) {
                     return valueOf(a) - valueOf(b);
                 });

@@ -363,13 +363,14 @@ exports.circularSpider = _extend({}, circularAxes, {
     },
 
     getSpiderTicks: function() {
-        var that = this;
-        that._spiderTicks = that.getFullTicks().map(tick(
+        var that = this,
+            ticks = that.getFullTicks();
+        that._spiderTicks = ticks.map(tick(
             that,
             that.renderer,
             {},
             {},
-            that._getSkippedCategory(),
+            that._getSkippedCategory(ticks),
             true
         ));
 

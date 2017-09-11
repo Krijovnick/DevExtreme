@@ -446,9 +446,6 @@
             updateBusinessRange: function() {
 
             },
-            getVisibleCategories: function() {
-
-            },
             getMinBarSize: function() {
                 return arguments[0];
             },

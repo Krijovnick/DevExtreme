@@ -259,9 +259,7 @@ _Translator2d.prototype = {
         var canvasOptions = this._canvasOptions;
         return canvasOptions.invert ? canvasOptions.rangeMaxVisible.valueOf() - distance : canvasOptions.rangeMinVisible.valueOf() + distance;
     },
-    getVisibleCategories: function() {
-        return this.visibleCategories;
-    },
+
     getMinBarSize: function(minBarSize) {
         var visibleArea = this.getCanvasVisibleArea(),
             minValue = this.untranslate(visibleArea.min + minBarSize);

@@ -669,11 +669,12 @@ QUnit.test("Horizontal top, minor tick marks", function(assert) {
     assert.deepEqual(path.getCall(2).returnValue.attr.getCall(1).args[0], { points: [70, 30 - 5, 70, 30 + 5] });
 });
 
-QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw last grid line", function(assert) {
+QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw last tick mark", function(assert) {
     //arrange
     var categories = ["a", "b", "c", "d"];
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "top",
         categories: categories,
@@ -690,7 +691,6 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw la
     this.axis.setBusinessRange({ categories: categories });
 
     this.generatedTicks = categories;
-
 
     categories.forEach(function(cat, i) {
         this.translator.stub("translate").withArgs(cat).returns(10 + (i + 1) * 20);
@@ -711,6 +711,7 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - crossLabels. Draw all grid li
     var categories = ["a", "b", "c", "d"];
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "top",
         categories: categories,
@@ -799,6 +800,7 @@ QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivi
     //arrange
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "bottom",
         discreteAxisDivisionMode: "betweenLabels",
@@ -827,6 +829,7 @@ QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivi
     //arrange
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "bottom",
         discreteAxisDivisionMode: "crossLabels",
@@ -983,7 +986,7 @@ QUnit.test("Tick visible false, but showCustomBoundaryTicks true - render bounda
     assert.deepEqual(path.getCall(1).returnValue.attr.getCall(1).args[0], { points: [70, 70 - 5, 70, 70 + 5] });
 });
 
-QUnit.test("Boundary ticks, visible categories - render boundary visible ticks", function(assert) {
+QUnit.test("Boundary ticks, discrete axis, betweenLabels - render boundary categories", function(assert) {
     //arrange
     this.createAxis();
     this.updateOptions({
@@ -993,7 +996,7 @@ QUnit.test("Boundary ticks, visible categories - render boundary visible ticks",
         showCustomBoundaryTicks: true,
         categories: ["a", "b", "c", "d", "e"],
         tick: {
-            visible: true,
+            visible: false,
             color: "#123456",
             opacity: 0.3,
             width: 5,
@@ -1002,7 +1005,7 @@ QUnit.test("Boundary ticks, visible categories - render boundary visible ticks",
     });
 
     this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e" });
-    this.translator.stub("getVisibleCategories").returns(["b", "c", "d"]);
+    this.generatedTicks = ["b", "c", "d"];
 
     this.translator.stub("translate").withArgs("a").returns(10);
     this.translator.stub("translate").withArgs("b").returns(30);
@@ -1019,43 +1022,7 @@ QUnit.test("Boundary ticks, visible categories - render boundary visible ticks",
     assert.deepEqual(path.getCall(1).returnValue.attr.getCall(1).args[0], { points: [70, 70 - 5, 70, 70 + 5] }); //d
 });
 
-QUnit.test("Boundary ticks, no visible categories - render boundary ticks", function(assert) {
-    //arrange
-    this.createAxis();
-    this.updateOptions({
-        type: "discrete",
-        isHorizontal: true,
-        position: "bottom",
-        showCustomBoundaryTicks: true,
-        categories: ["a", "b", "c", "d", "e"],
-        tick: {
-            visible: true,
-            color: "#123456",
-            opacity: 0.3,
-            width: 5,
-            length: 10
-        }
-    });
-
-    this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e", addRange: function() { } });
-    this.translator.stub("getVisibleCategories").returns([]);
-
-    this.translator.stub("translate").withArgs("a").returns(10);
-    this.translator.stub("translate").withArgs("b").returns(30);
-    this.translator.stub("translate").withArgs("c").returns(50);
-    this.translator.stub("translate").withArgs("d").returns(70);
-    this.translator.stub("translate").withArgs("e").returns(90);
-
-    //act
-    this.axis.draw(this.canvas);
-
-    var path = this.renderer.path;
-    assert.equal(path.callCount, 2);
-    assert.deepEqual(path.getCall(0).returnValue.attr.getCall(1).args[0], { points: [10, 70 - 5, 10, 70 + 5] }); //a
-    assert.deepEqual(path.getCall(1).returnValue.attr.getCall(1).args[0], { points: [90, 70 - 5, 90, 70 + 5] }); //e
-});
-
-QUnit.test("Boundary ticks, visible categories, crossLabels - do not render boundary ticks", function(assert) {
+QUnit.test("Boundary ticks, discrete axis, visible categories, crossLabels - do not render boundary categories", function(assert) {
     //arrange
     this.createAxis();
     this.updateOptions({
@@ -1066,7 +1033,7 @@ QUnit.test("Boundary ticks, visible categories, crossLabels - do not render boun
         categories: ["a", "b", "c", "d", "e"],
         discreteAxisDivisionMode: "crossLabels",
         tick: {
-            visible: true,
+            visible: false,
             color: "#123456",
             opacity: 0.3,
             width: 5,
@@ -1075,13 +1042,34 @@ QUnit.test("Boundary ticks, visible categories, crossLabels - do not render boun
     });
 
     this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e" });
-    this.translator.stub("getVisibleCategories").returns(["b", "c", "d"]);
+    this.generatedTicks = ["b", "c", "d"];
 
-    this.translator.stub("translate").withArgs("a").returns(10);
-    this.translator.stub("translate").withArgs("b").returns(30);
-    this.translator.stub("translate").withArgs("c").returns(50);
-    this.translator.stub("translate").withArgs("d").returns(70);
-    this.translator.stub("translate").withArgs("e").returns(90);
+    //act
+    this.axis.draw(this.canvas);
+
+    assert.equal(this.renderer.stub("path").callCount, 0);
+});
+
+QUnit.test("Boundary ticks, discrete axis, no ticks - do not render boundary ticks", function(assert) {
+    //arrange
+    this.createAxis();
+    this.updateOptions({
+        type: "discrete",
+        isHorizontal: true,
+        position: "bottom",
+        showCustomBoundaryTicks: true,
+        categories: ["a", "b", "c", "d", "e"],
+        tick: {
+            visible: false,
+            color: "#123456",
+            opacity: 0.3,
+            width: 5,
+            length: 10
+        }
+    });
+
+    this.axis.setBusinessRange({ minVisible: "a", maxVisible: "e", addRange: function() { } });
+    this.generatedTicks = [];
 
     //act
     this.axis.draw(this.canvas);
@@ -6128,6 +6116,7 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - betweenLabels. Do not draw la
     var categories = ["a", "b", "c", "d"];
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "top",
         categories: categories,
@@ -6163,6 +6152,7 @@ QUnit.test("Categories. DiscreteAxisDivisionMode - crossLabels. Draw all grid li
     var categories = ["a", "b", "c", "d"];
     this.createAxis();
     this.updateOptions({
+        type: "discrete",
         isHorizontal: true,
         position: "top",
         categories: categories,

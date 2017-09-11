@@ -8,7 +8,6 @@ var $ = require("jquery"),
     StubTranslator = vizMocks.stubClass(translator2DModule.Translator2D, {
         updateBusinessRange: function(range) {
             this.getBusinessRange.returns(range);
-            range.categories && this.getVisibleCategories.returns(range.categories);
         }
     });
 
@@ -23,7 +22,6 @@ var environment = {
 
         this.translator = new StubTranslator();
         this.translator.stub("getBusinessRange").returns({ addRange: sinon.stub() });
-        this.translator.stub("getVisibleCategories").returns([]);
     },
     createAxis: function(options) {
         var stripsGroup = this.renderer.g(),

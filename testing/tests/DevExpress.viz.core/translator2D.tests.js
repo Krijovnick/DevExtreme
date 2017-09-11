@@ -2651,22 +2651,6 @@ QUnit.test('getMinScale', function(assert) {
 
 });
 
-QUnit.test('getVisibleCategories returns all visible categories', function(assert) {
-    var categories = ["cat1", "cat2", "cat3", "cat4", "cat5"];
-    this.getCategoriesInfo = sinon.stub(vizUtilsModule, "getCategoriesInfo");
-    this.getCategoriesInfo.withArgs(categories, "cat2", "cat4").returns({ categories: ["cat2", "cat3", "cat4"] });
-
-    var translator = this.createTranslator({ categories: categories, minVisible: "cat2", maxVisible: "cat4" });
-
-    assert.deepEqual(translator.getVisibleCategories(), ["cat2", "cat3", "cat4"]);
-});
-
-QUnit.test('getVisibleCategories returns nothing if no categories are visible', function(assert) {
-    var translator = this.createTranslator({ categories: [] });
-
-    assert.deepEqual(translator.getVisibleCategories(), undefined);
-});
-
 QUnit.test('get scale. stick=true', function(assert) {
     var translator = this.createTranslator({ stick: true });
 
