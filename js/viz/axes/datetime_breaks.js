@@ -6,7 +6,7 @@ var dateUtils = require("../../core/utils/date"),
 function getWeekendDays(workdays) {
     return days.filter(function(day) {
         return !workdays.some(function(workDay) {
-            return workDay === day;
+            return workDay.toLowerCase() === day;
         });
     }).map(function(day) {
         return days.indexOf(day);
@@ -130,7 +130,7 @@ function excludeWorkDaysFromWeekEndBreaks(breaks, exactWorkDays) {
     var result = breaks.slice(),
         i,
         processWorkDay = function(workday) {
-            workday = dateUtils.trimTime(workday);
+            workday = dateUtils.trimTime(new Date(workday));
             if(result[i].from <= workday && result[i].to > workday) {
                 var separatedBreak = separateBreak(result[i], workday);
                 if(separatedBreak.length === 2) {
@@ -164,6 +164,7 @@ function generateBreaksForHolidays(min, max, holidays, weekendDayIndices) {
         var holidayStart,
             holidayEnd;
 
+        holiday = new Date(holiday);
         day = holiday.getDay();
 
         if(!weekendDayIndices.some(dayInWeekend) && holiday >= adjustedMin && holiday <= adjustedMax) {

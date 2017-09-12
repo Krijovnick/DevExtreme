@@ -67,21 +67,32 @@ function getTickGenerator(options, incidentOccurred) {
     });
 }
 
+function sortingBreaks(breaks) {
+    return breaks.sort(function(a, b) { return a.from - b.from; });
+}
+
 function filterBreaks(breaks, viewport) {
-    return (breaks || []).reduce(function(result, currentBreak) {
-        if(currentBreak.from >= viewport.minVisible && currentBreak.to <= viewport.maxVisible) {
-            result.push(currentBreak);
+    return breaks.reduce(function(result, currentBreak) {
+        var from = currentBreak.from,
+            to = currentBreak.to;
+        if(!isDefined(from) || !isDefined(to)) {
+            return result;
         }
-        if(currentBreak.from < viewport.minVisible && currentBreak.to > viewport.minVisible && currentBreak.to <= viewport.maxVisible) {
+        if(from > to) {
+            to = [from, from = to][0];
+        }
+        if(from >= viewport.minVisible && to <= viewport.maxVisible) {
+            result.push({ from: from, to: to });
+        }
+        if(from < viewport.minVisible && to > viewport.minVisible && to <= viewport.maxVisible) {
             result.push({
                 from: viewport.minVisible,
-                to: currentBreak.to
+                to: to
             });
         }
-
-        if(currentBreak.from > viewport.minVisible && currentBreak.from < viewport.maxVisible && currentBreak.to > viewport.maxVisible) {
+        if(from > viewport.minVisible && from < viewport.maxVisible && to > viewport.maxVisible) {
             result.push({
-                from: currentBreak.from,
+                from: from,
                 to: viewport.maxVisible,
                 isEndCutOff: true
             });
@@ -93,7 +104,7 @@ function filterBreaks(breaks, viewport) {
 }
 
 function getScaleBreaks(axisOptions, viewport, series, isArgumentAxis) {
-    var breaks = axisOptions.breaks;
+    var breaks = axisOptions.breaks || [];
 
     if(axisOptions.type !== "discrete" && axisOptions.dataType === "datetime" && axisOptions.workdaysOnly) {
         breaks = generateDateBreaks(viewport.minVisible,
@@ -106,8 +117,7 @@ function getScaleBreaks(axisOptions, viewport, series, isArgumentAxis) {
         && axisOptions.autoScaleBreaks && axisOptions.maxCountOfBreaks !== 0) {
         return generateAutoBreaks(axisOptions, series, viewport);
     }
-
-    return filterBreaks(breaks, viewport);
+    return filterBreaks(sortingBreaks(breaks), viewport);
 }
 
 function generateAutoBreaks(options, series, viewport) {
