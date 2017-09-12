@@ -74,30 +74,36 @@ function sortingBreaks(breaks) {
 function filterBreaks(breaks, viewport) {
     return breaks.reduce(function(result, currentBreak) {
         var from = currentBreak.from,
-            to = currentBreak.to;
+            to = currentBreak.to,
+            lastResult = result[result.length - 1];
         if(!isDefined(from) || !isDefined(to)) {
             return result;
         }
         if(from > to) {
             to = [from, from = to][0];
         }
-        if(from >= viewport.minVisible && to <= viewport.maxVisible) {
-            result.push({ from: from, to: to });
+        if(result.length && from <= lastResult.to) {
+            if(to > lastResult.to) {
+                lastResult.to = to > viewport.maxVisible ? viewport.maxVisible : to;
+            }
+        } else {
+            if(from >= viewport.minVisible && to <= viewport.maxVisible) {
+                result.push({ from: from, to: to });
+            }
+            if(from < viewport.minVisible && to > viewport.minVisible && to <= viewport.maxVisible) {
+                result.push({
+                    from: viewport.minVisible,
+                    to: to
+                });
+            }
+            if(from > viewport.minVisible && from < viewport.maxVisible && to > viewport.maxVisible) {
+                result.push({
+                    from: from,
+                    to: viewport.maxVisible,
+                    isEndCutOff: true
+                });
+            }
         }
-        if(from < viewport.minVisible && to > viewport.minVisible && to <= viewport.maxVisible) {
-            result.push({
-                from: viewport.minVisible,
-                to: to
-            });
-        }
-        if(from > viewport.minVisible && from < viewport.maxVisible && to > viewport.maxVisible) {
-            result.push({
-                from: from,
-                to: viewport.maxVisible,
-                isEndCutOff: true
-            });
-        }
-
         return result;
     }, []);
 

@@ -187,10 +187,5 @@ exports.generateDateBreaks = function(min, max, workDays, exactWorkDays, holiday
 
     breaks.push.apply(breaks, generateBreaksForHolidays(min, max, holidays || [], weekendDayIndices));
 
-    breaks.sort(function(b1, b2) {
-        return b1.from - b2.from;
-    });
-
-    breaks = excludeWorkDaysFromWeekEndBreaks(breaks, exactWorkDays || []);
-    return breaks;
+    return excludeWorkDaysFromWeekEndBreaks(breaks, exactWorkDays || []);
 };

@@ -2345,6 +2345,43 @@ QUnit.test("Filter the breaks if user set them with null and undefined values", 
     }]);
 });
 
+QUnit.test("Merge breaks if they cross each other", function(assert) {
+    this.updateOptions({
+        dataType: "number",
+        breaks: [
+            { from: 50, to: 100 },
+            { from: 70, to: 150 },
+            { from: 60, to: 65 },
+            { from: 150, to: 160 }
+        ]
+    });
+    this.axis.setBusinessRange({ min: 0, max: 750, addRange: function() { return this; } });
+    this.axis.createTicks(this.canvas);
+
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{
+        from: 50,
+        to: 160
+    }]);
+});
+
+QUnit.test("Merge breaks if they cross each other and last the break more than maxVisible", function(assert) {
+    this.updateOptions({
+        dataType: "number",
+        breaks: [
+            { from: 50, to: 100 },
+            { from: 70, to: 150 }
+        ]
+    });
+
+    this.axis.setBusinessRange({ min: 0, max: 140, addRange: function() { return this; } });
+    this.axis.createTicks(this.canvas);
+
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{
+        from: 50,
+        to: 140
+    }]);
+});
+
 QUnit.module("Datetime scale breaks. Weekends and holidays", $.extend({}, environment, {
     beforeEach: function() {
         environment.beforeEach.call(this);
