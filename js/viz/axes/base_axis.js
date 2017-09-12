@@ -111,17 +111,16 @@ function filterBreaks(breaks, viewport) {
 
 function getScaleBreaks(axisOptions, viewport, series, isArgumentAxis) {
     var breaks = axisOptions.breaks || [];
-
     if(axisOptions.type !== "discrete" && axisOptions.dataType === "datetime" && axisOptions.workdaysOnly) {
-        breaks = generateDateBreaks(viewport.minVisible,
+        breaks = breaks.concat(generateDateBreaks(viewport.minVisible,
             viewport.maxVisible,
             axisOptions.workdays,
             axisOptions.exactWorkdays,
-            axisOptions.holidays);
+            axisOptions.holidays));
     }
     if(!isArgumentAxis && axisOptions.type !== "discrete" && axisOptions.dataType !== "datetime"
         && axisOptions.autoScaleBreaks && axisOptions.maxCountOfBreaks !== 0) {
-        return generateAutoBreaks(axisOptions, series, viewport);
+        breaks = breaks.concat(generateAutoBreaks(axisOptions, series, viewport));
     }
     return filterBreaks(sortingBreaks(breaks), viewport);
 }
