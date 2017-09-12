@@ -843,6 +843,9 @@
             hasValue: function() {
                 return this.value !== null && this.minValue !== null && this.highValue !== null && this.lowValue !== null;
             },
+            hasCoords: function() {
+                return true;
+            },
             getDefaultCoords: function() {
                 return $.extend({ defaultCoords: true }, this);
             },

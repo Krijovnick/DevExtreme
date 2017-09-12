@@ -228,13 +228,18 @@ module.exports = _extend({}, barPoint, {
         return this.highValue !== null && this.lowValue !== null;
     },
 
+    hasCoords: function() {
+        return this.x !== null && this.lowY !== null && this.highY !== null;
+    },
+
     _translate: function() {
         var that = this,
             rotated = that._options.rotated,
             valTranslator = that._getValTranslator(),
-            centerValue;
+            centerValue,
+            x = that._getArgTranslator().translate(that.argument);
 
-        that.vx = that.vy = that.x = that._getArgTranslator().translate(that.argument) + (that.xCorrection || 0);
+        that.vx = that.vy = that.x = x === null ? x : x + (that.xCorrection || 0);
         that.openY = that.openValue !== null ? valTranslator.translate(that.openValue) : null;
         that.highY = valTranslator.translate(that.highValue);
         that.lowY = valTranslator.translate(that.lowValue);
