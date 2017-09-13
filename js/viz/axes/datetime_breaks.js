@@ -181,11 +181,21 @@ function generateBreaksForHolidays(min, max, holidays, weekendDayIndices) {
     }, []);
 }
 
+function calculateGaps(breaks) {
+    return breaks.map(function(b) {
+        return {
+            from: b.from,
+            to: b.to,
+            gapSize: dateUtils.convertMillisecondsToDateUnits(b.to - b.from)
+        };
+    });
+}
+
 exports.generateDateBreaks = function(min, max, workDays, exactWorkDays, holidays) {
     var weekendDayIndices = getWeekEndDayIndices(workDays),
         breaks = generateDateBreaksForWeekend(min, max, weekendDayIndices);
 
     breaks.push.apply(breaks, generateBreaksForHolidays(min, max, holidays || [], weekendDayIndices));
 
-    return excludeWorkDaysFromWeekEndBreaks(breaks, exactWorkDays || []);
+    return calculateGaps(excludeWorkDaysFromWeekEndBreaks(breaks, exactWorkDays || []));
 };

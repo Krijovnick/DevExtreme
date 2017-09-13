@@ -91,8 +91,8 @@ function getBusinessDeltaLog(base) {
     };
 }
 
-function getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor) {
-    var count = screenDelta / axisDivisionFactor;
+function getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor, addTickCount) {
+    var count = (screenDelta / axisDivisionFactor) - (addTickCount || 0);
     count = count < 1 ? 1 : count;
 
     return businessDelta / count;
@@ -102,8 +102,8 @@ function getMultiplierFactor(interval, factorDelta) {
     return mathPow(10, mathFloor(getLog(interval, 10)) + (factorDelta || 0));
 }
 
-function calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, axisDivisionFactor, multipliers, allowDecimals) {
-    var interval = getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor),
+function calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, axisDivisionFactor, multipliers, allowDecimals, addTickCount) {
+    var interval = getIntervalByFactor(businessDelta, screenDelta, axisDivisionFactor, addTickCount),
         factor = getMultiplierFactor(interval, -1),
         result = 1,
         onlyIntegers = allowDecimals === false;
@@ -246,7 +246,7 @@ function addIntervalDate(value, interval) {
     return dateUtils.addInterval(value, interval);
 }
 
-function pushTick(breaks, addInterval, tickInterval) {
+function pushTick(breaks) {
     if(!breaks) {
         return function(ticks, value) {
             return ticks.push(value);
@@ -256,27 +256,25 @@ function pushTick(breaks, addInterval, tickInterval) {
     return function(ticks, value) {
         var tickBreak;
         if(breaks.every(function(item) {
-            var tickInBreak = (value >= item.from && (value < item.to || item.isEndCutOff && value <= item.to));
+            var tickInBreak = (value >= item.from && value < item.to);
             if(tickInBreak) {
                 tickBreak = item;
             }
             return !tickBreak;
         })) {
             return ticks.push(value);
-        } else if(addInterval) {
-            var nextValue = addInterval(value, tickInterval);
-            if(mathAbs(tickBreak.to - value) < mathAbs(nextValue - tickBreak.to) && !tickBreak.isEndCutOff) {
-                return ticks.push(tickBreak.to);
-            }
         }
     };
 }
 
 function calculateTicks(addInterval, correctMinValue) {
     return function(min, max, tickInterval, endOnTicks, breaks) {
+
+        addInterval = addIntervalWithBreakGap(addInterval, breaks);
+
         var cur = correctMinValue(min, tickInterval, min),
             ticks = [],
-            push = pushTick(breaks, addInterval, tickInterval);
+            push = pushTick();
 
         if(cur > max) {
             cur = min;
@@ -348,13 +346,57 @@ function calculateMinorTicks(updateTickInterval, addInterval, correctMinValue, c
     };
 }
 
-function generator(options, getBusinessDelta, calculateTickInterval, calculateMinorTickInterval, getTickIntervalByCustomTicks, convertTickInterval, calculateTicks, calculateMinorTicks) {
+function filterTicks(ticks, breaks) {
+    if(breaks.length) {
+        var result = breaks.reduce(function(result, b) {
+            var tmpTicks = [];
+            for(var i = result[1]; i < ticks.length; i++) {
+                var tickValue = ticks[i];
+
+                if(tickValue < b.from) {
+                    tmpTicks.push(tickValue);
+                }
+                if(tickValue >= b.to) {
+                    break;
+                }
+            }
+            return [result[0].concat(tmpTicks), i];
+        }, [[], 0]);
+
+        return result[0].concat(ticks.slice(result[1]));
+    }
+    return ticks;
+}
+
+
+function addIntervalWithBreakGap(addInterval, breaks) {
+
+    return function(value, interval) {
+        var gapSize;
+
+        value = addInterval(value, interval);
+
+        if(!breaks.every(function(item) {
+            var tickInBreak = value >= item.from && value < item.to;
+            if(tickInBreak) {
+                gapSize = item.gapSize;
+            }
+            return !tickInBreak && !gapSize;
+        })) {
+            value = addInterval(value, gapSize);
+        }
+
+        return value;
+    };
+}
+
+function generator(options, getBusinessDelta, calculateTickInterval, calculateMinorTickInterval, getTickIntervalByCustomTicks, convertTickInterval, calculateTicks, calculateMinorTicks, processScaleBreaks) {
     function processCustomTicks(customTicks) {
         return {
             tickInterval: getTickIntervalByCustomTicks(customTicks.majors),
             ticks: customTicks.majors || [],
             minorTickInterval: getTickIntervalByCustomTicks(customTicks.minors),
-            minorTicks: customTicks.minors || []
+            minorTicks: customTicks.minors || [],
         };
     }
 
@@ -372,9 +414,25 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
         }
 
         tickInterval = correctUserTickInterval(tickInterval, businessDelta, screenDelta);
+        tickInterval = calculateTickInterval(
+            businessDelta,
+            screenDelta,
+            tickInterval,
+            forceTickInterval,
+            options.axisDivisionFactor,
+            options.numberMultipliers,
+            options.allowDecimals,
+            breaks.length
+        );
 
-        tickInterval = calculateTickInterval(businessDelta, screenDelta, tickInterval, forceTickInterval, options.axisDivisionFactor, options.numberMultipliers, options.allowDecimals);
-        ticks.ticks = ticks.ticks.concat(calculateTicks(data.min, data.max, tickInterval, options.endOnTicks, breaks));
+        var majorTicks = calculateTicks(data.min, data.max, tickInterval, options.endOnTicks, breaks.filter(function(b) { return b.gapSize; }));
+
+        breaks = processScaleBreaks(breaks, tickInterval, screenDelta, options.axisDivisionFactor);
+
+        majorTicks = filterTicks(majorTicks, breaks);
+        ticks.breaks = breaks;
+
+        ticks.ticks = ticks.ticks.concat(majorTicks);
         ticks.tickInterval = tickInterval;
         return ticks;
     }
@@ -411,14 +469,36 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
             result = processCustomTicks(customTicks);
 
         if(!isNaN(businessDelta)) {
-            result = generateMajorTicks(result, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks, breaks);
-
-            result = generateMinorTicks(result, data, businessDelta, screenDelta, result.tickInterval, minorTickInterval, minorTickCount, customTicks, breaks);
+            result = generateMajorTicks(result, data, businessDelta, screenDelta, tickInterval, forceTickInterval, customTicks, breaks || []);
+            result = generateMinorTicks(result, data, businessDelta, screenDelta, result.tickInterval, minorTickInterval, minorTickCount, customTicks, result.breaks);
         }
 
         return result;
     };
 }
+
+function getScaleBreaksProcessor(convertTickInterval, addCorrection) {
+
+    return function(breaks, tickInterval, screenDelta, axisDivisionFactor) {
+        var interval = convertTickInterval(tickInterval),
+            maxTickCount = Math.floor(screenDelta / axisDivisionFactor),
+            correction = maxTickCount > breaks.length ? interval / 2 : interval / 100;
+
+        return breaks.reduce(function(result, b) {
+            if(b.to - b.from < interval) {
+                return result;
+            }
+            if(b.gapSize) {
+                return result.concat([b]);
+            }
+            return result.concat([{
+                from: addCorrection(b.from, correction),
+                to: addCorrection(b.to, -correction)
+            }]);
+        }, []);
+    };
+}
+
 
 function numericGenerator(options) {
     var floor = correctValueByInterval(getValue, mathFloor, getValue),
@@ -432,7 +512,11 @@ function numericGenerator(options) {
         getTickIntervalByCustomTicks(getValue, getValue),
         getValue,
         calculateTicks(addInterval, options.endOnTicks ? floor : ceil),
-        calculateMinorTicks(getValue, addInterval, options.endOnTicks ? floor : ceil, addInterval, getValue)
+        calculateMinorTicks(getValue, addInterval, options.endOnTicks ? floor : ceil, addInterval, getValue),
+        getScaleBreaksProcessor(getValue, function(value, correction) {
+            return value + correction;
+        }),
+        function(b) { return b; }
     );
 }
 
@@ -456,7 +540,10 @@ function logarithmicGenerator(options) {
         getTickIntervalByCustomTicks(log, getValue),
         getValue,
         calculateTicks(addIntervalLog(base), options.endOnTicks ? floor : ceil),
-        calculateMinorTicks(updateTickInterval, addInterval, ceilNumber, ceilNumber, ceil)
+        calculateMinorTicks(updateTickInterval, addInterval, ceilNumber, ceilNumber, ceil),
+        getScaleBreaksProcessor(getValue, function(value, correction) {
+            return raise(log(value) + correction);
+        })
     );
 }
 
@@ -507,7 +594,10 @@ function dateGenerator(options) {
         getTickIntervalByCustomTicks(getValue, dateUtils.convertMillisecondsToDateUnits),
         dateToMilliseconds,
         calculateTicks(addIntervalDate, options.endOnTicks ? floor : ceil),
-        calculateMinorTicks(getValue, addIntervalDate, options.endOnTicks ? floor : ceil, addIntervalDate, getValue)
+        calculateMinorTicks(getValue, addIntervalDate, options.endOnTicks ? floor : ceil, addIntervalDate, getValue),
+        getScaleBreaksProcessor(dateToMilliseconds, function(value, correction) {
+            return new Date(value.getTime() + correction);
+        })
     );
 }
 

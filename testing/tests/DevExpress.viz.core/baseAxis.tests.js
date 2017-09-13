@@ -2202,25 +2202,6 @@ QUnit.module("Scale breaks", $.extend({}, environment, {
     }
 }));
 
-QUnit.test("Pass scale breaks to translator", function(assert) {
-    this.updateOptions({
-        dataType: "number",
-        breaks: [{
-            from: 10,
-            to: 100
-        }]
-    });
-
-    this.axis.setBusinessRange({ min: 0, max: 1000, addRange: function() { return this; } });
-
-    this.axis.createTicks(this.canvas);
-
-    var breaks = this.translator.updateBusinessRange.lastCall.args[0].breaks;
-
-    assert.deepEqual(breaks, [{ from: 10, to: 100 }]);
-});
-
-
 QUnit.test("Get scale breaks in the viewport", function(assert) {
     this.updateOptions({
         dataType: "number",
@@ -2250,7 +2231,7 @@ QUnit.test("Get scale breaks in the viewport", function(assert) {
     assert.deepEqual(breaks, [
         { from: 250, to: 300 },
         { from: 310, to: 360 },
-        { from: 500, to: 540, isEndCutOff: true }
+        { from: 500, to: 540 }
     ]);
 });
 
@@ -2378,6 +2359,10 @@ QUnit.test("Merge breaks if they cross each other", function(assert) {
 
     assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{
         from: 50,
+        to: 150
+    },
+    {
+        from: 150,
         to: 160
     }]);
 });
@@ -2427,7 +2412,13 @@ QUnit.test("Generate weekend breaks", function(assert) {
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }]);
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 9),
+        to: new Date(2017, 8, 11),
+        gapSize: {
+            days: 2
+        }
+    }]);
 });
 
 QUnit.test("Do not generate weekend breaks if dataType is not datetime", function(assert) {
@@ -2493,8 +2484,20 @@ QUnit.test("Generate two breaks when two days off on week", function(assert) {
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
     assert.deepEqual(breaks, [
-        { from: new Date(2017, 8, 6), to: new Date(2017, 8, 7) },
-        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }
+        {
+            from: new Date(2017, 8, 6),
+            to: new Date(2017, 8, 7),
+            gapSize: {
+                days: 1
+            }
+        },
+        {
+            from: new Date(2017, 8, 9),
+            to: new Date(2017, 8, 11),
+            gapSize: {
+                days: 2
+            }
+        }
     ]);
 });
 
@@ -2512,8 +2515,21 @@ QUnit.test("The break starts with min if the range starts on a weekend", functio
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
     assert.deepEqual(breaks, [
-        { from: new Date(2017, 8, 3, 8, 20), to: new Date(2017, 8, 4) },
-        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }
+        {
+            from: new Date(2017, 8, 3, 8, 20),
+            to: new Date(2017, 8, 4),
+            gapSize: {
+                hours: 15,
+                minutes: 40
+            }
+        },
+        {
+            from: new Date(2017, 8, 9),
+            to: new Date(2017, 8, 11),
+            gapSize: {
+                days: 2
+            }
+        }
     ]);
 });
 
@@ -2531,7 +2547,15 @@ QUnit.test("End of the scale break is max of the range if range ends on a weeken
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
     assert.deepEqual(breaks, [
-        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 10, 8, 20), isEndCutOff: true }
+        {
+            from: new Date(2017, 8, 9),
+            to: new Date(2017, 8, 10, 8, 20),
+            gapSize: {
+                days: 1,
+                hours: 8,
+                minutes: 20
+            }
+        }
     ]);
 });
 
@@ -2565,7 +2589,11 @@ QUnit.test("Exclude exactWorkDays from weekend when it at the end of the weekend
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 9), to: new Date(2017, 8, 10) }]);
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 9),
+        to: new Date(2017, 8, 10),
+        gapSize: { days: 1 }
+    }]);
 });
 
 QUnit.test("Exclude exactWorkDays from weekend when it at the begin of the weekend", function(assert) {
@@ -2582,7 +2610,11 @@ QUnit.test("Exclude exactWorkDays from weekend when it at the begin of the weeke
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 10), to: new Date(2017, 8, 11) }]);
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 10),
+        to: new Date(2017, 8, 11),
+        gapSize: { days: 1 }
+    }]);
 });
 
 QUnit.test("Separate a weekend if exactWorkDays in the middle of the break", function(assert) {
@@ -2600,8 +2632,8 @@ QUnit.test("Separate a weekend if exactWorkDays in the middle of the break", fun
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
     assert.deepEqual(breaks, [
-        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 10) },
-        { from: new Date(2017, 8, 11), to: new Date(2017, 8, 12) }
+        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 10), gapSize: { days: 1 } },
+        { from: new Date(2017, 8, 11), to: new Date(2017, 8, 12), gapSize: { days: 1 } }
     ]);
 });
 
@@ -2638,7 +2670,8 @@ QUnit.test("Generate breaks for holidays", function(assert) {
 
     assert.deepEqual(breaks, [{
         from: new Date(2017, 8, 10),
-        to: new Date(2017, 8, 11)
+        to: new Date(2017, 8, 11),
+        gapSize: { days: 1 }
     }]);
 });
 
@@ -2658,7 +2691,10 @@ QUnit.test("The break starts with min range if holiday starts early then min", f
 
     assert.deepEqual(breaks, [{
         from: new Date(2017, 8, 6, 8, 0, 0),
-        to: new Date(2017, 8, 7)
+        to: new Date(2017, 8, 7),
+        gapSize: {
+            hours: 16
+        }
     }]);
 });
 
@@ -2679,7 +2715,9 @@ QUnit.test("The break ends with max range if holiday ends later then max", funct
     assert.deepEqual(breaks, [{
         from: new Date(2017, 8, 13),
         to: new Date(2017, 8, 13, 19, 0),
-        isEndCutOff: true
+        gapSize: {
+            hours: 19
+        }
     }]);
 });
 
@@ -2699,7 +2737,10 @@ QUnit.test("Do not generate the breaks for holiday if it in the weekend", functi
 
     assert.deepEqual(breaks, [{
         from: new Date(2017, 8, 9),
-        to: new Date(2017, 8, 11)
+        to: new Date(2017, 8, 11),
+        gapSize: {
+            days: 2
+        }
     }]);
 });
 
@@ -2720,11 +2761,17 @@ QUnit.test("sort generated breaks", function(assert) {
     assert.deepEqual(breaks, [
         {
             from: new Date(2017, 8, 6),
-            to: new Date(2017, 8, 7)
+            to: new Date(2017, 8, 7),
+            gapSize: {
+                days: 1
+            }
         },
         {
             from: new Date(2017, 8, 9),
-            to: new Date(2017, 8, 11)
+            to: new Date(2017, 8, 11),
+            gapSize: {
+                days: 2
+            }
         }
     ]);
 });
@@ -2747,7 +2794,13 @@ QUnit.test("Recalculate the breaks on zoom", function(assert) {
     //assert
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
     assert.deepEqual(breaks, [
-        { from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }
+        {
+            from: new Date(2017, 8, 9),
+            to: new Date(2017, 8, 11),
+            gapSize: {
+                days: 2
+            }
+        }
     ]);
 });
 
@@ -2764,7 +2817,13 @@ QUnit.test("Correct generation of the breaks if workdays set with uppercase", fu
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) }]);
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 9),
+        to: new Date(2017, 8, 11),
+        gapSize: {
+            days: 2
+        }
+    }]);
 });
 
 QUnit.test("Correct generation of the breaks if holidays set with string", function(assert) {
@@ -2783,7 +2842,10 @@ QUnit.test("Correct generation of the breaks if holidays set with string", funct
 
     assert.deepEqual(breaks, [{
         from: new Date(2017, 8, 11),
-        to: new Date(2017, 8, 12)
+        to: new Date(2017, 8, 12),
+        gapSize: {
+            days: 1
+        }
     }]);
 });
 
@@ -2801,7 +2863,13 @@ QUnit.test("Correct generation of the breaks if exactWorkdays set with string", 
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 9), to: new Date(2017, 8, 10) }]);
+    assert.deepEqual(breaks, [{
+        from: new Date(2017, 8, 9),
+        to: new Date(2017, 8, 10),
+        gapSize: {
+            days: 1
+        }
+    }]);
 });
 
 QUnit.test("Merge with user breaks", function(assert) {
@@ -2820,8 +2888,16 @@ QUnit.test("Merge with user breaks", function(assert) {
 
     var breaks = this.tickGeneratorSpy.lastCall.args[7];
 
-    assert.deepEqual(breaks, [{ from: new Date(2017, 8, 9), to: new Date(2017, 8, 11) },
-    { from: new Date(2017, 8, 12), to: new Date(2017, 8, 13) }]);
+    assert.deepEqual(breaks, [
+        {
+            from: new Date(2017, 8, 9),
+            to: new Date(2017, 8, 11),
+            gapSize: {
+                days: 2
+            }
+        },
+        { from: new Date(2017, 8, 12), to: new Date(2017, 8, 13) }
+    ]);
 });
 
 QUnit.module("Auto scale breaks", $.extend({}, environment, {
@@ -2858,7 +2934,7 @@ QUnit.test("Several series with not sorted values", function(assert) {
     this.axis.setBusinessRange({ min: 2, max: 120, addRange: function() { return this; } });
     this.axis.createTicks(this.canvas);
 
-    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 12.4, to: 37.6 }, { from: 42.4, to: 77.6 }]);
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 10, to: 40 }, { from: 40, to: 80 }]);
 });
 
 QUnit.test("Very big difference beetwen the values", function(assert) {
@@ -2874,7 +2950,10 @@ QUnit.test("Very big difference beetwen the values", function(assert) {
     this.axis.setBusinessRange({ min: 2, max: 6000, addRange: function() { return this; } });
     this.axis.createTicks(this.canvas);
 
-    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 339.9, to: 5060.1 }, { from: 5139.9, to: 5460.1 }]);
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [
+        { from: 300, to: 5100 },
+        { from: 5100, to: 5500 }
+    ]);
 });
 
 QUnit.test("Small difference beetween the values, breaks are not generated", function(assert) {
@@ -2998,7 +3077,7 @@ QUnit.test("Option maxCountOfBreaks is more than generated breaks", function(ass
     this.axis.setBusinessRange({ min: 0, max: 100, addRange: function() { return this; } });
     this.axis.createTicks(this.canvas);
 
-    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 3.15, to: 99.85 }]);
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 3, to: 100 }]);
 });
 
 QUnit.test("Option maxCountOfBreaks is undefined", function(assert) {
@@ -3016,11 +3095,11 @@ QUnit.test("Option maxCountOfBreaks is undefined", function(assert) {
     this.axis.createTicks(this.canvas);
 
     assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [
-        { from: 3.05, to: 9.95 },
-        { from: 10.05, to: 39.95 },
-        { from: 40.05, to: 79.95 },
-        { from: 80.05, to: 99.95 },
-        { from: 100.05, to: 119.95 }
+        { from: 3, to: 10 },
+        { from: 10, to: 40 },
+        { from: 40, to: 80 },
+        { from: 80, to: 100 },
+        { from: 100, to: 120 }
     ]);
 });
 
@@ -3038,7 +3117,7 @@ QUnit.test("Logarithmic axis", function(assert) {
     this.axis.setBusinessRange({ min: 0.1, max: 10000000, addRange: function() { return this; } });
     this.axis.createTicks(this.canvas);
 
-    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 1000.2, to: 9999999.8 }]);
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 1000, to: 10000000 }]);
 });
 
 QUnit.test("Merge with user breaks", function(assert) {
@@ -3055,5 +3134,9 @@ QUnit.test("Merge with user breaks", function(assert) {
     this.axis.setBusinessRange({ min: 2, max: 100, addRange: function() { return this; } });
     this.axis.createTicks(this.canvas);
 
-    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [{ from: 10.9, to: 34.1 }, { from: 36, to: 40 }, { from: 45.9, to: 99.1 }]);
+    assert.deepEqual(this.tickGeneratorSpy.lastCall.args[7], [
+        { from: 10, to: 35 },
+        { from: 36, to: 40 },
+        { from: 45, to: 100 }
+    ]);
 });

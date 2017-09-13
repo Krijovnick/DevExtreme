@@ -72,36 +72,37 @@ function sortingBreaks(breaks) {
 }
 
 function filterBreaks(breaks, viewport) {
+    var minVisible = viewport.minVisible,
+        maxVisible = viewport.maxVisible;
+
     return breaks.reduce(function(result, currentBreak) {
         var from = currentBreak.from,
             to = currentBreak.to,
-            lastResult = result[result.length - 1];
+            lastResult = result[result.length - 1],
+            newBreak;
+
         if(!isDefined(from) || !isDefined(to)) {
             return result;
         }
         if(from > to) {
             to = [from, from = to][0];
         }
-        if(result.length && from <= lastResult.to) {
+        if(result.length && from < lastResult.to) {
             if(to > lastResult.to) {
-                lastResult.to = to > viewport.maxVisible ? viewport.maxVisible : to;
+                lastResult.to = to > maxVisible ? maxVisible : to;
             }
         } else {
-            if(from >= viewport.minVisible && to <= viewport.maxVisible) {
-                result.push({ from: from, to: to });
-            }
-            if(from < viewport.minVisible && to > viewport.minVisible && to <= viewport.maxVisible) {
-                result.push({
-                    from: viewport.minVisible,
-                    to: to
-                });
-            }
-            if(from > viewport.minVisible && from < viewport.maxVisible && to > viewport.maxVisible) {
-                result.push({
+            if(((from >= minVisible && from < maxVisible) || (to <= maxVisible && to > minVisible)) && to - from < maxVisible - minVisible) {
+                from = from >= minVisible ? from : minVisible;
+                to = to <= maxVisible ? to : maxVisible;
+                newBreak = {
                     from: from,
-                    to: viewport.maxVisible,
-                    isEndCutOff: true
-                });
+                    to: to
+                };
+                if(currentBreak.gapSize) {
+                    newBreak.gapSize = dateUtils.convertMillisecondsToDateUnits(to - from);
+                }
+                result.push(newBreak);
             }
         }
         return result;
@@ -153,7 +154,6 @@ function generateAutoBreaks(options, series, viewport) {
     });
 
     maxCountOfBreaks = isDefined(options.maxCountOfBreaks) ? Math.min(options.maxCountOfBreaks, ranges.length) : ranges.length;
-
     for(i = 0; i < maxCountOfBreaks; i++) {
         if(ranges[i].length >= minDiff) {
             if(visibleRange <= ranges[i].length) {
@@ -171,7 +171,7 @@ function generateAutoBreaks(options, series, viewport) {
         return a.from - b.from;
     });
 
-    ratio = visibleRange * 0.05;
+    ratio = visibleRange * 0;
 
     breaks = breaks.map(function(br) {
         return { from: br.from + ratio, to: br.to - ratio };
@@ -1156,6 +1156,8 @@ Axis.prototype = {
         this.updateCanvas(canvas);
 
         ticks = this._getTicks();
+
+        this._breaks = ticks.breaks;
 
         if(options.dataType === "datetime" && !this._hasLabelFormat && ticks.ticks.length) {
             options.label.format = isMarkersVisible
