@@ -1080,8 +1080,8 @@ QUnit.test("Get viewport. min/max undefined, there is no zooming", function(asse
 });
 
 QUnit.test("Get viewport after zooming", function(assert) {
-    this.axis.zoom(10, 20, "stickValue");
-    assert.deepEqual(this.axis.getViewport(), { min: 10, max: 20, stick: "stickValue" });
+    this.axis.zoom(10, 20, true);
+    assert.deepEqual(this.axis.getViewport(), { min: 10, max: 20 });
 });
 
 QUnit.test("Get viewport. min/max are defined", function(assert) {
@@ -1380,6 +1380,52 @@ QUnit.test("marginOptions.checkInterval and marginOptions.size, size less than i
             interval: 20
         },
         isArgumentAxis: true
+    });
+});
+
+QUnit.test("marginOptions.size and marginOptions.percentStick, min != 1, max = 1 - do not calculate max margin", function(assert) {
+    this.testMargins(assert, {
+        options: {
+            valueMarginsEnabled: true
+        },
+        marginOptions: {
+            size: 100,
+            percentStick: true
+        },
+        range: {
+            min: 0.4,
+            max: 1
+        },
+        ticks: [0.4, 1],
+        expectedRange: {
+            min: 0.25,
+            max: 1,
+            minVisible: 0.25,
+            maxVisible: 1
+        }
+    });
+});
+
+QUnit.test("marginOptions.size and marginOptions.percentStick, min = -1 - do not calculate min margin", function(assert) {
+    this.testMargins(assert, {
+        options: {
+            valueMarginsEnabled: true
+        },
+        marginOptions: {
+            size: 100,
+            percentStick: true
+        },
+        range: {
+            min: -1,
+            max: -0.4
+        },
+        ticks: [-1, -0.4],
+        expectedRange: {
+            min: -1,
+            max: -0.25,
+            minVisible: -1,
+            maxVisible: -0.25
+        }
     });
 });
 

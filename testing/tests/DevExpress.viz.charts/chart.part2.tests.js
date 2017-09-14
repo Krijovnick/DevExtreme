@@ -29,14 +29,6 @@ QUnit.test("Pass rotation info to Business range (rotated = false)", function(as
     assert.strictEqual(chart._argumentAxes[0].setBusinessRange.lastCall.args[0].rotated, false);
 });
 
-QUnit.test("Pass stick info to Business range (axis is discrete)", function(assert) {
-    var chart = this.createChart({
-        argumentAxis: { mockRange: { axisType: "discrete" } }
-    });
-
-    assert.strictEqual(chart._argumentAxes[0].setBusinessRange.lastCall.args[0].stick, undefined);
-});
-
 QUnit.test("Calculate business range for continuous without indent", function(assert) {
     seriesMockData.series.push(new MockSeries({
         range: {
@@ -906,14 +898,16 @@ QUnit.test("Pass merged marginOptions to axes", function(assert) {
     seriesMockData.series.push(new MockSeries({
         marginOptions: {
             checkInterval: false,
-            size: 8
+            size: 8,
+            percentStick: true
         }
     }));
 
     seriesMockData.series.push(new MockSeries({
         marginOptions: {
             checkInterval: true,
-            size: 5
+            size: 5,
+            percentStick: false
         }
     }));
 
@@ -923,12 +917,14 @@ QUnit.test("Pass merged marginOptions to axes", function(assert) {
 
     assert.deepEqual(chart._valueAxes[0].setMarginOptions.lastCall.args[0], {
         size: 8,
-        checkInterval: true
+        checkInterval: true,
+        percentStick: true
     });
 
     assert.deepEqual(chart._argumentAxes[0].setMarginOptions.lastCall.args[0], {
         size: 8,
-        checkInterval: true
+        checkInterval: true,
+        percentStick: true
     });
 });
 
@@ -946,14 +942,16 @@ QUnit.test("Pass merged marginOptions to axes when two value axis", function(ass
     seriesMockData.series.push(new MockSeries({
         marginOptions: {
             checkInterval: false,
-            size: 8
+            size: 8,
+            percentStick: false
         }
     }));
 
     seriesMockData.series.push(new MockSeries({
         marginOptions: {
             checkInterval: true,
-            size: 5
+            size: 5,
+            percentStick: true
         }
     }));
 
@@ -972,17 +970,20 @@ QUnit.test("Pass merged marginOptions to axes when two value axis", function(ass
 
     assert.deepEqual(chart._valueAxes[0].setMarginOptions.lastCall.args[0], {
         checkInterval: false,
-        size: 8
+        size: 8,
+        percentStick: false
     });
 
     assert.deepEqual(chart._valueAxes[1].setMarginOptions.lastCall.args[0], {
         checkInterval: true,
-        size: 5
+        size: 5,
+        percentStick: true
     });
 
     assert.deepEqual(chart._argumentAxes[0].setMarginOptions.lastCall.args[0], {
         size: 8,
-        checkInterval: true
+        checkInterval: true,
+        percentStick: true
     });
 });
 

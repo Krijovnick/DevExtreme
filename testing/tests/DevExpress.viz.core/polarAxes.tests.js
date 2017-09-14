@@ -146,7 +146,7 @@ QUnit.module("Translators in axis", {
     }
 });
 
-QUnit.test("circular polar axis updates translator on option changed", function(assert) {
+QUnit.test("circular continuous axis - updates translator on option changed", function(assert) {
     var axis = new Axis({
             renderer: this.renderer,
             axisType: "polarAxes",
@@ -161,7 +161,69 @@ QUnit.test("circular polar axis updates translator on option changed", function(
     });
 
     assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
-    assert.deepEqual(translator.update.lastCall.args[2], { isHorizontal: true, conversionValue: true });
+    assert.deepEqual(translator.update.lastCall.args[2], {
+        isHorizontal: true,
+        conversionValue: true,
+        addSpiderCategory: undefined,
+        stick: true
+    });
+});
+
+QUnit.test("circular discrete axis - stick false", function(assert) {
+    var axis = new Axis({
+            renderer: this.renderer,
+            axisType: "polarAxes",
+            drawingType: "circular"
+        }),
+        translator = translator2DModule.Translator2D.lastCall.returnValue;
+
+    sinon.spy(translator, "update");
+
+    axis.updateOptions({
+        label: {},
+        type: "discrete",
+        firstPointOnStartAngle: false
+    });
+
+    assert.strictEqual(translator.update.lastCall.args[2].stick, false);
+});
+
+QUnit.test("circular axis, firstPointOnStartAngle = true - addSpiderCategory and stick are true", function(assert) {
+    var axis = new Axis({
+            renderer: this.renderer,
+            axisType: "polarAxes",
+            drawingType: "circular"
+        }),
+        translator = translator2DModule.Translator2D.lastCall.returnValue;
+
+    sinon.spy(translator, "update");
+
+    axis.updateOptions({
+        label: {},
+        firstPointOnStartAngle: true
+    });
+
+    assert.strictEqual(translator.update.lastCall.args[2].addSpiderCategory, true);
+    assert.strictEqual(translator.update.lastCall.args[2].stick, true);
+});
+
+QUnit.test("circular spider axis - addSpiderCategory and stick are always true", function(assert) {
+    var axis = new Axis({
+            renderer: this.renderer,
+            axisType: "polarAxes",
+            drawingType: "circularSpider"
+        }),
+        translator = translator2DModule.Translator2D.lastCall.returnValue;
+
+    sinon.spy(translator, "update");
+
+    axis.updateOptions({
+        label: {},
+        firstPointOnStartAngle: false
+    });
+
+    assert.strictEqual(translator.update.lastCall.args[2].addSpiderCategory, true);
+    assert.strictEqual(translator.update.lastCall.args[2].stick, true);
 });
 
 QUnit.test("linear polar axis updates translator on option changed", function(assert) {
@@ -179,7 +241,28 @@ QUnit.test("linear polar axis updates translator on option changed", function(as
     });
 
     assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
-    assert.deepEqual(translator.update.lastCall.args[2], { isHorizontal: true });
+    assert.deepEqual(translator.update.lastCall.args[2], {
+        isHorizontal: true,
+        stick: true
+    });
+});
+
+QUnit.test("linear axis, valueMarginsEnabled = true - stick false", function(assert) {
+    var axis = new Axis({
+            renderer: this.renderer,
+            axisType: "polarAxes",
+            drawingType: "linear"
+        }),
+        translator = translator2DModule.Translator2D.lastCall.returnValue;
+
+    sinon.spy(translator, "update");
+
+    axis.updateOptions({
+        label: {},
+        valueMarginsEnabled: true
+    });
+
+    assert.strictEqual(translator.update.lastCall.args[2].stick, false);
 });
 
 QUnit.test("Update canvas. polar circular axis", function(assert) {
@@ -505,7 +588,6 @@ QUnit.test("draw, not visible", function(assert) {
 });
 
 QUnit.test("draw ticks. Orientation = center", function(assert) {
-    this.range.stick = true;
     this.createDrawnAxis({ visible: true, tick: { visible: true, length: 20 } });
 
     assert.equal(this.renderer.path.callCount, 4);
@@ -521,7 +603,6 @@ QUnit.test("draw ticks. Orientation = center", function(assert) {
 });
 
 QUnit.test("draw ticks. Orientation = outside", function(assert) {
-    this.range.stick = true;
     this.createDrawnAxis({ visible: true, tickOrientation: "outside", tick: { visible: true, length: 20 } });
 
     for(var i = 0; i < this.renderer.path.callCount; i++) {
@@ -531,7 +612,6 @@ QUnit.test("draw ticks. Orientation = outside", function(assert) {
 });
 
 QUnit.test("draw ticks. Orientation = inside", function(assert) {
-    this.range.stick = true;
     this.createDrawnAxis({ visible: true, tickOrientation: "inside", tick: { visible: true, length: 20 } });
 
     for(var i = 0; i < this.renderer.path.callCount; i++) {
@@ -572,7 +652,6 @@ QUnit.test("axisDivisionMode is betweenLabels", function(assert) {
 });
 
 QUnit.test("draw labels", function(assert) {
-    this.range.stick = true;
     this.options.label.visible = true;
     var axis = this.createDrawnAxis();
 
@@ -591,7 +670,6 @@ QUnit.test("draw labels", function(assert) {
 });
 
 QUnit.test("adjust labels", function(assert) {
-    this.range.stick = true;
     this.options.label.visible = true;
     this.createDrawnAxis();
     var text = this.renderer.text;
@@ -617,7 +695,6 @@ QUnit.test("coordsIn method", function(assert) {
 
 QUnit.test("draw grid", function(assert) {
     var returnedPath;
-    this.range.stick = true;
     this.createDrawnAxis({ tick: { visible: false }, grid: { visible: true, color: "black", width: 1, opacity: 1 } });
 
     assert.equal(this.renderer.path.callCount, 4);
@@ -810,44 +887,6 @@ QUnit.test("get range data, set period, argumentType is datetime", function(asse
 
     assert.equal(range.min, undefined);
     assert.equal(range.max, undefined);
-});
-
-QUnit.test("get range data, discrete argument axis", function(assert) {
-    var axis = this.createDrawnAxis({ type: "discrete" });
-    assert.strictEqual(axis.getRangeData().stick, false);
-});
-
-QUnit.test("get range data, continuous argument axis", function(assert) {
-    var axis = this.createDrawnAxis();
-    assert.strictEqual(axis.getRangeData().stick, true);
-});
-
-QUnit.test("get range data, spider web", function(assert) {
-    this.renderSettings.drawingType = "circularSpider";
-    var axis = this.createDrawnAxis({});
-    assert.strictEqual(axis.getRangeData().stick, true);
-    assert.strictEqual(axis.getRangeData().addSpiderCategory, true);
-});
-
-QUnit.test("get range data, circular axis. firstPointOnStartAngle", function(assert) {
-    this.renderSettings.drawingType = "circular";
-    this.options.firstPointOnStartAngle = true;
-    var axis = this.createDrawnAxis({});
-    assert.strictEqual(axis.getRangeData().stick, true);
-    assert.strictEqual(axis.getRangeData().addSpiderCategory, true);
-});
-
-QUnit.test("getSpiderTicks. stick = true", function(assert) {
-    this.range.stick = true;
-    this.renderSettings.drawingType = "circularSpider";
-    this.generatedTicks = [0, 1, 2];
-
-    var spiderTicks = this.createDrawnAxis({}).getSpiderTicks();
-
-    assert.equal(spiderTicks.length, 3);
-    assert.equal(spiderTicks[0].value, 0);
-    assert.equal(spiderTicks[1].value, 1);
-    assert.equal(spiderTicks[2].value, 2);
 });
 
 QUnit.test("getSpiderTicks. without spiderWeb", function(assert) {
@@ -1143,12 +1182,6 @@ QUnit.test("draw grid", function(assert) {
         assert.equal(this.renderer.circle.getCall(i).returnValue.append.firstCall.args[0], this.renderSettings.gridGroup.children[0], 'Created elements attached to the group');
         assert.ok(this.renderer.circle.getCall(i).returnValue.sharp.calledOnce);
     }
-});
-
-QUnit.test("getRangeData argumentAxis", function(assert) {
-    var axis = this.createSimpleAxis({ valueMarginsEnabled: true });
-
-    assert.strictEqual(axis.getRangeData().stick, false);
 });
 
 QUnit.test("draw spider grid", function(assert) {

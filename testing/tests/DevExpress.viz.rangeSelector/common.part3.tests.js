@@ -78,7 +78,6 @@ QUnit.test("set range as numeric and datetime without valueType", function(asser
     assert.strictEqual(options.valueType, "datetime");
 });
 
-
 QUnit.test("set range as string without datasource", function(assert) {
     this.createWidget({
         scale: {
@@ -176,7 +175,7 @@ QUnit.test("set range by dataSource. discrete data", function(assert) {
     assert.strictEqual(options.valueType, "string");
 });
 
-QUnit.test("set range by dataSource for non-stick series", function(assert) {
+QUnit.test("set range by dataSource. Numeric", function(assert) {
     this.createWidget({
         dataSource: [{ x: 1, y1: 4 }, { x: 5, y1: 6 }],
         chart: {
@@ -186,16 +185,6 @@ QUnit.test("set range by dataSource for non-stick series", function(assert) {
             ]
         }
     });
-
-
-    //TODO check stick
-    // var options = this.axis.updateOptions.lastCall.args[0];
-    // assert.strictEqual(options.startValue, 0.5);
-    // assert.strictEqual(options.endValue, 5.5);
-    // assert.strictEqual(options.valueType, "numeric");
-    // var range = this.axis.setBusinessRange.lastCall.args[0];
-    // assert.strictEqual(range.minVisible, 0.5);
-    // assert.strictEqual(range.maxVisible, 5.5);
 
     var options = this.axis.updateOptions.lastCall.args[0];
     assert.strictEqual(options.startValue, 1);

@@ -225,7 +225,6 @@ QUnit.test("Linear axis creates 2d translator on creation", function(assert) {
     assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
 });
 
-
 QUnit.test("Linear axis updates translator on option changed", function(assert) {
     var axis = new Axis({
             renderer: this.renderer,
@@ -243,7 +242,25 @@ QUnit.test("Linear axis updates translator on option changed", function(assert) 
     });
 
     assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
-    assert.deepEqual(translator.update.lastCall.args[2], { isHorizontal: true, interval: 0.2 });
+    assert.deepEqual(translator.update.lastCall.args[2], { isHorizontal: true, interval: 0.2, stick: true });
+});
+
+QUnit.test("Linear axis updates translator, valueMarginsEnabled = true - stick false", function(assert) {
+    var axis = new Axis({
+            renderer: this.renderer,
+            axisType: "xyAxes",
+            drawingType: "linear"
+        }),
+        translator = translator2DModule.Translator2D.lastCall.returnValue;
+
+    sinon.spy(translator, "update");
+
+    axis.updateOptions({
+        label: {},
+        valueMarginsEnabled: true
+    });
+
+    assert.strictEqual(translator.update.lastCall.args[2].stick, false);
 });
 
 QUnit.test("Update canvas", function(assert) {

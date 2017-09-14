@@ -6,9 +6,12 @@ showCalculatedTicks - deprecated in 15.2
 
 remove _correctBusinessRange
 
-stick
++ stick
 
 make option minorGridSpacingFactor
+
+
+customTicks extend viewPort, but it works incorrectly in gauges, we should not extend viewPort in gauges, but drop outside ticks
 
 
 NOTES
@@ -16,28 +19,28 @@ gridSpacingFactor shoould be passed to tickGenerator, there is no default value
 tickGenerator would not accept gridSpacingFactor <= 0
 tickGenerator would not accept tickInterval <= 0
 
-+showCustomBoundaryTicks, customBoundTicks options in RangeSelector (and internal use in Polar chart) is passed tickManager as addMinMax and tickManager generates boundary ticks
-+This will not be included in tickGenerator and should be processed on Axis level
++ showCustomBoundaryTicks, customBoundTicks options in RangeSelector (and internal use in Polar chart) is passed tickManager as addMinMax and tickManager generates boundary ticks
++ This will not be included in tickGenerator and should be processed on Axis level
 
 No margins
+
+setTicksAtUnitBeginning - is not used anymore (17.2)
 
 
 
 check
 https://isc.devexpress.com/Thread/WorkplaceDetails/T170398
 
-percentStick - bounds are not generated if there is percent series
++ percentStick - bounds are not generated if there is percent series and value is abs(1)
 
-minSpaceCorrection
-maxSpaceCorrection
-add one extra tick if there are point labels
++ minSpaceCorrection, maxSpaceCorrection - add one extra tick if there are point labels
 
-stick - used in translator, in tick manager it prevents from bounds generating and is used minor ticks generating
++ stick - used in translator, in tick manager it prevents from bounds generating and is used minor ticks generating
 
 checkBoundedTicksOverlapping - ??
 getMaxLabelParams - ??
 
-minStickValue, maxStickValue - restricts range expansion in tickManager below/above 0. tickGenerator generates ticks based on 0 level, so there is no problem with that
++ minStickValue, maxStickValue - restricts range expansion in tickManager below/above 0. tickGenerator generates ticks based on 0 level, so there is no problem with that
 
 
 valueType, argumentType, dataType - in RangeSelector and gauges

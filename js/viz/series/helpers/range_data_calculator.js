@@ -5,25 +5,6 @@ var _math = Math,
     _isDefined = require("../../../core/utils/type").isDefined,
     DISCRETE = "discrete";
 
-function addLabelPaddings(series, valueRange) {
-    var labelOptions = series.getOptions().label;
-
-    if(series.areLabelsVisible() && labelOptions && labelOptions.visible && labelOptions.position !== "inside") {
-        if(valueRange.min < 0) {
-            valueRange.minSpaceCorrection = true;
-        }
-        if(valueRange.max > 0) {
-            valueRange.maxSpaceCorrection = true;
-        }
-    }
-}
-
-function addRangeSeriesLabelPaddings(series, range) {
-    if(series.areLabelsVisible() && series._options.label.visible && series._options.label.position !== "inside") {
-        range.minSpaceCorrection = range.maxSpaceCorrection = true;
-    }
-}
-
 function continuousRangeCalculator(range, minValue, maxValue) {
     range.min = range.min < minValue ? range.min : minValue;
     range.max = range.max > maxValue ? range.max : maxValue;
@@ -196,8 +177,5 @@ module.exports = {
             });
         }
         return range;
-    },
-    //TODO - remove it
-    addLabelPaddings: addLabelPaddings,
-    addRangeSeriesLabelPaddings: addRangeSeriesLabelPaddings
+    }
 };

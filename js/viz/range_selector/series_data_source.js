@@ -43,22 +43,6 @@ var processSeriesFamilies = function(series, equalBarWidth, minBubbleSize, maxBu
     return families;
 };
 
-var isStickType = function(type) {
-    var nonStickTypes = ["bar", "candlestick", "stock", "bubble"],
-        stickType = true;
-
-    type = vizUtils.normalizeEnum(type);
-    each(nonStickTypes, function(_, item) {
-        if(type.indexOf(item) !== -1) {
-            stickType = false;
-            return false;
-        }
-    });
-
-
-    return stickType;
-};
-
 // TODO: This is copypaste from the same name method in the advancedChart.js
 function setTemplateFields(data, templateData, series) {
     each(data, function(_, data) {
@@ -226,9 +210,6 @@ SeriesDataSource.prototype = {
             rangeData = series.getRangeData();
             valRange.addRange(rangeData.val);
             argRange.addRange(rangeData.arg);
-            if(!isStickType(series.type)) {
-                argRange.addRange({ stick: false });
-            }
         });
 
         if(valRange.isDefined() && argRange.isDefined()) {

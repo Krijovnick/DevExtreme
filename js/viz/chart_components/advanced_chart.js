@@ -36,7 +36,8 @@ function prepareAxis(axisOptions) {
 function mergeMarginOptions(opt1, opt2) {
     return {
         checkInterval: opt1.checkInterval || opt2.checkInterval,
-        size: Math.max(opt1.size || 0, opt2.size || 0)
+        size: Math.max(opt1.size || 0, opt2.size || 0),
+        percentStick: opt1.percentStick || opt2.percentStick
     };
 }
 

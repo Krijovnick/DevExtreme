@@ -1390,7 +1390,6 @@ var checkTwoGroups = function(assert, series) {
         assert.equal(series._getPointSize(), 2);
     });
 
-
     QUnit.module("Scatter. Customize point", {
         beforeEach: function() {
             environment.beforeEach.call(this);
@@ -1728,58 +1727,6 @@ var checkTwoGroups = function(assert, series) {
                 rangeMin: "url1"
             }
         });
-    });
-
-    QUnit.test("getMarginOptions - return point size", function(assert) {
-        var series = createSeries({
-            type: seriesType,
-            point: {
-                visible: true,
-                size: 6
-            }
-        });
-
-        assert.deepEqual(series.getMarginOptions(), { size: 6 });
-    });
-
-    QUnit.test("getMarginOptions, point is invisible - return 0", function(assert) {
-        var series = createSeries({
-            type: seriesType,
-            point: {
-                visible: false,
-                size: 6
-            }
-        });
-
-        assert.deepEqual(series.getMarginOptions(), { size: 0 });
-    });
-
-    QUnit.test("getMarginOptions. add max border width", function(assert) {
-        var series = createSeries({
-            type: seriesType,
-            point: {
-                visible: true,
-                size: 6,
-                border: {
-                    visible: true,
-                    width: 10
-                },
-                hoverStyle: {
-                    border: {
-                        visible: true,
-                        width: 10
-                    }
-                },
-                selectionStyle: {
-                    border: {
-                        visible: true,
-                        width: 12
-                    }
-                }
-            }
-        });
-
-        assert.deepEqual(series.getMarginOptions(), { size: 30 });
     });
 
     QUnit.module("Scatter. Label styles", {
@@ -2911,3 +2858,72 @@ var checkTwoGroups = function(assert, series) {
         series.drawTrackers();
     });
 })();
+
+QUnit.module("getMarginOptions", {
+    beforeEach: function() {
+        environment.beforeEach.call(this);
+        this.data = [{ arg: "arg1", val: "val1", tag: "tag1" }, { arg: "arg2", val: "val2", tag: "tag2" }];
+    },
+    afterEach: environment.afterEach
+});
+
+QUnit.test("Return point size", function(assert) {
+    var series = createSeries({
+        type: seriesType,
+        point: {
+            visible: true,
+            size: 6
+        }
+    });
+
+    assert.deepEqual(series.getMarginOptions(), {
+        size: 6,
+        percentStick: false
+    });
+});
+
+QUnit.test("Point is invisible - return 0", function(assert) {
+    var series = createSeries({
+        type: seriesType,
+        point: {
+            visible: false,
+            size: 6
+        }
+    });
+
+    assert.deepEqual(series.getMarginOptions(), {
+        size: 0,
+        percentStick: false
+    });
+});
+
+QUnit.test("Add max border width", function(assert) {
+    var series = createSeries({
+        type: seriesType,
+        point: {
+            visible: true,
+            size: 6,
+            border: {
+                visible: true,
+                width: 10
+            },
+            hoverStyle: {
+                border: {
+                    visible: true,
+                    width: 10
+                }
+            },
+            selectionStyle: {
+                border: {
+                    visible: true,
+                    width: 12
+                }
+            }
+        }
+    });
+
+    assert.deepEqual(series.getMarginOptions(), {
+        size: 30,
+        percentStick: false
+    });
+});

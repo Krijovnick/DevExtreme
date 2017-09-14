@@ -3,7 +3,6 @@
 //there are stock, candlestick
 var scatterSeries = require("./scatter_series").chart,
     barSeries = require("./bar_series").chart.bar,
-    rangeCalculator = require("./helpers/range_data_calculator"),
     extend = require("../../core/utils/extend").extend,
     each = require("../../core/utils/iterator").each,
 
@@ -264,11 +263,7 @@ exports.stock = _extend({}, scatterSeries, {
 
     _beginUpdateData: _noop,
 
-    _processRange: function(range) {
-        rangeCalculator.addRangeSeriesLabelPaddings(this, range.val);
-    },
-
-    getMarginOptions: function() {
+    _patchMarginOptions: function(options) {
         var pointOptions = this._getCreatingPointOptions(),
             styles = pointOptions.styles,
             border = [styles.normal, styles.hover, styles.selection]
@@ -276,9 +271,9 @@ exports.stock = _extend({}, scatterSeries, {
                     return Math.max(max, style["stroke-width"]);
                 }, 0);
 
-        return {
-            size: DEFAULT_FINANCIAL_POINT_SIZE + border
-        };
+        options.size = DEFAULT_FINANCIAL_POINT_SIZE + border;
+
+        return options;
     }
 });
 

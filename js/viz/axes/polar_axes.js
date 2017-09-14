@@ -45,11 +45,13 @@ circularAxes = polarAxes.circular = {
         return range;
     },
 
-    _updateTranslator: function() {
-        this._translator.update({}, {}, {
+    _getTranslatorOptions: function() {
+        return {
             isHorizontal: true,
-            conversionValue: true
-        });
+            conversionValue: true,
+            addSpiderCategory: this._getSpiderCategoryOption(),
+            stick: this._getStick()
+        };
     },
 
     getCenter: function() {
@@ -69,7 +71,6 @@ circularAxes = polarAxes.circular = {
         var rad = Math.min((canvas.width - canvas.left - canvas.right), (canvas.height - canvas.top - canvas.bottom)) / 2;
         this._radius = rad < 0 ? 0 : rad;
     },
-
 
     _updateCenter: function(canvas) {
         this._center = {
@@ -431,10 +432,11 @@ polarAxes.linear = {
     _getStick: xyAxesLinear._getStick,
     _getSpiderCategoryOption: _noop,
 
-    _updateTranslator: function() {
-        this._translator.update({}, {}, {
-            isHorizontal: true
-        });
+    _getTranslatorOptions: function() {
+        return {
+            isHorizontal: true,
+            stick: this._getStick()
+        };
     },
 
     _updateRadius: circularAxes._updateRadius,

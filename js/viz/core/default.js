@@ -236,7 +236,8 @@ registerTheme({
     },
     "chart:common:axis": {
         visible: false,
-        setTicksAtUnitBeginning: true,
+        //TODO
+        //setTicksAtUnitBeginning: true,
         valueMarginsEnabled: true,
         placeholderSize: null,
         logarithmBase: 10,
@@ -676,6 +677,7 @@ registerTheme({
         },
         argumentAxis: {},
         valueAxis: {
+            endOnTicks: true,
             grid: {
                 visible: true
             }
@@ -1007,7 +1009,8 @@ registerTheme({
             opacity: 0.1,
             showCustomBoundaryTicks: true,
             showMinorTicks: true, //DEPRECATED IN 15_2
-            setTicksAtUnitBeginning: true,
+            //TODO
+            //setTicksAtUnitBeginning: true,
             label: {
                 overlappingBehavior: "hide",
                 alignment: "center",

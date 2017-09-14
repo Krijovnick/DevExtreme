@@ -765,6 +765,54 @@ QUnit.test("Translator with not valid settings", function(assert) {
     assert.strictEqual(gauge._translator.getCodomainEnd(), 2000, "codomain end");
 });
 
+QUnit.module("Gauge - scale initialization", environment);
+
+QUnit.test("startValue < endValue", function(assert) {
+    this.createTestGauge({
+        scale: {
+            startValue: 10,
+            endValue: 20
+        }
+    });
+
+    var scale = axisModule.Axis.getCall(0).returnValue,
+        updateOptions = scale.updateOptions.getCall(0).args[0],
+        setBusinessRange = scale.setBusinessRange.getCall(0).args[0].ctorArgs[0];
+
+    assert.strictEqual(updateOptions.min, 10);
+    assert.strictEqual(updateOptions.max, 20);
+    assert.deepEqual(setBusinessRange, {
+        axisType: "continuous",
+        dataType: "numeric",
+        minVisible: 10,
+        maxVisible: 20,
+        invert: false
+    });
+});
+
+QUnit.test("startValue > endValue", function(assert) {
+    this.createTestGauge({
+        scale: {
+            startValue: 20,
+            endValue: 10
+        }
+    });
+
+    var scale = axisModule.Axis.getCall(0).returnValue,
+        updateOptions = scale.updateOptions.getCall(0).args[0],
+        setBusinessRange = scale.setBusinessRange.getCall(0).args[0].ctorArgs[0];
+
+    assert.strictEqual(updateOptions.min, 10);
+    assert.strictEqual(updateOptions.max, 20);
+    assert.deepEqual(setBusinessRange, {
+        axisType: "continuous",
+        dataType: "numeric",
+        minVisible: 10,
+        maxVisible: 20,
+        invert: true
+    });
+});
+
 QUnit.module("Gauge - resizing", {
     beforeEach: function() {
         environment.beforeEach.apply(this, arguments);

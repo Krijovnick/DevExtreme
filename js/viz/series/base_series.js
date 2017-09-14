@@ -265,12 +265,7 @@ Series.prototype = {
     },
 
     getRangeData: function(zoomArgs, calcIntervalFunction) {
-        if(this._visible) {
-            var range = this._getRangeData();
-            this._processRange(range);
-            return range;
-        }
-        return getEmptyBusinessRange();
+        return this._visible ? this._getRangeData() : getEmptyBusinessRange();
     },
 
     getViewport: function() {
@@ -1130,7 +1125,11 @@ Series.prototype = {
 
     areErrorBarsVisible: _noop,
 
-    getMarginOptions: function() { return {}; },
+    getMarginOptions: function() {
+        return this._patchMarginOptions({
+            percentStick: this.isFullStackedSeries()
+        });
+    },
 
     getColor: function() {
         return this.getLegendStyles().normal.fill;

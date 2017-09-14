@@ -1124,17 +1124,24 @@ Axis.prototype = {
     _applyMargins: function(range) {
         var options = this._options,
             margins = isDefined(this._marginOptions) ? this._marginOptions : {},
-            marginValue,
+            marginSize = margins.size,
+            marginValue = 0,
             type = options.type,
             valueMarginsEnabled = options.valueMarginsEnabled && type !== constants.logarithmic && type !== constants.discrete,
             minValueMargin = options.minValueMargin,
             maxValueMargin = options.maxValueMargin,
             add = getAddFunction(range, !this.isArgumentAxis),
-            canvasLength = this._getScreenDelta(),
             minVisible = range.minVisible,
             maxVisible = range.maxVisible,
             interval = range.interval,
             maxMinDistance = _abs(maxVisible - minVisible);
+
+        function addMargin(value, margin, marginOption) {
+            if(!isDefined(marginOption) && !(margins.percentStick && _abs(value) === 1)) {
+                value = add(value, margin);
+            }
+            return value;
+        }
 
         if(valueMarginsEnabled) {
             if(isDefined(minValueMargin)) {
@@ -1145,22 +1152,16 @@ Axis.prototype = {
             }
 
             if(!isDefined(minValueMargin) || !isDefined(maxValueMargin)) {
-                marginValue = 0;
-
                 if(this.isArgumentAxis && margins.checkInterval) {
                     interval = this._calculateRangeInterval(maxMinDistance, range.interval);
                     marginValue = interval / 2;
                 }
-                if(margins.size) {
-                    marginValue = _max(marginValue, maxMinDistance / ((canvasLength / margins.size) - 1) / 2);
+                if(marginSize) {
+                    marginValue = _max(marginValue, maxMinDistance / ((this._getScreenDelta() / marginSize) - 1) / 2);
                 }
 
-                if(!isDefined(minValueMargin)) {
-                    minVisible = add(minVisible, -marginValue);
-                }
-                if(!isDefined(maxValueMargin)) {
-                    maxVisible = add(maxVisible, marginValue);
-                }
+                minVisible = addMargin(minVisible, -marginValue, minValueMargin);
+                maxVisible = addMargin(maxVisible, marginValue, maxValueMargin);
             }
 
             range.addRange({
@@ -1315,7 +1316,6 @@ Axis.prototype = {
         var that = this,
             minOpt = that._options.min,
             maxOpt = that._options.max,
-            stick = skipAdjusting,
             isDiscrete = that._options.type === constants.discrete;
 
         skipAdjusting = skipAdjusting || isDiscrete;
@@ -1338,8 +1338,7 @@ Axis.prototype = {
             }
         }
 
-        //TODO what to do with stick?
-        that._zoomArgs = { min: min, max: max, stick: stick };
+        that._zoomArgs = { min: min, max: max };
         return that._zoomArgs;
     },
 
@@ -1399,13 +1398,11 @@ Axis.prototype = {
         return {
             min: rangeMin,
             max: rangeMax,
-            stick: that._getStick(),
             categories: options.categories,
             dataType: options.dataType,
             axisType: type,
             base: options.logarithmBase,
             invert: options.inverted,
-            addSpiderCategory: that._getSpiderCategoryOption(),
             minVisible: rangeMinVisible,
             maxVisible: rangeMaxVisible
         };
@@ -1590,10 +1587,15 @@ Axis.prototype = {
     },
 
     _updateTranslator: function(range) {
-        this._translator.update({}, {}, {
+        this._translator.update({}, {}, this._getTranslatorOptions());
+    },
+
+    _getTranslatorOptions: function() {
+        return {
             isHorizontal: this._isHorizontal,
-            interval: this._options.semiDiscreteInterval
-        });
+            interval: this._options.semiDiscreteInterval,
+            stick: this._getStick()
+        };
     },
 
     _adjustTitle: _noop,

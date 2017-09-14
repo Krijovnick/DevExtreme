@@ -138,7 +138,8 @@ QUnit.test("getMarginOptions", function(assert) {
     var series = createSeries({ type: "bubble" });
 
     assert.deepEqual(series.getMarginOptions(), {
-        processBubbleSize: true
+        processBubbleSize: true,
+        percentStick: false
     });
 });
 

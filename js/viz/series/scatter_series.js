@@ -267,10 +267,6 @@ var baseScatterMethods = {
         return rangeCalculator.getRangeData(this);
     },
 
-    _processRange: function(range) {
-        rangeCalculator.addLabelPaddings(this, range.val);
-    },
-
     _getPointData: function(data, options) {
         var pointData = {
             value: data[options.valueField || "val"],
@@ -571,7 +567,7 @@ exports.chart = _extend({}, baseScatterMethods, {
         };
     },
 
-    getMarginOptions: function() {
+    _patchMarginOptions: function(options) {
         var pointOptions = this._getCreatingPointOptions(),
             styles = pointOptions.styles,
             maxSize = [styles.normal, styles.hover, styles.selection]
@@ -579,9 +575,9 @@ exports.chart = _extend({}, baseScatterMethods, {
                     return Math.max(max, style.r * 2 + style["stroke-width"]);
                 }, 0);
 
-        return {
-            size: pointOptions.visible ? maxSize : 0
-        };
+        options.size = pointOptions.visible ? maxSize : 0;
+
+        return options;
     }
 });
 

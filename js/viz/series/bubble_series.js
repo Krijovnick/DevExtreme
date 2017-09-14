@@ -108,9 +108,8 @@ exports.chart.bubble = _extend({}, scatterSeries, {
         });
     },
 
-    getMarginOptions: function() {
-        return {
-            processBubbleSize: true
-        };
+    _patchMarginOptions: function(options) {
+        options.processBubbleSize = true;
+        return options;
     }
 });

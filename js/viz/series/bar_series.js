@@ -115,10 +115,9 @@ var baseBarSeriesMethods = {
 
     getValueRangeInitialValue: areaSeries.getValueRangeInitialValue,
 
-    getMarginOptions: function() {
-        return {
-            checkInterval: true
-        };
+    _patchMarginOptions: function(options) {
+        options.checkInterval = true;
+        return options;
     }
 };
 
@@ -134,11 +133,6 @@ exports.chart.bar = _extend({}, chartSeries, baseBarSeriesMethods, {
         settings["translate" + direction] = this.getValueAxis().getTranslator().translate("canvas_position_default");
 
         return settings;
-    },
-
-    _processRange: function(range) {
-        areaSeries._processRange.apply(this, arguments);
-        range.arg.stick = false;
     },
 
     _animatePoints: function(firstDrawing, complete, animateFunc) {
