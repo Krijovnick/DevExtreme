@@ -11,9 +11,6 @@ remove _correctBusinessRange
 make option minorGridSpacingFactor
 
 
-customTicks extend viewPort, but it works incorrectly in gauges, we should not extend viewPort in gauges, but drop outside ticks
-
-
 NOTES
 gridSpacingFactor shoould be passed to tickGenerator, there is no default value
 tickGenerator would not accept gridSpacingFactor <= 0
@@ -45,7 +42,7 @@ getMaxLabelParams - ??
 
 valueType, argumentType, dataType - in RangeSelector and gauges
 
-boundCoef ???
+boundCoef - tickInterval / 2
 
 
 getCategoriesInfo - can not work with non-unique categories

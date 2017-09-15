@@ -1075,7 +1075,7 @@ Axis.prototype = {
             length = ticks.length;
 
         if(that._options.type !== constants.discrete) {
-            if(!range.isSynchronized && length && !isDefined(that._zoomArgs)) {
+            if(!range.isSynchronized && length && !isDefined(that._zoomArgs) && !that._options.skipViewportExtending) {
                 if(ticks[0].value < range.minVisible) {
                     minVisible = ticks[0].value;
                 }

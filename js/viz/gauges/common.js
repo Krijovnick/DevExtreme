@@ -244,6 +244,7 @@ exports.dxGauge = dxBaseGauge.inherit({
         scaleOptions.max = max;
         scaleOptions.startAngle = SHIFT_ANGLE - angles[0];
         scaleOptions.endAngle = SHIFT_ANGLE - angles[1];
+        scaleOptions.skipViewportExtending = true;
         that._scale.updateOptions(scaleOptions);
         that._updateScaleTickIndent(scaleOptions);
         that._scale.setBusinessRange(new rangeModule.Range({

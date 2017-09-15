@@ -1798,6 +1798,30 @@ QUnit.test("updateSize - margins and interval are recalculated", function(assert
     assert.equal(range.interval, 12);
 });
 
+QUnit.test("Margins and skipViewportExtending = true - do not extend range with margins to boundary ticks", function(assert) {
+    this.testMargins(assert, {
+        options: {
+            valueMarginsEnabled: true,
+            minValueMargin: 0.1,
+            maxValueMargin: 0.2,
+            skipViewportExtending: true,
+            endOnTicks: true //emulation, see returned ticks below
+        },
+        range: {
+            min: 100,
+            max: 200
+        },
+        ticks: [80, 240],
+        expectedRange: {
+            min: 90,
+            max: 220,
+            minVisible: 90,
+            maxVisible: 220
+        }
+    });
+});
+
+
 QUnit.module("Data margins calculations after zooming", {
     beforeEach: function() {
         var that = this;

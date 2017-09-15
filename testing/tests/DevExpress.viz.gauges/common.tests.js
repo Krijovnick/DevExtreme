@@ -306,7 +306,8 @@ QUnit.test("Scale is rendered", function(assert) {
         tickInterval: 4,
         tickOrientation: "center",
         startAngle: -910,
-        endAngle: -1910
+        endAngle: -1910,
+        skipViewportExtending: true
     }, "scale updating");
     assert.equal(scale.draw.callCount, 1, "scale drawing");
     assert.equal(scaleGroup.linkAppend.callCount, 1, "scale group appending");
