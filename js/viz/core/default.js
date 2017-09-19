@@ -617,6 +617,7 @@ registerTheme({
         commonAxisSettings: {
             multipleAxesSpacing: 5,
             forceUserTickInterval: false,
+            workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
             label: {
                 displayMode: "standard",
                 overlappingBehavior: "hide",
@@ -1048,7 +1049,8 @@ registerTheme({
                 textTopIndent: 11,
                 label: {}
             },
-            logarithmBase: 10
+            logarithmBase: 10,
+            workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
         },
         selectedRangeColor: "#606060",
         sliderMarker: {

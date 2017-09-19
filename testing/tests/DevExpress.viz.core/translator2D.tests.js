@@ -907,6 +907,13 @@ QUnit.test('Untranslate. Invert = true', function(assert) {
     assert.deepEqual(translator.untranslate(1000), new Date(2012, 8, 1, 12), 'Coord inside range');
 });
 
+QUnit.test("Untranslate. With scale breaks. Value in the scale break and shouldn't translate", function(assert) {
+    var breaks = [{ from: new Date(2012, 8, 1, 10), to: new Date(2012, 8, 1, 11) }, { from: new Date(2012, 8, 1, 20), to: new Date(2012, 8, 1, 21) }],
+        translator = this.createTranslator({ min: new Date(2012, 8, 1), max: new Date(2012, 8, 2), breaks: breaks }, { breaksSize: 20 });
+
+    assert.deepEqual(translator.untranslate(950), null);
+});
+
 QUnit.test('GetInterval', function(assert) {
     var translator = this.createTranslator({ min: new Date(2012, 8, 1), max: new Date(2012, 8, 2), interval: 1000 * 60 * 60 });
 

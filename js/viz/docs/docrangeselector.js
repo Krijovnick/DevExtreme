@@ -81,6 +81,41 @@ var dxRangeSelector = {
         */
         minorTickInterval: {},
         /**
+        * @name dxrangeselectoroptions_scale_breaks
+        * @publicName breaks
+        * @type array
+        * @default undefined
+        */
+        breaks: undefined,
+        /**
+        * @name dxrangeselectoroptions_scale_workdaysonly
+        * @publicName workdaysOnly
+        * @type boolean
+        * @default false
+        */
+        workdaysOnly: false,
+        /**
+        * @name dxrangeselectoroptions_scale_workdays
+        * @publicName workdays
+        * @type array
+        * @default [ "monday", "tuesday", "wednesday", "thursday", "friday"]
+        */
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        /**
+        * @name dxrangeselectoroptions_scale_holidays
+        * @publicName holidays
+        * @type array
+        * @default undefined
+        */
+        holidays: undefined,
+        /**
+        * @name dxrangeselectoroptions_scale_exactworkdays
+        * @publicName exactWorkdays
+        * @type array
+        * @default undefined
+        */
+        exactWorkdays: undefined,
+        /**
         * @name dxrangeselectoroptions_scale_majortickinterval
         * @publicName majorTickInterval
         * @type number|object|string
