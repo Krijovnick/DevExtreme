@@ -1897,7 +1897,7 @@ QUnit.test("Argument axis - do not apply margins on zoomed range", function(asse
             max: 200
         },
         ticks: [130, 170],
-        zoom: [120, 180, true],
+        zoom: [120, 180],
         expectedRange: {
             min: 90,
             max: 220,
@@ -2025,7 +2025,7 @@ QUnit.test("Argument axis - calculate correct interval by zoom data", function(a
     });
 });
 
-QUnit.test("endOnTicks = true - do not extend range to boundary ticks", function(assert) {
+QUnit.test("Argument axis, endOnTicks = true - do not extend range to boundary ticks", function(assert) {
     this.testMargins(assert, {
         options: {
             valueMarginsEnabled: true,
@@ -2042,8 +2042,33 @@ QUnit.test("endOnTicks = true - do not extend range to boundary ticks", function
         expectedRange: {
             min: 90,
             max: 220,
-            minVisible: 138,
-            maxVisible: 164
-        }
+            minVisible: 140,
+            maxVisible: 160
+        },
+        isArgumentAxis: true
+    });
+});
+
+QUnit.test("Value axis, endOnTicks = true - extend range to boundary ticks", function(assert) {
+    this.testMargins(assert, {
+        options: {
+            valueMarginsEnabled: true,
+            minValueMargin: 0.1,
+            maxValueMargin: 0.2,
+            endOnTicks: true //emulation, see returned ticks below
+        },
+        range: {
+            min: 100,
+            max: 200
+        },
+        ticks: [130, 170],
+        zoom: [140, 160],
+        expectedRange: {
+            min: 90,
+            max: 220,
+            minVisible: 130,
+            maxVisible: 170
+        },
+        isArgumentAxis: false
     });
 });

@@ -10,6 +10,8 @@ remove _correctBusinessRange
 
 make option minorGridSpacingFactor
 
+top tick is incorrect after zooming
+
 
 NOTES
 gridSpacingFactor shoould be passed to tickGenerator, there is no default value
