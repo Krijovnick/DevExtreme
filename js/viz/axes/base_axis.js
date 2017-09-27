@@ -1575,6 +1575,8 @@ Axis.prototype = {
 
     coordsIn: _noop,
 
+    areCoordsOutsideAxis: _noop,
+
     _getSkippedCategory: _noop,
 
     _initAxisPositions: _noop,

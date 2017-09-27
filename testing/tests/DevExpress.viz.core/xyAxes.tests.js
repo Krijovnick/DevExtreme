@@ -160,6 +160,7 @@ var environment = {
         beforeEach: function() {
             environment.beforeEach.apply(this, arguments);
             this.translator = create2DTranslator();
+            this.translator.stub("getCanvasVisibleArea").returns({ min: 0, max: 1000 });
 
             this.options.position = "bottom";
             this.options.label = {
@@ -186,6 +187,7 @@ var environment = {
             this.translator.translate.withArgs(5).returns(30);
             this.translator.translate.withArgs(7).returns(40);
             this.translator.translate.withArgs(9).returns(50);
+            this.translator.getCanvasVisibleArea.returns({ min: 0, max: 1000 });
 
             this.options.drawingType = "linear";
             this.options.axisType = "xyAxes";
@@ -348,11 +350,11 @@ QUnit.module("Semidiscrete axis", $.extend({}, environment, {
 QUnit.test("translates coordinates with tickInterval info", function(assert) {
     this.createDrawnAxis({ type: "semidiscrete", tickInterval: 5 });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, [1, 0, 5]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, [2, 0, 5]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, [3, 0, 5]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, [4, 0, 5]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, [2, 0, 5]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, [3, 0, 5]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, [4, 0, 5]);
 });
 
 QUnit.module("checkAlignmentConstantLineLabels", environment2DTranslator);

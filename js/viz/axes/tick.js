@@ -36,6 +36,7 @@ function createTick(axis, renderer, tickOptions, gridOptions, skippedCategory, s
             value: value,
             initCoords: function() {
                 this.coords = axis._getTranslatedValue(value, tickOffset);
+                this.labelCoords = axis._getTranslatedValue(value);
             },
             drawMark: function() {
                 if(!tickOptions.visible || skippedCategory === value) {
@@ -44,6 +45,10 @@ function createTick(axis, renderer, tickOptions, gridOptions, skippedCategory, s
 
                 //DEPRECATED IN 15_2
                 if(this.withoutPath) {
+                    return;
+                }
+
+                if(axis.areCoordsOutsideAxis(this.coords)) {
                     return;
                 }
 
@@ -68,6 +73,10 @@ function createTick(axis, renderer, tickOptions, gridOptions, skippedCategory, s
 
                 //DEPRECATED IN 15_2
                 if(this.withoutLabel) {
+                    return;
+                }
+
+                if(axis.areCoordsOutsideAxis(this.labelCoords)) {
                     return;
                 }
 
@@ -96,12 +105,9 @@ function createTick(axis, renderer, tickOptions, gridOptions, skippedCategory, s
                     return;
                 }
 
-                var coords = axis._getTranslatedValue(value);
-                this.labelCoords = coords;
-
                 this.label.attr({
-                    x: coords.x,
-                    y: coords.y
+                    x: this.labelCoords.x,
+                    y: this.labelCoords.y
                 });
             },
             drawGrid: function(drawLine) {

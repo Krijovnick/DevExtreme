@@ -419,11 +419,11 @@ QUnit.test("Linear axis. axisDivisionMode is betweenLabels, valueMarginsEnabled 
         valueMarginsEnabled: false
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", 1]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", 1]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", 1]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", 1]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", 1]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", 1]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", 1]);
 });
 
 QUnit.test("Linear axis. axisDivisionMode is betweenLabels, valueMarginsEnabled true", function(assert) {
@@ -434,11 +434,11 @@ QUnit.test("Linear axis. axisDivisionMode is betweenLabels, valueMarginsEnabled 
         valueMarginsEnabled: true
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", 1]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", 1]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", 1]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", 1]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", 1]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", 1]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", 1]);
 });
 
 QUnit.test("Linear axis. axisDivisionMode is crossLabels, valueMarginsEnabled false", function(assert) {
@@ -449,11 +449,11 @@ QUnit.test("Linear axis. axisDivisionMode is crossLabels, valueMarginsEnabled fa
         valueMarginsEnabled: false
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", 0]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", 0]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", 0]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", 0]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", 0]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", 0]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", 0]);
 });
 
 QUnit.test("Linear axis. axisDivisionMode is crossLabels, valueMarginsEnabled true", function(assert) {
@@ -464,11 +464,11 @@ QUnit.test("Linear axis. axisDivisionMode is crossLabels, valueMarginsEnabled tr
         valueMarginsEnabled: true
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", 0]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", 0]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", 0]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", 0]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", 0]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", 0]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", 0]);
 });
 
 QUnit.test("Circular axis. axisDivisionMode is betweenLabels, valueMarginsEnabled false", function(assert) {
@@ -480,11 +480,11 @@ QUnit.test("Circular axis. axisDivisionMode is betweenLabels, valueMarginsEnable
         visible: false
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", -1]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", -1]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", -1]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", -1]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", -1]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", -1]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", -1]);
 });
 
 QUnit.test("Circular axis. axisDivisionMode is betweenLabels, valueMarginsEnabled true", function(assert) {
@@ -495,11 +495,11 @@ QUnit.test("Circular axis. axisDivisionMode is betweenLabels, valueMarginsEnable
         valueMarginsEnabled: true
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", -1]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", -1]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", -1]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", -1]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", -1]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", -1]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", -1]);
 });
 
 QUnit.test("Circular axis. axisDivisionMode is crossLabels, valueMarginsEnabled false", function(assert) {
@@ -510,11 +510,11 @@ QUnit.test("Circular axis. axisDivisionMode is crossLabels, valueMarginsEnabled 
         valueMarginsEnabled: false
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", 0]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", 0]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", 0]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", 0]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", 0]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", 0]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", 0]);
 });
 
 QUnit.test("Circular axis. axisDivisionMode is crossLabels, valueMarginsEnabled true", function(assert) {
@@ -525,11 +525,11 @@ QUnit.test("Circular axis. axisDivisionMode is crossLabels, valueMarginsEnabled 
         valueMarginsEnabled: true
     });
 
-    assert.equal(this.translator.translate.callCount, 4);
+    assert.equal(this.translator.translate.callCount, 8); //4 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["c1", 0]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["c2", 0]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c3", 0]);
-    assert.deepEqual(this.translator.translate.getCall(3).args, ["c4", 0]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["c2", 0]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c3", 0]);
+    assert.deepEqual(this.translator.translate.getCall(6).args, ["c4", 0]);
 });
 
 QUnit.module("Circular axis", $.extend({}, environment, {
@@ -923,8 +923,9 @@ QUnit.test("T167450. draw spider web axis, betweenLabels", function(assert) {
     this.generatedTicks = [0, 1, 2];
     this.createDrawnAxis({ visible: true, discreteAxisDivisionMode: "betweenLabels" });
 
-    assert.equal(this.translator.translate.lastCall.args[0], 2);
-    assert.deepEqual(this.translator.translate.lastCall.args[1], 0, "translator should accept '0' parameter");
+    var lastTickCall = this.translator.translate.callCount - 2;
+    assert.strictEqual(this.translator.translate.getCall(lastTickCall).args[0], 2);
+    assert.strictEqual(this.translator.translate.getCall(lastTickCall).args[1], 0, "translator should accept '0' parameter");
 });
 
 QUnit.test("T167450. draw spider web axis, crossLabels", function(assert) {
@@ -932,8 +933,9 @@ QUnit.test("T167450. draw spider web axis, crossLabels", function(assert) {
     this.generatedTicks = [0, 1, 2];
     this.createDrawnAxis({ visible: true, discreteAxisDivisionMode: "crossLabels" });
 
-    assert.equal(this.translator.translate.lastCall.args[0], 2);
-    assert.equal(this.translator.translate.lastCall.args[1], 0);
+    var lastTickCall = this.translator.translate.callCount - 2;
+    assert.strictEqual(this.translator.translate.getCall(lastTickCall).args[0], 2);
+    assert.strictEqual(this.translator.translate.getCall(lastTickCall).args[1], 0);
 });
 
 QUnit.test("create spider strips", function(assert) {
@@ -952,8 +954,8 @@ QUnit.test("T167450. create spider strips, betweenLabels", function(assert) {
     this.generatedTicks = [0, 10, 20, 30];
     this.createDrawnAxis({ strips: [{ startValue: 10, endValue: 20, color: "red" }], discreteAxisDivisionMode: "betweenLabels", label: { visible: false } });
 
-    assert.deepEqual(this.translator.translate.args[4], [10, -1], "translator should accept 'false' parameter");
-    assert.deepEqual(this.translator.translate.args[5], [20, 1], "translator should accept 'false' parameter");
+    assert.deepEqual(this.translator.translate.args[8], [10, -1], "translator should accept 'false' parameter");
+    assert.deepEqual(this.translator.translate.args[9], [20, 1], "translator should accept 'false' parameter");
 });
 
 QUnit.test("T167450. create spider strips, crossLabels", function(assert) {
@@ -961,8 +963,8 @@ QUnit.test("T167450. create spider strips, crossLabels", function(assert) {
     this.generatedTicks = [0, 10, 20, 30];
     this.createDrawnAxis({ strips: [{ startValue: 10, endValue: 20, color: "red" }], discreteAxisDivisionMode: "crossLabels", label: { visible: false } });
 
-    assert.deepEqual(this.translator.translate.args[4], [10, -1], "translator should accept 'false' parameter");
-    assert.deepEqual(this.translator.translate.args[5], [20, 1], "translator should accept 'false' parameter");
+    assert.deepEqual(this.translator.translate.args[8], [10, -1], "translator should accept 'false' parameter");
+    assert.deepEqual(this.translator.translate.args[9], [20, 1], "translator should accept 'false' parameter");
 });
 
 QUnit.test("create spider strips, strips from start value", function(assert) {

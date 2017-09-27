@@ -873,6 +873,17 @@ module.exports = {
             };
         },
 
+        areCoordsOutsideAxis: function(coords) {
+            //getCanvasVisibleArea takes into account inverted case
+            var canvas = this._translator.getCanvasVisibleArea(),
+                coord = this._isHorizontal ? coords.x : coords.y;
+
+            if(coord < canvas.min || coord > canvas.max) {
+                return true;
+            }
+            return false;
+        },
+
         _getSkippedCategory: function(ticks) {
             var skippedCategory;
 

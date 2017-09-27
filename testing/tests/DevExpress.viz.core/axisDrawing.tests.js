@@ -59,6 +59,7 @@ var environment = {
 
         this.translator = new StubTranslator();
         this.translator.stub("getBusinessRange").returns({ addRange: sinon.stub() });
+        this.translator.stub("getCanvasVisibleArea").returns({ min: 10, max: 90 }); //for horizontal only
     },
     createAxis: function(options) {
         var stripsGroup = this.renderer.g(),
@@ -764,10 +765,10 @@ QUnit.test("Check calls to translator. Major ticks. Non categories", function(as
     //act
     this.axis.draw(this.canvas);
 
-    assert.deepEqual(this.translator.translate.callCount, 3);
+    assert.deepEqual(this.translator.translate.callCount, 6); //3 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, [1, 1, false]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, [2, 1, false]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, [3, 1, false]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, [2, 1, false]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, [3, 1, false]);
 });
 
 QUnit.test("Check calls to translator. Minor ticks", function(assert) {
@@ -790,10 +791,10 @@ QUnit.test("Check calls to translator. Minor ticks", function(assert) {
     //act
     this.axis.draw(this.canvas);
 
-    assert.deepEqual(this.translator.translate.callCount, 3);
+    assert.deepEqual(this.translator.translate.callCount, 6); //3 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, [1, 1, false]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, [2, 1, false]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, [3, 1, false]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, [2, 1, false]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, [3, 1, false]);
 });
 
 QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivisionMode betweenLabels", function(assert) {
@@ -819,10 +820,10 @@ QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivi
     //act
     this.axis.draw(this.canvas);
 
-    assert.deepEqual(this.translator.translate.callCount, 3);
+    assert.deepEqual(this.translator.translate.callCount, 6); //3 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["a", 1, false]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["b", 1, false]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c", 1, false]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["b", 1, false]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c", 1, false]);
 });
 
 QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivisionMode crossLabels", function(assert) {
@@ -848,10 +849,68 @@ QUnit.test("Check calls to translator. Major ticks. Categories, discreteAxisDivi
     //act
     this.axis.draw(this.canvas);
 
-    assert.deepEqual(this.translator.translate.callCount, 3);
+    assert.deepEqual(this.translator.translate.callCount, 6); //3 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, ["a", 0, false]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, ["b", 0, false]);
-    assert.deepEqual(this.translator.translate.getCall(2).args, ["c", 0, false]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, ["b", 0, false]);
+    assert.deepEqual(this.translator.translate.getCall(4).args, ["c", 0, false]);
+});
+
+QUnit.test("Horizontal. Ticks (major and minor) are outside canvas (on zoom) - do not draw outside tick marks", function(assert) {
+    //arrange
+    this.translator.stub("getCanvasVisibleArea").returns({ min: 10, max: 90 });
+    this.createAxis();
+    this.updateOptions({
+        isHorizontal: true,
+        position: "top",
+        tick: {
+            visible: true
+        },
+        minorTick: {
+            visible: true
+        }
+    });
+
+    this.generatedTicks = [1, 5];
+    this.generatedMinorTicks = [2, 4];
+
+    this.translator.stub("translate").withArgs(1).returns(2);
+    this.translator.stub("translate").withArgs(2).returns(7);
+    this.translator.stub("translate").withArgs(4).returns(93);
+    this.translator.stub("translate").withArgs(5).returns(98);
+
+    //act
+    this.axis.draw(this.canvas);
+
+    assert.strictEqual(this.renderer.stub("path").callCount, 0);
+});
+
+QUnit.test("Vertical. Ticks (major and minor) are outside canvas (on zoom) - do not draw outside tick marks", function(assert) {
+    //arrange
+    this.translator.stub("getCanvasVisibleArea").returns({ min: 30, max: 70 });
+    this.createAxis();
+    this.updateOptions({
+        isHorizontal: false,
+        position: "left",
+        tick: {
+            visible: true
+        },
+        minorTick: {
+            visible: true
+        }
+    });
+
+    this.generatedTicks = [1, 5];
+    this.generatedMinorTicks = [2, 4];
+
+    this.translator.stub("translate").withArgs(1).returns(10);
+    this.translator.stub("translate").withArgs(2).returns(20);
+    this.translator.stub("translate").withArgs(4).returns(80);
+    this.translator.stub("translate").withArgs(5).returns(90);
+
+    //act
+    this.axis.draw(this.canvas);
+
+    assert.strictEqual(this.renderer.stub("path").callCount, 0);
 });
 
 //DEPRECATED IN 15_2
@@ -1097,9 +1156,9 @@ QUnit.test("Check calls to translator. Boundary ticks", function(assert) {
     //act
     this.axis.draw(this.canvas);
 
-    assert.deepEqual(this.translator.translate.callCount, 2);
+    assert.deepEqual(this.translator.translate.callCount, 4); //2 for labels
     assert.deepEqual(this.translator.translate.getCall(0).args, [1, -1, false]);
-    assert.deepEqual(this.translator.translate.getCall(1).args, [3, 1, false]);
+    assert.deepEqual(this.translator.translate.getCall(2).args, [3, 1, false]);
 });
 
 QUnit.test("showCustomBoundaryTicks true, first majorTick on bound - do not render first boundary tick", function(assert) {
@@ -2067,9 +2126,32 @@ QUnit.test("Check calls to translator", function(assert) {
     this.axis.draw(this.canvas);
 
     assert.deepEqual(this.translator.translate.callCount, 6);
-    assert.deepEqual(this.translator.translate.getCall(3).args, [1, undefined, false]);
-    assert.deepEqual(this.translator.translate.getCall(4).args, [2, undefined, false]);
+    assert.deepEqual(this.translator.translate.getCall(1).args, [1, undefined, false]);
+    assert.deepEqual(this.translator.translate.getCall(3).args, [2, undefined, false]);
     assert.deepEqual(this.translator.translate.getCall(5).args, [3, undefined, false]);
+});
+
+QUnit.test("Labels are outside canvas (on zoom) - do not draw outside labels", function(assert) {
+    //arrange
+    this.createAxis();
+    this.updateOptions({
+        isHorizontal: true,
+        position: "top",
+        label: {
+            visible: true,
+            indentFromAxis: 10,
+            alignment: "left"
+        }
+    });
+
+    this.generatedTicks = [1];
+
+    this.translator.stub("translate").withArgs(1).returns(2);
+
+    //act
+    this.axis.draw(this.canvas);
+
+    assert.equal(this.renderer.stub("text").callCount, 0);
 });
 
 //DEPRECATED IN 15_2
