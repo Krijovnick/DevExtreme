@@ -367,6 +367,22 @@ QUnit.test("Disposing", function(assert) {
     assert.ok(renderer.g.getCall(3).returnValue.dispose.called, "dispose is called");
 });
 
+QUnit.test("calculateInterval - returns absolute difference of two numbers", function(assert) {
+    this.updateOptions();
+
+    assert.equal(this.axis.calculateInterval(0.13, 10045), 10044.87);
+    assert.equal(this.axis.calculateInterval(10045, 0.13), 10044.87);
+});
+
+QUnit.test("Logarithmic axis. calculateInterval - returns difference of logarithms", function(assert) {
+    this.updateOptions({
+        type: "logarithmic",
+        logarithmBase: 2
+    });
+
+    assert.equal(this.axis.calculateInterval(32, 0.25), 7);
+});
+
 QUnit.module("Get range data", {
     beforeEach: function() {
         environment.beforeEach.call(this);
@@ -1550,6 +1566,35 @@ QUnit.test("valueMarginsEnabled false - calculate correct interval", function(as
     });
 });
 
+QUnit.test("Logarithmic axis. valueMarginsEnabled false - calculate correct interval", function(assert) {
+    this.testMargins(assert, {
+        options: {
+            valueMarginsEnabled: false,
+            type: "logarithmic",
+            logarithmBase: 10,
+            axisDivisionFactor: 120
+        },
+        marginOptions: {
+            checkInterval: true,
+            size: 40
+        },
+        range: {
+            min: 100,
+            max: 10000000,
+            interval: 7
+        },
+        ticks: [100, 1000],
+        expectedRange: {
+            min: 100,
+            max: 10000000,
+            minVisible: 100,
+            maxVisible: 10000000,
+            interval: 2
+        },
+        isArgumentAxis: true
+    });
+});
+
 QUnit.test("Calculate ticks on range with margins", function(assert) {
     var axis = this.createAxis(true, {
         valueMarginsEnabled: true,
@@ -1676,25 +1721,85 @@ QUnit.test("Do not calculate any margin for discrete axis", function(assert) {
     });
 });
 
-QUnit.test("Do not calculate any margin for logarithmic axis", function(assert) {
+QUnit.test("Logarithmic axis. minValueMargin and maxValueMargin - correctly apply margins", function(assert) {
     this.testMargins(assert, {
         options: {
             type: "logarithmic",
+            logarithmBase: 10,
             valueMarginsEnabled: true,
-            minValueMargin: 0.1,
-            maxValueMargin: 0.2
+            minValueMargin: 0.25,
+            maxValueMargin: 0.5
         },
         range: {
-            min: 100,
-            max: 10000
+            min: 10,
+            max: 100000,
+            axisType: "logarithmic",
+            base: 10
         },
-        ticks: [100, 1000, 10000],
+        ticks: [10, 1000, 100000],
         expectedRange: {
-            min: 100,
-            max: 10000,
-            minVisible: 100,
-            maxVisible: 10000
+            min: 1,
+            max: 10000000,
+            minVisible: 1,
+            maxVisible: 10000000
         }
+    });
+});
+
+QUnit.test("Logarithmic axis. marginOptions.checkInterval - correctly apply margins", function(assert) {
+    this.testMargins(assert, {
+        options: {
+            type: "logarithmic",
+            logarithmBase: 10,
+            valueMarginsEnabled: true,
+            axisDivisionFactor: 150
+        },
+        marginOptions: {
+            checkInterval: true
+        },
+        range: {
+            min: 10,
+            max: 100000,
+            interval: 4,
+            axisType: "logarithmic",
+            base: 10
+        },
+        ticks: [10, 1000, 100000],
+        expectedRange: {
+            min: 1,
+            max: 1000000,
+            minVisible: 1,
+            maxVisible: 1000000,
+            interval: 2
+        },
+        isArgumentAxis: true
+    });
+});
+
+QUnit.test("Logarithmic axis. marginOptions.size - correctly apply margins", function(assert) {
+    this.testMargins(assert, {
+        options: {
+            type: "logarithmic",
+            logarithmBase: 10,
+            valueMarginsEnabled: true
+        },
+        marginOptions: {
+            size: 100
+        },
+        range: {
+            min: 10,
+            max: 100000,
+            axisType: "logarithmic",
+            base: 10
+        },
+        ticks: [10, 1000, 100000],
+        expectedRange: {
+            min: 1,
+            max: 1000000,
+            minVisible: 1,
+            maxVisible: 1000000
+        },
+        isArgumentAxis: true
     });
 });
 

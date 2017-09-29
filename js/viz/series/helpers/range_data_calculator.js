@@ -1,7 +1,5 @@
 "use strict";
-var _math = Math,
-    _abs = _math.abs,
-    unique = require("../../core/utils").unique,
+var unique = require("../../core/utils").unique,
     _isDefined = require("../../../core/utils/type").isDefined,
     DISCRETE = "discrete";
 
@@ -10,7 +8,7 @@ function continuousRangeCalculator(range, minValue, maxValue) {
     range.max = range.max > maxValue ? range.max : maxValue;
 }
 
-function getRangeCalculator(axisType, calcInterval) {
+function getRangeCalculator(axisType, axis) {
     if(axisType === DISCRETE) {
         return function(range, minValue, maxValue) {
             if(minValue !== maxValue) {
@@ -19,9 +17,9 @@ function getRangeCalculator(axisType, calcInterval) {
             range.categories.push(minValue);
         };
     }
-    if(calcInterval) {
+    if(axis) {
         return function(range, value) {
-            var interval = calcInterval(value, range.prevValue),
+            var interval = axis.calculateInterval(value, range.prevValue),
                 minInterval = range.interval;
 
             range.interval = (minInterval < interval ? minInterval : interval) || minInterval;
@@ -124,22 +122,10 @@ function getViewportReducer(series) {
     };
 }
 
-function getIntervalCalculator(series) {
-    var calcInterval = series.getArgumentAxis() && series.getArgumentAxis().calcInterval;
-    if(calcInterval) {
-        return calcInterval;
-    }
-
-    return function(value, prevValue) {
-        return _abs(value - prevValue);
-    };
-}
-
 module.exports = {
     getRangeData: function(series) {
         var points = series.getPoints(),
-            intervalCalculator = getIntervalCalculator(series),
-            argumentCalculator = getRangeCalculator(series.argumentAxisType, points.length > 1 && intervalCalculator),
+            argumentCalculator = getRangeCalculator(series.argumentAxisType, points.length > 1 && series.getArgumentAxis()),
             valueRangeCalculator = getRangeCalculator(series.valueAxisType),
             viewportReducer = getViewportReducer(series),
             range = points.reduce(function(range, point, index, points) {

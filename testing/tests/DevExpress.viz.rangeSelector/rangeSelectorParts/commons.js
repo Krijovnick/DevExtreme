@@ -70,6 +70,7 @@ exports.environment = {
         this.axis = new StubAxis();
 
         this.axis.stub("getTranslator").returns(this.translator);
+        this.axis.calculateInterval = function(a, b) { return a - b; };
         this.seriesDataSource = new StubSeriesDataSource();
 
         rendererModule.Renderer = returnValue(this.renderer);

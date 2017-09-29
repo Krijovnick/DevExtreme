@@ -138,6 +138,14 @@ function getAddFunction(range, correctZeroLevel) {
             return new Date(rangeValue.getTime() + marginValue);
         };
     }
+
+    if(range.axisType === "logarithmic") {
+        return function(rangeValue, marginValue) {
+            var log = vizUtils.getLog(rangeValue, range.base) + marginValue;
+            return vizUtils.raiseTo(log, range.base);
+        };
+    }
+
     return function(rangeValue, marginValue) {
         var newValue = rangeValue + marginValue;
         return correctZeroLevel && newValue * rangeValue <= 0 ? 0 : newValue;
@@ -823,12 +831,17 @@ Axis.prototype = {
                 that._incidentOccurred("E2104");
                 delete options.logarithmBaseError;
             }
-            that.calcInterval = function(value, prevValue) {
-                return vizUtils.getLog(value / prevValue, options.logarithmBase);
-            };
         }
 
         that._updateTranslator();
+    },
+
+    calculateInterval: function(value, prevValue) {
+        var options = this._options;
+
+        return (!options || (options.type !== constants.logarithmic)) ?
+            _abs(value - prevValue) :
+            vizUtils.getLog(value / prevValue, options.logarithmBase);
     },
 
     _processCanvas: function(canvas) {
@@ -1087,7 +1100,7 @@ Axis.prototype = {
                 }
             }
 
-            interval = this._calculateRangeInterval(_abs(maxVisible - minVisible), interval);
+            interval = this._calculateRangeInterval(that.calculateInterval(maxVisible, minVisible), interval);
 
             range.addRange({
                 minVisible: minVisible,
@@ -1130,14 +1143,14 @@ Axis.prototype = {
             marginSize = margins.size,
             marginValue = 0,
             type = options.type,
-            valueMarginsEnabled = options.valueMarginsEnabled && type !== constants.logarithmic && type !== constants.discrete,
+            valueMarginsEnabled = options.valueMarginsEnabled && type !== constants.discrete,
             minValueMargin = options.minValueMargin,
             maxValueMargin = options.maxValueMargin,
             add = getAddFunction(range, !this.isArgumentAxis),
             minVisible = range.minVisible,
             maxVisible = range.maxVisible,
             interval = range.interval,
-            maxMinDistance = _abs(maxVisible - minVisible);
+            maxMinDistance = this.calculateInterval(maxVisible, minVisible);
 
         function addMargin(value, margin, marginOption) {
             if(!isDefined(marginOption) && !(margins.percentStick && _abs(value) === 1)) {

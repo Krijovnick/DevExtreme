@@ -23,9 +23,8 @@ var createSeries = function(options, renderSettings, widgetType) {
     renderSettings = renderSettings || {};
     renderSettings.renderer = renderSettings.renderer || new vizMocks.Renderer();
     renderSettings.argumentAxis = renderSettings.argumentAxis || {
-        getViewport: function() {
-
-        }
+        getViewport: function() {},
+        calculateInterval: function(a, b) { return Math.abs(a - b); }
     };
     options = $.extend(true, {
         visible: true,
@@ -41,7 +40,6 @@ var createSeries = function(options, renderSettings, widgetType) {
     series.updateDataType(series.getOptions());
     return series;
 };
-
 
 QUnit.module("Process range data on updating");
 
@@ -1245,27 +1243,6 @@ QUnit.test("showZero === false", function(assert) {
     assert.strictEqual(rangeData.val.min, 10, "minY");
 });
 
-QUnit.test("logarithmic axis", function(assert) {
-    var options = $.extend({}, true, this.defaultOptions, { label: { visible: false }, valueAxisType: "logarithmic", argumentAxisType: "continuous" }),
-        data = [{ arg: 1, val: 10 }, { arg: 2, val: 20 }, { arg: 3, val: 30 }, { arg: 4, val: 40 }, { arg: 5, val: 50 }],
-        rangeData,
-        series = createSeries(options);
-
-    series.updateData(data);
-    rangeData = series.getRangeData();
-
-    assert.ok(rangeData, "Range data should be created");
-    assert.deepEqual(rangeData.arg.min, 1, "Min x should be correct");
-    assert.deepEqual(rangeData.arg.max, 5, "Max x should be correct");
-    assert.strictEqual(rangeData.arg.interval, 1, "Interval x should be correct");
-    assert.equal(rangeData.arg.categories, undefined, "Categories x should be undefined");
-
-    assert.deepEqual(rangeData.val.min, 10, "Min y should be correct");
-    assert.deepEqual(rangeData.val.max, 50, "Max y should be correct");
-    assert.strictEqual(rangeData.val.interval, undefined, "Interval y should be undefined");
-    assert.equal(rangeData.val.categories, undefined, "Categories y should be undefined");
-});
-
 QUnit.test("Positive points. Polar bar point", function(assert) {
     var data = [{ arg: "1", val: 4 }, { arg: "2", val: 10 }, { arg: "3", val: 7 }, { arg: "4", val: 3 }],
         series = createSeries(this.defaultOptions, undefined, "polar"),
@@ -2167,6 +2144,9 @@ QUnit.module("Zooming range data", {
         this.argumentAxis = {
             getViewport: function() {
                 return viewPort;
+            },
+            calculateInterval: function(a, b) {
+                return a - b;
             }
         };
         this.defaultOptions = {
@@ -2269,6 +2249,9 @@ QUnit.module("Zooming range data. Simple", {
         this.argumentAxis = {
             getViewport: function() {
                 return viewPort;
+            },
+            calculateInterval: function(a, b) {
+                return a - b;
             }
         };
         this.defaultOptions = {
@@ -2412,30 +2395,6 @@ QUnit.test("Datetime argument. String value.", function(assert) {
     //assert.deepEqual(rangeData.categories, ["30", "40", "50"?], "CategoriesY");
 });
 
-QUnit.test("with calcInterval", function(assert) {
-    var data = [{ arg: 1, val: 10 }, { arg: 2, val: 20 }, { arg: 3, val: 30 }, { arg: 4, val: 40 }, { arg: 5, val: 50 }, { arg: 6, val: 60 }],
-        rangeData,
-        series = createSeries(this.defaultOptions, { argumentAxis: this.argumentAxis });
-
-    series.updateData(data);
-
-    this.argumentAxis.calcInterval = function(a, b) {
-        return a / b;
-    };
-
-    rangeData = series.getRangeData();
-
-    assert.ok(rangeData, "Returned object");
-    assert.equal(rangeData.arg.min, 1, "min x");
-    assert.equal(rangeData.arg.max, 6, "max x");
-    assert.equal(rangeData.val.min, 10, "min y");
-    assert.equal(rangeData.val.max, 60, "max y");
-    assert.strictEqual(rangeData.arg.interval, 1.2);
-    assert.strictEqual(rangeData.val.interval, undefined);
-    assert.deepEqual(rangeData.arg.categories, undefined, "No categories");
-    assert.deepEqual(rangeData.val.categories, undefined, "No categories");
-});
-
 QUnit.test("Discrete argument axis.", function(assert) {
     var data = [{ arg: "1", val: 10 }, { arg: "2", val: 20 }, { arg: "3", val: 30 }, { arg: "4", val: 40 }, { arg: "5", val: 50 }, { arg: "6", val: 60 }],
         rangeData,
@@ -2466,6 +2425,9 @@ QUnit.module("Zooming range data. Bar/area", {
         this.argumentAxis = {
             getViewport: function() {
                 return viewPort;
+            },
+            calculateInterval: function(a, b) {
+                return a - b;
             }
         };
         this.defaultOptions = {

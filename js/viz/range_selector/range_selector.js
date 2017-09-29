@@ -1116,6 +1116,10 @@ AxisWrapper.prototype = {
         this._axis.dispose();
     },
 
+    calculateInterval: function(value, prevValue) {
+        return this._axis.calculateInterval(value, prevValue);
+    },
+
     update: function(options, isCompactMode, canvas, businessRange, seriesDataSource) {
         var axis = this._axis;
         axis.updateOptions(prepareAxisOptions(options, isCompactMode, canvas.height, canvas.height / 2 - Math.ceil(options.width / 2)));

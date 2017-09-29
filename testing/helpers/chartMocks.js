@@ -525,7 +525,7 @@
             drawTrackers: function() {
                 this.drawnTrackers = true;
             },
-            getRangeData: function(visibleArea, calcInterval) {
+            getRangeData: function() {
                 if(options.visible === false) {
                     return { arg: {}, val: {} };
                 }
@@ -534,19 +534,6 @@
                 range.arg = range.arg || {};
                 range.val = range.val || {};
                 range.viewport = range.viewport || {};
-
-                var minSelector = "minVisible",
-                    maxSelector = "maxVisible";
-
-                options.calcInterval = calcInterval;
-                this.calcInterval = calcInterval;
-
-                visibleArea = visibleArea || {};
-
-                visibleArea.minArg && (range.arg[minSelector] = visibleArea.minArg);
-                visibleArea.maxArg && (range.arg[maxSelector] = visibleArea.maxArg);
-                visibleArea.minVal && (range.val[minSelector] = visibleArea.minVal);
-                visibleArea.maxVal && (range.val[maxSelector] = visibleArea.maxVal);
 
                 return range;
             },

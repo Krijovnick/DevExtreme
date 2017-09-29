@@ -264,7 +264,7 @@ Series.prototype = {
         }
     },
 
-    getRangeData: function(zoomArgs, calcIntervalFunction) {
+    getRangeData: function() {
         return this._visible ? this._getRangeData() : getEmptyBusinessRange();
     },
 
