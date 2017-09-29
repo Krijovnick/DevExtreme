@@ -1780,9 +1780,9 @@ function resetMocksInChart(chart) {
     chart._crosshairCursorGroup.stub("linkAppend").reset();
     chart._crosshairCursorGroup.stub("linkRemove").reset();
     chart._crosshairCursorGroup.stub("clear").reset();
-    chart._scaleBreaks.stub("linkAppend").reset();
-    chart._scaleBreaks.stub("linkRemove").reset();
-    chart._scaleBreaks.stub("clear").reset();
+    chart._scaleBreaksGroup.stub("linkAppend").reset();
+    chart._scaleBreaksGroup.stub("linkRemove").reset();
+    chart._scaleBreaksGroup.stub("clear").reset();
 
     chart.canvasClipRect && chart.canvasClipRect.stub("remove").reset();
     chart.canvasClipRect && chart.canvasClipRect.stub("clear").reset();

@@ -163,7 +163,7 @@ module.exports = {
             });
         }
         return range;
-    }
+    },
 
     getPointsInViewPort: function(series) {
         var argumentViewPortFilter = getViewPortFilter(series.getArgumentAxis().getViewport() || {}),
@@ -183,6 +183,5 @@ module.exports = {
             };
 
         return series.getPoints().reduce(checkPointInViewport, []);
-    },
-
+    }
 };

@@ -903,6 +903,7 @@
 
                 this._axisElementsGroup =
                 this._constantLinesGroup =
+                this._scaleBreaksGroup =
                 this._renderer =
                 this._labelAxesGroup =
                 this._orthogonalTranslator =
@@ -930,6 +931,8 @@
             updateSize: sinon.stub(),
 
             setBusinessRange: sinon.stub(),
+
+            setGroupSeries: sinon.stub(),
 
             restoreBusinessRange: sinon.stub(),
 
@@ -992,6 +995,7 @@
             _stripsGroup: renderOptions.stripsGroup,
             _labelAxesGroup: renderOptions.labelAxesGroup,
             _constantLinesGroup: renderOptions.constantLinesGroup,
+            _scaleBreaksGroup: renderOptions.scaleBreaksGroup,
             axesContainerGroup: renderOptions.axesContainerGroup,
             gridGroup: renderOptions.gridGroup,
             isArgumentAxis: renderOptions.isArgumentAxis,

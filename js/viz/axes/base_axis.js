@@ -179,7 +179,7 @@ function generateAutoBreaks(options, series, viewport) {
     return breaks;
 }
 
-function createMajorTick(axis, renderer) {
+function createMajorTick(axis, renderer, skippedCategory) {
     var options = axis.getOptions();
 
     return tick(
@@ -1744,11 +1744,13 @@ Axis.prototype = {
     },
 
     _getTranslatorOptions: function() {
+        var options = this._options;
         return {
             isHorizontal: this._isHorizontal,
             interval: options.semiDiscreteInterval,
             stick: this._getStick(),
             breaksSize: options.breakOptions ? options.breakOptions.size : 0
+        };
     },
 
     _adjustTitle: _noop,
