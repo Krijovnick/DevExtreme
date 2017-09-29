@@ -1,8 +1,7 @@
 "use strict";
 
 var $ = require("jquery"),
-    translator2DModule = require("viz/translators/translator2d"),
-    vizUtilsModule = require("viz/core/utils");
+    translator2DModule = require("viz/translators/translator2d");
 
 var canvasTemplate = {
         width: 610,
@@ -395,7 +394,7 @@ QUnit.test('Create discrete translator (Stick = true, invert = true)', function(
         canvas = $.extend({}, canvasTemplate),
         translator;
 
-    translator = this.createTranslator(range, canvas, $.extend({ stick: false }, optionsHorizontal));
+    translator = this.createTranslator(range, canvas, $.extend({ stick: true }, optionsHorizontal));
 
     assert.equal(translator._canvasOptions.interval, 170);
     assert.deepEqual(translator._categoriesToPoints, {
@@ -410,7 +409,7 @@ QUnit.test('Create discrete translator (Stick = true, addSpiderCategory = true)'
     var canvas = $.extend({}, canvasTemplate),
         translator;
 
-    translator = this.createTranslator(range, canvas, $.extend({ stick: false }, optionsHorizontal));
+    translator = this.createTranslator(discreteRange, canvas, $.extend({ stick: false }, optionsHorizontal));
 
     assert.equal(translator._canvasOptions.interval, 127.5);
     assert.deepEqual(translator._categoriesToPoints, {

@@ -244,7 +244,8 @@ QUnit.test("Linear axis updates translator on option changed", function(assert) 
     });
 
     assert.strictEqual(translator2DModule.Translator2D.callCount, 1, "created single translator instance");
-    assert.deepEqual(translator.update.lastCall.args[2], { isHorizontal: true, interval: 0.2, stick: true });
+    assert.equal(translator.update.lastCall.args[2].isHorizontal, true);
+    assert.equal(translator.update.lastCall.args[2].interval, 0.2);
 });
 
 QUnit.test("Linear axis updates translator, valueMarginsEnabled = true - stick false", function(assert) {
