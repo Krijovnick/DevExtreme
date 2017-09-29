@@ -317,6 +317,7 @@ Axis = exports.Axis = function(renderSettings) {
     that._stripsGroup = renderSettings.stripsGroup;
     that._labelAxesGroup = renderSettings.labelAxesGroup;
     that._constantLinesGroup = renderSettings.constantLinesGroup;
+    that._scaleBreaksGroup = renderSettings.scaleBreaksGroup;
     that._axesContainerGroup = renderSettings.axesContainerGroup;
     that._gridContainerGroup = renderSettings.gridGroup;
     that._axisCssPrefix = renderSettings.widgetClass + "-" + (renderSettings.axisClass ? renderSettings.axisClass + "-" : "");
@@ -880,6 +881,9 @@ Axis.prototype = {
         that._axisGroup = that._axisTitleGroup = null;
         that._axesContainerGroup = that._stripsGroup = that._constantLinesGroup = null;
 
+        that._scaleBreaksGroup = null;
+        that._scaleBreakPattern && that._scaleBreakPattern.dispose();
+
         that._renderer = that._options = that._textOptions = that._textFontStyles = null;
         that._translator = null;
         that._majorTicks = that._minorTicks = null;
@@ -1429,6 +1433,7 @@ Axis.prototype = {
 
         updateGridsPosition(that._majorTicks);
         updateGridsPosition(that._minorTicks);
+        that._drawScaleBreaks();
     },
 
     applyClipRects: function(elementsClipID, canvasClipID) {
@@ -1741,9 +1746,9 @@ Axis.prototype = {
     _getTranslatorOptions: function() {
         return {
             isHorizontal: this._isHorizontal,
-            interval: this._options.semiDiscreteInterval,
-            stick: this._getStick()
-            breaksSize: this._options.breaksSize || 0
+            interval: options.semiDiscreteInterval,
+            stick: this._getStick(),
+            breaksSize: options.breakOptions ? options.breakOptions.size : 0
     },
 
     _adjustTitle: _noop,
@@ -1755,6 +1760,8 @@ Axis.prototype = {
     setSpiderTicks: _noop,
 
     _checkBoundedLabelsOverlapping: _noop,
+
+    _drawScaleBreaks: _noop,
 
     ///#DEBUG
     _getTickMarkPoints: _noop,

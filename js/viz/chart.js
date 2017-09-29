@@ -413,7 +413,10 @@ var dxChart = AdvancedChart.inherit({
     },
 
     _prepareAxisOptions: function(typeSelector, userOptions, rotated) {
-        return { isHorizontal: (typeSelector === "argumentAxis") !== rotated };
+        return {
+            isHorizontal: (typeSelector === "argumentAxis") !== rotated,
+            containerColor: this._themeManager.getOptions("containerBackgroundColor")
+        };
     },
 
     _checkPaneName: function(seriesTheme) {

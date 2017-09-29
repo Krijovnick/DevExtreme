@@ -424,6 +424,7 @@ var BaseChart = BaseWidget.inherit({
         that._crosshairCursorGroup = renderer.g().attr({ "class": "dxc-crosshair-cursor" }).linkOn(root, "crosshair");
         that._legendGroup = renderer.g().attr({ "class": "dxc-legend", "clip-path": that._getCanvasClipRectID() }).linkOn(root, "legend");
         that._scrollBarGroup = renderer.g().attr({ "class": "dxc-scroll-bar" }).linkOn(root, "scroll-bar");
+        that._scaleBreaksGroup = renderer.g().attr({ "class": "dxc-scale-breaks" }).linkOn(root, "scale-breaks");
     },
 
     _disposeObjectsInArray: function(propName, fieldNames) {
@@ -478,6 +479,7 @@ var BaseChart = BaseWidget.inherit({
         unlinkGroup("_crosshairCursorGroup");
         unlinkGroup("_legendGroup");
         unlinkGroup("_scrollBarGroup");
+        unlinkGroup("_scaleBreaksGroup");
 
         disposeObject("_canvasClipRect");
         disposeObject("_panesBackgroundGroup");
@@ -494,6 +496,7 @@ var BaseChart = BaseWidget.inherit({
         disposeObject("_crosshairCursorGroup");
         disposeObject("_legendGroup");
         disposeObject("_scrollBarGroup");
+        disposeObject("_scaleBreaksGroup");
     },
 
     _getAnimationOptions: function() {
@@ -789,6 +792,7 @@ var BaseChart = BaseWidget.inherit({
         //that._seriesGroup.linkRemove().clear();
         that._labelsGroup.linkRemove().clear();
         that._crosshairCursorGroup.linkRemove().clear();
+        that._scaleBreaksGroup.linkRemove().clear();
     },
 
     _createLegend: function() {

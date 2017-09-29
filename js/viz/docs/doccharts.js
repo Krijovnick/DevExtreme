@@ -1913,12 +1913,34 @@ var dxChart = {
         */
         minorTickCount: undefined,
         /**
-        * @name dxchartoptions_valueaxis_breakssize
-        * @publicName breaksSize
-        * @type number
-        * @default 10
+        * @name dxchartoptions_valueaxis_breakOptions
+        * @publicName breakOptions
+        * @type object
         */
-        breaksSize: 10,
+        breakOptions: {
+            /**
+            * @name dxchartoptions_valueaxis_breakOptions_size
+            * @publicName size
+            * @type number
+            * @default 5
+            */
+            size: 5,
+            /**
+            * @name dxchartoptions_valueaxis_breakOptions_color
+            * @publicName color
+            * @type string
+            * @default "#ababab"
+            */
+            color: "#ababab",
+            /**
+            * @name dxchartoptions_valueaxis_breakOptions_style
+            * @publicName style
+            * @type string
+            * @default "waved"
+            * @acceptValues 'waved'| 'straight'
+            */
+            style: "waved"
+        },
         /**
         * @name dxchartoptions_valueaxis_autoscalebreaks
         * @publicName autoScaleBreaks

@@ -684,7 +684,7 @@ registerTheme({
             },
             autoScaleBreaks: false,
             maxCountOfBreaks: undefined,
-            breaksSize: 10
+            breakOptions: { size: 5, color: "#ababab", style: "waved" }
         },
         commonPaneSettings: {
             backgroundColor: NONE,
@@ -1539,6 +1539,11 @@ registerTheme({
             border: {
                 color: "#494949"
             }
+        },
+        valueAxis: {
+            breakOptions: {
+                color: "#818181"
+            }
         }
     },
     gauge: {
@@ -1749,6 +1754,11 @@ registerTheme({
             backgroundColor: BLACK,
             border: {
                 color: WHITE
+            }
+        },
+        valueAxis: {
+            breakOptions: {
+                color: "#cf00d7"
             }
         },
         scrollBar: {

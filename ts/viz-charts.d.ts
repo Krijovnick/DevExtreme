@@ -1801,8 +1801,18 @@ declare module DevExpress.viz.charts {
           */
         pane?: string;
 
-        /** @docid dxchartoptions_valueaxis_breakssize */
-        breaksSize?: number;
+        /** @docid dxchartoptions_valueaxis_breakOptions */
+        breakOptions?: {
+
+            /** @docid dxchartoptions_valueaxis_breakOptions_size */
+            size?: number,
+
+            /** @docid dxchartoptions_valueaxis_breakOptions_color */
+            color?: string,
+
+            /** @docid dxchartoptions_valueaxis_breakOptions_style */
+            style?: string
+        },
 
         /** @docid dxchartoptions_valueaxis_autoscalebreaks */
         autoScaleBreaks?: boolean;

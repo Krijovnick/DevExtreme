@@ -279,7 +279,7 @@ QUnit.test("Linear axis with scale breaks", function(assert) {
         isHorizontal: true,
         semiDiscreteInterval: 0.2,
         breaks: [{ from: 0, to: 10 }],
-        breaksSize: 20,
+        breakOptions: { size: 20 },
         label: {}
     });
 

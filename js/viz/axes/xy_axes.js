@@ -17,7 +17,8 @@ var formatHelper = require("../../format_helper"),
     BOTTOM = constants.bottom,
     LEFT = constants.left,
     RIGHT = constants.right,
-    CENTER = constants.center;
+    CENTER = constants.center,
+    SCALE_BREAK_OFFSET = 3;
 
 function prepareDatesDifferences(datesDifferences, tickInterval) {
     var dateUnitInterval,
@@ -892,6 +893,50 @@ module.exports = {
             }
 
             return skippedCategory;
+        },
+
+        _drawBreak: function(br, scaleBreakPattern, positionFrom, positionTo, length) {
+            var that = this,
+                translatedEnd = that._getTranslatedCoord(br.to),
+                breakStart = Math.min(translatedEnd, that._translator.add(translatedEnd, that._isHorizontal ? -length : length, 1)),
+                rect;
+
+            if(that._isHorizontal) {
+                rect = that._renderer.rect(breakStart, positionFrom, scaleBreakPattern.size, positionTo - positionFrom);
+            } else {
+                rect = that._renderer.rect(positionFrom, breakStart, positionTo - positionFrom, scaleBreakPattern.size);
+            }
+            rect.attr({ fill: scaleBreakPattern.id }).append(that._scaleBreaksGroup);
+        },
+
+        _drawScaleBreaks: function() {
+            var that = this,
+                options = that._options,
+                breakOptions = options.breakOptions,
+                position = options.position,
+                positionFrom = that._orthogonalPositions.start - (options.visible && (position === "left" || position === "top") ? SCALE_BREAK_OFFSET : 0),
+                positionTo = that._orthogonalPositions.end + (options.visible && (position === "right" || position === "bottom") ? SCALE_BREAK_OFFSET : 0),
+                scaleBreakPattern;
+
+            if(that.isArgumentAxis || !(that._breaks && that._breaks.length)) {
+                return;
+            }
+
+            if(that._scaleBreakPattern) {
+                that._scaleBreakPattern.dispose();
+            }
+            that._scaleBreakPattern = scaleBreakPattern = that._renderer.linePattern({
+                color: that._options.containerColor,
+                borderColor: breakOptions.color,
+                size: breakOptions.size,
+                canvasLength: positionTo - positionFrom,
+                isHorizontal: that._isHorizontal,
+                isWaved: breakOptions.style.toLowerCase() !== "straight"
+            });
+
+            that._breaks.forEach(function(br) {
+                that._drawBreak(br, scaleBreakPattern, positionFrom, positionTo, breakOptions.size / 2 + scaleBreakPattern.size / 2);
+            });
         },
 
         _getSpiderCategoryOption: noop,

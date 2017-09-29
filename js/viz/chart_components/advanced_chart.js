@@ -309,6 +309,7 @@ var AdvancedChart = BaseChart.inherit({
         that._axesGroup.linkAppend();
         that._constantLinesGroup.linkAppend();
         that._labelAxesGroup.linkAppend();
+        that._scaleBreaksGroup.linkAppend();
     },
 
     _populateBusinessRange: function() {
@@ -447,6 +448,7 @@ var AdvancedChart = BaseChart.inherit({
                 stripsGroup: that._stripsGroup,
                 labelAxesGroup: that._labelAxesGroup,
                 constantLinesGroup: that._constantLinesGroup,
+                scaleBreaksGroup: that._scaleBreaksGroup,
                 axesContainerGroup: that._axesGroup,
                 gridGroup: that._gridGroup,
                 isArgumentAxis: typeSelector === "argumentAxis"
