@@ -1008,7 +1008,7 @@ Axis.prototype = {
         }
     },
 
-    setBusinessRange: function(range) {
+    setBusinessRange: function(range, isMultipleAxes) {
         var validateBusinessRange = function(range, min, max) {
             function validate(valueSelector, baseValueSelector, optionValue) {
                 range[valueSelector] = isDefined(optionValue) ? optionValue :
@@ -1022,7 +1022,7 @@ Axis.prototype = {
 
         this._seriesData = new rangeModule.Range(validateBusinessRange(range, this._options.min, this._options.max));
 
-        this._breaks = getScaleBreaks(this._options, this._seriesData, this._series, this.isArgumentAxis);
+        this._breaks = !isMultipleAxes ? getScaleBreaks(this._options, this._seriesData, this._series, this.isArgumentAxis) : [];
 
         //TODO we should remove it
         //for aggregation

@@ -2274,6 +2274,24 @@ QUnit.test("Do not get scale break if viewport inside it", function(assert) {
     assert.deepEqual(breaks, []);
 });
 
+QUnit.test("Do not get scale break if multiple value axes", function(assert) {
+    this.updateOptions({
+        dataType: "number",
+        breaks: [ {
+            from: 200,
+            to: 500
+        }]
+    });
+
+    this.axis.setBusinessRange({ min: 0, max: 1000, addRange: function() { return this; } }, true);
+
+    this.axis.createTicks(this.canvas);
+
+    var breaks = this.tickGeneratorSpy.lastCall.args[7];
+
+    assert.deepEqual(breaks, []);
+});
+
 QUnit.test("Sorting of the breaks if user set not sorted breaks", function(assert) {
     this.updateOptions({
         dataType: "number",
