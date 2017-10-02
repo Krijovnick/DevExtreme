@@ -136,7 +136,6 @@ function generateAutoBreaks(options, series, viewport) {
             function(min, max) { return max - min; },
         visibleRange = getRange(viewport.minVisible, viewport.maxVisible),
         maxCountOfBreaks,
-        ratio,
         points = series.reduce(function(points, s) {
             points = points.concat(s.getPointsInViewPort());
             return points;
@@ -171,11 +170,6 @@ function generateAutoBreaks(options, series, viewport) {
         return a.from - b.from;
     });
 
-    ratio = visibleRange * 0;
-
-    breaks = breaks.map(function(br) {
-        return { from: br.from + ratio, to: br.to - ratio };
-    });
     return breaks;
 }
 

@@ -2035,6 +2035,27 @@ QUnit.test("Do not tune day off scale break", function(assert) {
     assert.deepEqual(dayOffBreak.to, new Date(2017, 8, 18), "to");
 });
 
+QUnit.test("Do not remove day off scale break if it less than tickInterval", function(assert) {
+    this.createAxis();
+    this.updateOptions({
+        valueType: "datetime",
+        type: "continuous",
+        tickInterval: { weeks: 1 },
+        workdaysOnly: true,
+        workdays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    });
+
+    this.axis.setBusinessRange({ minVisible: new Date(2017, 8, 13), maxVisible: new Date(2017, 9, 20), addRange: function() { return this; } });
+
+    //act
+    this.axis.createTicks(canvas(1000));
+
+    var dayOffBreak = this.translator.updateBusinessRange.lastCall.args[0].breaks[0];
+
+    assert.deepEqual(dayOffBreak.from, new Date(2017, 8, 16), "from");
+    assert.deepEqual(dayOffBreak.to, new Date(2017, 8, 18), "to");
+});
+
 QUnit.test("Generate minor ticks when scale breaks at the begin and at the end", function(assert) {
     this.createAxis();
     this.updateOptions({
@@ -2060,7 +2081,6 @@ QUnit.test("Generate minor ticks when scale breaks at the begin and at the end",
     assert.equal(this.axis._tickInterval, 20);
     assert.deepEqual(this.axis._minorTicks.map(value), [4, 8, 16, 24, 28, 32, 36, 44, 48, 52, 56, 64, 68, 72, 76, 84, 88, 92, 96, 104], "monir ticks");
 });
-
 
 QUnit.test("Move datetime ticks to work day", function(assert) {
     this.createAxis();

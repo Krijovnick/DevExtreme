@@ -381,7 +381,7 @@ function addIntervalWithBreakGap(addInterval, breaks) {
             if(tickInBreak) {
                 gapSize = item.gapSize;
             }
-            return !tickInBreak && !gapSize;
+            return !gapSize;
         })) {
             value = addInterval(value, gapSize);
         }
@@ -396,7 +396,7 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
             tickInterval: getTickIntervalByCustomTicks(customTicks.majors),
             ticks: customTicks.majors || [],
             minorTickInterval: getTickIntervalByCustomTicks(customTicks.minors),
-            minorTicks: customTicks.minors || [],
+            minorTicks: customTicks.minors || []
         };
     }
 
@@ -478,14 +478,13 @@ function generator(options, getBusinessDelta, calculateTickInterval, calculateMi
 }
 
 function getScaleBreaksProcessor(convertTickInterval, addCorrection) {
-
     return function(breaks, tickInterval, screenDelta, axisDivisionFactor) {
         var interval = convertTickInterval(tickInterval),
             maxTickCount = Math.floor(screenDelta / axisDivisionFactor),
             correction = maxTickCount > breaks.length ? interval / 2 : interval / 100;
 
         return breaks.reduce(function(result, b) {
-            if(b.to - b.from < interval) {
+            if(b.to - b.from < interval && !b.gapSize) {
                 return result;
             }
             if(b.gapSize) {
@@ -515,8 +514,7 @@ function numericGenerator(options) {
         calculateMinorTicks(getValue, addInterval, options.endOnTicks ? floor : ceil, addInterval, getValue),
         getScaleBreaksProcessor(getValue, function(value, correction) {
             return value + correction;
-        }),
-        function(b) { return b; }
+        })
     );
 }
 
