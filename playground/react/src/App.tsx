@@ -1,13 +1,11 @@
 import React from 'react';
-import Button from './artifacts/react/renovation/button';
+import Export from './artifacts/react/renovation/viz/export';
 
 function App() {
     return (
-        <Button
-            text={'Click Me!'}
-            icon={'download'}
-            onClick={() => alert('Clicked!')}
-        ></Button>
+        <svg width="500" height="600">
+            <Export x={0.5} y={0.5} color='#e6e6e6' strokeColor='#9d9d9d'/>
+        </svg>
     );
 }
 
