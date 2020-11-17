@@ -702,6 +702,21 @@ export const BaseChart = BaseWidget.inherit({
         that._applyPointMarkersAutoHiding();
         that._renderSeries(drawOptions, isRotated, isLegendInside);
 
+        const asset = this._getOption('asset');
+        if(asset) {
+            const defs = asset.getElements();
+
+            const getPointBBox = (point) => {
+                return that.getSeriesByName(point.seriesName).getPointsByArg(point.argument)[0].getBoundingRect();
+            };
+
+            for(const id in defs) {
+                const opt = defs[id];
+                const size = opt.options.target ? getPointBBox(opt.options.target) : undefined;
+                this._renderer[opt.element](id, defs[id].options, size);
+            }
+        }
+
         that._renderer.unlock();
     },
 

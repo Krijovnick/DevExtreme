@@ -2085,6 +2085,44 @@ Renderer.prototype = {
         return pattern;
     },
 
+    customLinearGradient: function(id, options) {
+        let x1; let x2; let y1; let y2;
+        if(options.rotated) {
+            x1 = x2 = y1 = 0;
+            y2 = 1;
+        } else {
+            x1 = y1 = y2 = 0;
+            x2 = 1;
+        }
+        const gradient = this._createElement('linearGradient', { id: id, x1, x2, y1, y2 }).append(this._defs);
+
+        options.children().forEach(el => {
+            this._createElement('stop', { offset: el.offset, 'stop-color': el.color, 'stop-opacity': el.opacity }).append(gradient);
+        });
+    },
+
+    customRadialGradient: function(id, options) {
+        const gradient = this._createElement('radialGradient', { id: id }).append(this._defs);
+        options.children().forEach(el => {
+            this._createElement('stop', { offset: el.offset, 'stop-color': el.color, 'stop-opacity': el.opacity }).append(gradient);
+        });
+    },
+
+    customPattern: function(id, options, size) {
+        const isPointFilling = options.width === '100%' && options.height === '100%' && options.target;
+        const opt = isPointFilling ? { id: id, width: options.width, height: options.height, patternContentUnits: 'userSpaceOnUse' } :
+            { id: id, width: options.width, height: options.height, patternUnits: 'userSpaceOnUse' };
+        const pattern = this._createElement('pattern', opt)
+            .append(this._defs);
+
+        options.children(size).forEach(el => {
+            if(isPointFilling) {
+                el.setAttribute('preserveAspectRatio', 'none');
+            }
+            pattern.element.appendChild(el);
+        });
+    },
+
     _getPointsWithYOffset: function(points, offset) {
         return points.map(function(point, index) {
             if(index % 2 !== 0) {

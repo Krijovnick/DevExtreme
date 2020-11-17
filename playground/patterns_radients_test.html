@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DevExtreme jQuery Example</title>
+
+    <link rel="stylesheet" type="text/css" href="../artifacts/css/dx.common.css"/>
+
+    <link rel="stylesheet" type="text/css" href="../artifacts/css/dx.light.css"/>
+
+    <script type="text/javascript" src="../artifacts/js/jquery.js"></script>
+
+    <!--<script type="text/javascript" src="../artifacts/js/cldr.js"></script>
+    <script type="text/javascript" src="../artifacts/js/cldr/event.js"></script>
+    <script type="text/javascript" src="../artifacts/js/cldr/supplemental.js"></script>
+    <script type="text/javascript" src="../artifacts/js/cldr/unresolved.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/message.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/number.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/currency.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/date.js"></script>-->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/3.3.1/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.2/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.2/jszip.min.js"></script> -->
+
+    <script type="text/javascript" src="../artifacts/js/dx.all.debug.js" charset="utf-8"></script>
+    <!-- RENOVATION -->
+    <!-- <script type="text/javascript" src="../artifacts/js-renovation/dx.all.debug.js" charset="utf-8"></script> -->
+</head>
+<body>
+    <div id="chart"></div>
+    <script>
+        $(function() {
+            
+        function generateUniqueId() {
+            return 'DevExpress_' + Math.random();
+        }
+
+        function Asset() {
+            this._defs = {};
+        }
+
+        Asset.prototype = {
+            createElement: function(element, options) {
+                const id = generateUniqueId();
+                this._defs[id] = { options: options, element: element};
+                return id;
+            },
+            dispose: function() {
+                this._defs = {}
+            },
+            getElements: function() {
+                return this._defs;
+            },
+        }
+        const asset1 = new Asset();
+            $("#chart").dxChart({
+                asset: asset1,
+                dataSource: [{
+                    day: "Monday",
+                    oranges: 3
+                }, {
+                    day: "Tuesday",
+                    oranges: 2
+                }, {
+                    day: "Wednesday",
+                    oranges: 3
+                }, {
+                    day: "Thursday",
+                    oranges: 4
+                }, {
+                    day: "Friday",
+                    oranges: 6
+                }, {
+                    day: "Saturday",
+                    oranges: 11
+                }],
+                // customizePoint: function(point) {
+                //     if(point.argument === 'Monday') {
+                //         return { 
+                //             color: asset1.createElement('customPattern', {
+                //                 width: '100%', height: '100%', target: point,
+                //                 children: (size) => {
+                //                     const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+                //                     image.setAttribute('href', 'https://interactive-examples.mdn.mozilla.net/media/cc0-images/grapefruit-slice-332-332.jpg');
+                //                     image.setAttribute('x', 0);
+                //                     image.setAttribute('y', 0);
+                //                     image.setAttribute('width', size.width);
+                //                     image.setAttribute('height', size.height);
+                //                     return [image];
+                //                 }
+                //             })
+                //         }
+                //     }
+                // },
+                series: [{
+                    hoverMode: 'none',
+                    argumentField: "day",
+                    valueField: "oranges",
+                    type: "bar",
+                    // color: asset1.createElement('customLinearGradient', {
+                    //     // rotated: true,
+                    //     children: () => [{
+                    //         offset: '0%',
+                    //         color: 'blue'
+                    //     }, {
+                    //         offset: '50%',
+                    //         color: 'orange',
+                    //         opacity: 0.5
+                    //     }]
+                    // }),
+
+                    // color: asset1.createElement('customRadialGradient', {
+                    //     children: () => [{
+                    //         offset: '50%',
+                    //         color: 'blue'
+                    //     }, {
+                    //         offset: '70%',
+                    //         color: 'orange',
+                    //         opacity: 0.5
+                    //     }]
+                    // }),
+
+                    color: asset1.createElement('customPattern', {
+                        width: 10,
+                        height: 10,
+                        children: (size) => {
+                            var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                            var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+
+                            path.setAttribute("fill", 'red');
+                            path.setAttribute("stroke", 'blue');
+                            path.setAttribute("d", `M 0 0 L 10 0 L 5 10 z`);
+                            rect.setAttribute("fill", 'orange');
+                            rect.setAttribute("x", 0);
+                            rect.setAttribute("y", 0);
+                            rect.setAttribute("width", 5);
+                            rect.setAttribute("height", 5);
+                            return [
+                                path,
+                                rect
+                            ]
+                        }
+                    }),
+                    
+                }]
+            });
+        });
+    </script>
+</body>
+</html>
