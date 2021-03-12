@@ -200,7 +200,7 @@ const baseTrackerPrototype = {
         that._tooltip.hide();
     },
 
-    _showTooltip: function(point) {
+    _showTooltip: function(point, rootOffsetTest) {
         const that = this;
         let tooltipFormatObject;
         const eventData = { target: point };
@@ -212,9 +212,22 @@ const baseTrackerPrototype = {
             }
 
             const coords = point.getTooltipParams(that._tooltip.getLocation());
-            const rootOffset = that._renderer.getRootOffset();
-            coords.x += rootOffset.left;
-            coords.y += rootOffset.top;
+
+            // const rootOffset = that._renderer.getRootOffset();
+
+            coords.x -= rootOffsetTest.x;
+            coords.y -= rootOffsetTest.y;
+
+            // const svg = that._renderer.getSVGElement()[0];
+            // let pt = svg.createSVGPoint();
+            // pt.x = coords.x + rootOffset.left;
+            // pt.y = coords.y + rootOffset.top;
+            // pt = pt.matrixTransform(svg.getScreenCTM().inverse());
+            // console.log(coords);
+            // console.log(pt);
+            // console.log('----------');
+            // coords.x = pt.x;
+            // coords.y = pt.y;
             const callback = (result) => {
                 result && (that.pointAtShownTooltip = point);
             };
@@ -347,12 +360,23 @@ const baseTrackerPrototype = {
 
     _pointerHandler: function(e) {
         const that = e.data.tracker;
-        const rootOffset = that._renderer.getRootOffset();
-        const x = _floor(e.pageX - rootOffset.left);
-        const y = _floor(e.pageY - rootOffset.top);
+        // const rootOffset = that._renderer.getRootOffset();
+        const rootOffsetTest = { x: e.offsetX - e.pageX, y: e.offsetY - e.pageY };
+        const x = _floor(e.pageX + rootOffsetTest.x);
+        const y = _floor(e.pageY + rootOffsetTest.y);
         const canvas = that._getCanvas(x, y);
         let series = getData(e, SERIES_DATA);
         let point = getData(e, POINT_DATA) || series?.getPointByCoord(x, y);
+
+        const svg = that._renderer.getSVGElement()[0];
+        let pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+
+        pt = pt.matrixTransform(svg.getScreenCTM().inverse());
+        // console.log(`x: ${x}, y: ${y}`);
+        // console.log(pt);
+        // console.log('----------');
 
         that._isHolding = false;
         clearTimeout(that._holdTimer);
@@ -417,18 +441,19 @@ const baseTrackerPrototype = {
         } else if(!that._stickyHovering) {
             that._pointerOut();
         }
-
-        that._pointerComplete(point, x, y);
+        that._pointerComplete(point, rootOffsetTest, x, y);
     },
 
-    _pointerOnPoint: function(point, x, y) {
+    _pointerOnPoint: function(point, x, y, e) {
         this._resetHoveredArgument();
         this._setHoveredPoint(point);
-        this._pointerComplete(point, x, y);
+
+        const rootOffset = { x: e.offsetX - e.pageX, y: e.offsetY - e.pageY };
+        this._pointerComplete(point, rootOffset, x, y);
     },
 
-    _pointerComplete: function(point) {
-        this.pointAtShownTooltip !== point && this._tooltip.isEnabled() && this._showTooltip(point);
+    _pointerComplete: function(point, rootOffset) {
+        this.pointAtShownTooltip !== point && this._tooltip.isEnabled() && this._showTooltip(point, rootOffset);
     },
 
     _clickHandler: function(e) {
@@ -607,12 +632,12 @@ extend(ChartTracker.prototype, baseTrackerPrototype, {
         }
     },
 
-    _pointerComplete: function(point, x, y) {
+    _pointerComplete: function(point, rootOffset, x, y) {
         const that = this;
         that.hoveredSeries && that.hoveredSeries.updateHover(x, y);
         that._resetTimer();
         that._moveCrosshair(point, x, y);
-        baseTrackerPrototype._pointerComplete.call(that, point);
+        baseTrackerPrototype._pointerComplete.call(that, point, rootOffset);
     },
 
     _legendClick: function(item, e) {

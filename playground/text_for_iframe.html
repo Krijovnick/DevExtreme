@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <p id="test_element_2">When this property is true, a point remains in the hover state until the mouse pointer moves over to another point or outside the chart plot.
+        When this property is false, a point remains in the hover state until the mouse pointer moves away from the point. A tooltip is a miniature rectangle displaying values of a series point. A tooltip appears when the end-user hovers the cursor over a series point. 
+        You can enable/disable tooltips, change their appearance and format their text using fields of the tooltip configuration object.</p>
+        <script>
+            document.getElementById('test_element_2').addEventListener('click', (e) => {
+                console.log('clicked test_element_2');
+                console.log(`clientY: ${e.clientY}`);
+                console.log(`offsetY: ${e.offsetY}`);
+                console.log(`pageY: ${e.pageY}`);
+                console.log(`screenY: ${e.screenY}`);
+                console.log(`offsetX - clientX: ${e.offsetX - e.clientX}`);
+                console.log('---------')
+            })
+        </script>
+</body>
+</html>

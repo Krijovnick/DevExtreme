@@ -1995,6 +1995,10 @@ Renderer.prototype = {
         return this.root.getOffset();
     },
 
+    getSVGElement: function() {
+        return this.root._getJQElement();
+    },
+
     onEndAnimation: function(endAnimation) {
         this._animationController.onEndAnimation(endAnimation);
     },

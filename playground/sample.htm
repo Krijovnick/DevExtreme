@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>DevExtreme Demo</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>window.jQuery || document.write(decodeURIComponent('%3Cscript src="js/jquery.min.js"%3E%3C/script%3E'))</script>
+    <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/20.2.5/css/dx.common.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn3.devexpress.com/jslib/20.2.5/css/dx.light.css" />
+    <script type="text/javascript" src="../artifacts/js/dx.all.debug.js" charset="utf-8"></script>
+    <script >
+var dataSource = [{
+    day: "Monday",
+    oranges: 5
+}, {
+    day: "Tuesday",
+    oranges: 4
+}, {
+    day: "Wednesday",
+    oranges: 3
+}, {
+    day: "Thursday",
+    oranges: 2
+}, {
+    day: "Friday",
+    oranges: 1
+}, {
+    day: "Saturday",
+    oranges: 2
+}, {
+    day: "Sunday",
+    oranges: 3
+}];
+$(function(){
+    $("#chart1").dxChart({
+        dataSource: dataSource, 
+        tooltip: {
+            enabled: true
+        },
+        stickyHovering: false,
+        series: {
+            argumentField: "day",
+            valueField: "oranges",
+            name: "My oranges",
+            type: "line",
+            color: '#ffaa66'
+        }
+    });    
+$("#chart2").dxChart({
+        dataSource: dataSource, 
+        tooltip: {
+            enabled: true
+        },
+        stickyHovering: false,
+        series: {
+            argumentField: "day",
+            valueField: "oranges",
+            name: "My oranges",
+            type: "line",
+            color: '#ffaa66'
+        }
+    });
+});
+</script>
+    <script src="index.js"></script>
+<style type="text/css">
+</style>
+</head>
+<body class="dx-viewport">
+<div style="transform:scale(1.0); transform-origin:0px 0px">
+    <div class="demo-container" style="width:500px">
+        <div id="chart1"></div>
+    </div>
+</div>
+<div style="transform:scale(0.6); transform-origin:0px 0px">
+    <div class="demo-container" style="width:500px">
+        <div id="chart2"></div>
+    </div>
+</div>
+</body>
+</html>

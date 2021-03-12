@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DevExtreme jQuery Example</title> 
+
+    <!-- <link rel="stylesheet" type="text/css" href="../artifacts/css/dx.common.css"/> -->
+
+    <link rel="stylesheet" type="text/css" href="../artifacts/css/dx.light.css"/>
+
+    <script type="text/javascript" src="../artifacts/js/jquery.js"></script>
+
+    <!--<script type="text/javascript" src="../artifacts/js/cldr.js"></script>
+    <script type="text/javascript" src="../artifacts/js/cldr/event.js"></script>
+    <script type="text/javascript" src="../artifacts/js/cldr/supplemental.js"></script>
+    <script type="text/javascript" src="../artifacts/js/cldr/unresolved.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/message.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/number.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/currency.js"></script>
+    <script type="text/javascript" src="../artifacts/js/globalize/date.js"></script>-->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/1.7.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.2/jszip.min.js"></script> -->
+
+    <script type="text/javascript" src="../artifacts/js/dx.all.debug.js" charset="utf-8"></script>
+</head>
+<body>
+    <style>
+        #container {
+            transform:scale(0.6); transform-origin:0px 0px
+}
+        </style>
+    <div>
+        <iframe src="text_for_iframe.html" width="468" height="60" scrolling="yes">
+            Ваш браузер не поддерживает встроенные фреймы!
+         </iframe>
+        
+         <div id="container">
+            <svg id="SVGVB" width="200" height="200">
+                <rect x="0" y="0" width="400" height="400" fill="blue"/>
+            </svg>
+        </div>
+
+         <svg id="svgFO" xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 1920 1080" preserveAspectRatio="none">
+        <foreignObject class="DataAnalisysRT" 
+        id="DataAnalisysRT" x="12" y="10" width="1000" height="600" style="background: rgb(255, 255, 255);">
+        <p id="test_element_1">When this property is true, a point remains in the hover state until the mouse pointer moves over to another point or outside the chart plot.
+            When this property is false, a point remains in the hover state until the mouse pointer moves away from the point. A tooltip is a miniature rectangle displaying values of a series point. A tooltip appears when the end-user hovers the cursor over a series point. 
+            You can enable/disable tooltips, change their appearance and format their text using fields of the tooltip configuration object.</p>
+          </foreignObject>
+      </svg>
+    </div>
+    <script>
+        const svg = document.getElementById('svgFO');
+        let pt = svg.createSVGPoint();
+        document.getElementById('test_element_1').addEventListener('click', (e) => {
+            pt.x = e.clientX;
+            pt.y = e.clientY;
+            pt = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+            console.log('clicked test_element_1');
+            // console.log(`clientX: ${e.clientX}`);
+            // console.log(`offsetX: ${e.offsetX}`);
+            // console.log(`pageX: ${e.pageX}`);
+            // console.log(`screenX: ${e.screenX}`);
+            // console.log(`offsetX - clientX: ${e.offsetX - e.clientX}`);
+            // console.log(`offset - client: ${e.offsetX - e.clientX}; ${e.offsetY - e.clientY}`);
+            console.log(`Client: ${e.clientX}; ${e.clientY}`);
+            console.log(`pt: ${pt.x}; ${pt.y}`);
+            console.log('---------');
+        });
+        const svg_2 = document.getElementById('SVGVB');
+        let pt_2 = svg.createSVGPoint();
+        document.getElementById('SVGVB').addEventListener('click', (e) => {
+            pt_2.x = e.clientX;
+            pt_2.y = e.clientY;
+            pt_2 = pt_2.matrixTransform(svg_2.getScreenCTM().inverse());
+
+            console.log('clicked SVGVB');
+            // console.log(`clientX: ${e.clientX}`);
+            // console.log(`offsetX: ${e.offsetX}`);
+            // console.log(`pageX: ${e.pageX}`);
+            // console.log(`screenX: ${e.screenX}`);
+            // console.log(`offset - client: ${e.offsetX - e.clientX}; ${e.offsetY - e.clientY}`);
+            console.log(`Coord: ${e.clientX}; ${e.clientY}`);
+            console.log(`pt: ${pt_2.x}; ${pt_2.y}`);
+            console.log('---------');
+        });
+    </script>
+</body>
+</html>
