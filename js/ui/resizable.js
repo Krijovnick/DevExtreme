@@ -79,7 +79,47 @@ const Resizable = DOMComponent.inherit({
 
     _init: function() {
         this.callBase();
-        this.$element().addClass(RESIZABLE_CLASS);
+        this.$element().addClass(RESIZABLE_CLASS).attr('tabindex', 0);
+
+        const that = this;
+
+        this.$element()[0].addEventListener('keydown', (event) => {
+            if((event.ctrlKey || event.metaKey) && (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowUp' ||
+            event.key === 'ArrowDown')) {
+                const $element = that.$element();
+                $element.toggleClass(RESIZABLE_RESIZING_CLASS, true);
+                that._movingSides = {
+                    top: false,
+                    left: false,
+                    bottom: event.key === 'ArrowUp' || event.key === 'ArrowDown',
+                    right: event.key === 'ArrowLeft' || event.key === 'ArrowRight'
+                };
+                that._elementLocation = locate($element);
+                that._elementSize = that._getElementSize();
+                let x = 0;
+                let y = 0;
+
+                if(event.key === 'ArrowLeft') {
+                    x = -1;
+                } else if(event.key === 'ArrowRight') {
+                    x = 1;
+                } else if(event.key === 'ArrowUp') {
+                    y = -1;
+                } else if(event.key === 'ArrowDown') {
+                    y = 1;
+                }
+
+                const offset = {
+                    x,
+                    y
+                };
+                const delta = that._getDeltaByOffset(offset);
+
+                const dimensions = that._updateDimensions(delta);
+
+                that._updatePosition(delta, dimensions);
+            }
+        });
     },
 
     _initMarkup: function() {
